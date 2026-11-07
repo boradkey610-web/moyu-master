@@ -1,0 +1,1 @@
+{"name":"moyu-master","version":"1.0.0","type":"module","private":true,"scripts":{"test":"node --test","start":"node server.mjs","build":"node --check src/engine.js && node --check src/render.js && node --check src/app.js"}}

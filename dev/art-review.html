@@ -1,0 +1,20 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>步态与坐姿检查</title><style>body{margin:0;background:#f7efe0;color:#675844;font:16px system-ui}header{padding:16px;display:flex;align-items:center;gap:15px}button{padding:8px 16px;border:1px solid #b3a184;border-radius:8px;background:#fff8ed;color:inherit}canvas{display:block;max-width:100%;height:auto}#status{font-size:13px}</style><header><b>角色实际动画检查</b><button id="toggle">暂停动画</button><button id="step">下一帧</button><span id="status">加载素材</span></header><canvas id="review" width="1000" height="750" aria-label="四向行走及坐姿实时预览"></canvas><script type="module">
+import {Renderer} from '../src/render.js';
+const canvas=document.querySelector('canvas'),r=new Renderer(canvas),c=canvas.getContext('2d');await r.ready;
+let tick=0,running=true,last=0;
+document.querySelector('#toggle').onclick=()=>{running=!running;document.querySelector('#toggle').textContent=running?'暂停动画':'播放动画';};
+document.querySelector('#step').onclick=()=>{running=false;tick=(Math.floor(tick*62/8.5)+1)*8.5/62+.0001;document.querySelector('#toggle').textContent='播放动画';};
+function draw(now){if(running&&last)tick+=Math.min(.05,(now-last)/1000);last=now;c.fillStyle='#f7efe0';c.fillRect(0,0,1000,750);
+for(const [i,d]of ['right','left','down','up'].entries()){
+ r.text(c,['向右','向左','向下','向上'][i],135+i*240,33,22);
+ for(const [j,type]of ['player','boss','supervisor','npc'].entries()){
+ c.save();c.translate(135+i*240,182+j*132);c.scale(1.2,1.2);r.paintedPerson(c,{x:0,y:0,type,activity:'work'},{direction:d,seated:false,moving:true,travel:tick*62},tick);c.restore();
+ }
+}
+for(const [i,activity]of ['work','joke','game'].entries()){
+ const x=230+i*280;r.text(c,['坐下办公','坐着看手机','坐着打游戏'][i],x,626,17);
+ r.paintedPerson(c,{x,y:714,type:'player',activity},{seated:true},tick);
+}
+document.querySelector('#status').textContent='动画帧 '+Math.floor(tick*62/8.5)%4+' · 速度与游戏一致';requestAnimationFrame(draw);}
+requestAnimationFrame(draw);
+</script></html>
