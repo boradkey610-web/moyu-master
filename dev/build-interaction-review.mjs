@@ -7,9 +7,9 @@ let html=await read('index.html');html=html.replace('href="style.css"','href="..
 html=html.replace('</head>','<style>@media(max-width:600px){body>aside{display:none!important}}</style></head>');
 await writeFile(new URL('outputs/interaction-review.html',root),html);
 let app=await read('src/app.js');app=app.replace("from './engine.js'","from '../src/engine.js'").replace("from './render.js'","from '../src/render.js'");
-app=app.replace("localStorage.setItem('moyu-master-save-v1',JSON.stringify(save))",'void 0');
+app=app.replaceAll('localStorage.setItem(SAVE_KEY,JSON.stringify(save))','void 0');
 app+=`\nconst review=document.createElement('aside');review.style.cssText='position:fixed;left:6px;top:6px;z-index:1000;width:155px;padding:8px;background:#fffdf5;border:1px solid #ddd;font:11px system-ui;';review.innerHTML='<b>开发场景检查</b><div id="review-buttons"></div><pre id="review-state" style="white-space:pre-wrap"></pre>';document.body.append(review);
-function base(){g=new Game(2,123);g.npcs=[];g.inspectors=[];g.specialAt=999;g.dropAt=999;g.coins=127;g.time=92;g.elapsed=12;g.toastLeft=0;g.special={seat:6,left:16};lastModal=null;hide();}
+function base(){g=new Game(2,123);g.npcs=[];g.inspectors=[];g.specialAt=999;g.dropAt=999;g.coins=127;g.time=g.config.time;g.elapsed=12;g.toastLeft=0;g.special={seat:6,left:16};lastModal=null;hide();}
 const fixture={
  '换位遇老板':()=>{base();g.inspectors=[{...new Game(2,123).inspectors[0],x:500,y:585,queue:[{kind:'wait',left:30,angle:-Math.PI/2}]}];},
  '老板招呼':()=>encounter('老板'), '主管招呼':()=>encounter('主管'),
@@ -22,6 +22,10 @@ const fixture={
  '首次警告':()=>{base();g.player.activity='dance';g.catchPlayer('老板');},
  '扣款提醒':()=>{base();g.warned=true;g.player.activity='game';g.catchPlayer('主管');},
  '破产提醒':()=>{base();g.warned=true;g.coins=20;g.catchPlayer('老板');},
+ '拾取练习':()=>{base();g.inspectors=new Game(2,123).inspectors;g.drops=[{seat:6,type:'mirror'}];},
+ '暴露练习':()=>{base();g.player.activity='dance';g.comboTime=8;g.pendingBonus=17.4;g.exposure=.31;g.exposureLimit=.5;g.inspectors=[{...new Game(2,123).inspectors[0],x:545,y:585,angle:-Math.PI/2,directed:true,queue:[{kind:'wait',phase:'checking',left:2,angle:-Math.PI/2}]}];g.paused=true;},
+ '检查预告':()=>{base();g.player.activity='game';g.comboTime=10;g.pendingBonus=12.6;g.inspectors=[{...new Game(2,123).inspectors[0],x:545,y:585,angle:-Math.PI/2,directed:true,queue:[{kind:'wait',phase:'warning',left:1.2,angle:-Math.PI/2}]}];g.paused=true;},
+ '极限到账':()=>{base();g.feedback={kind:'close',text:'差一点！',amount:18.6,left:1.1,x:g.player.x,y:g.player.y};g.paused=true;},
  '暂停面板':()=>{base();pause();}, '求助面板':()=>{base();help();}, '选择关卡':()=>selectLevel(), '开始页面':()=>menu()
 };
 function encounter(who){base();g.mirror=8;g.inspectors=[{...new Game(2,123).inspectors[0],name:who,x:355,y:540,queue:[{kind:'wait',left:20,angle:-Math.PI/2}]}];Object.assign(g.player,{x:355,y:565,seat:null,target:6,route:[{x:355,y:585},{x:455,y:585},{x:455,y:515}]});g.step(.02);}
