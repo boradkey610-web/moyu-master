@@ -1,4 +1,58 @@
 {
+  "map-floor": {
+    "src": "assets/components-v2/floor.png",
+    "width": 1024,
+    "height": 1536,
+    "bounds": [0, 0, 1024, 1536]
+  },
+  "map-door": {
+    "src": "assets/components-v2/door.png",
+    "width": 1024,
+    "height": 1024,
+    "bounds": [0, 0, 1024, 1024]
+  },
+  "map-desk": {
+    "src": "assets/components-v2/desk.png",
+    "width": 1024,
+    "height": 1024,
+    "bounds": [0, 0, 1024, 1024]
+  },
+  "map-chair-empty": {
+    "src": "assets/components-v2/chair-empty.png",
+    "width": 1024,
+    "height": 1024,
+    "bounds": [0, 0, 1024, 1024]
+  },
+  "map-chair-occupied": {
+    "src": "assets/components-v2/chair-occupied.png",
+    "width": 1024,
+    "height": 1024,
+    "bounds": [0, 0, 1024, 1024]
+  },
+  "map-player-work": {
+    "src": "assets/components-v2/player-work.png",
+    "width": 1024,
+    "height": 1024,
+    "bounds": [0, 0, 1024, 1024]
+  },
+  "map-player-joke": {
+    "src": "assets/components-v2/player-joke.png",
+    "width": 1024,
+    "height": 1024,
+    "bounds": [0, 0, 1024, 1024]
+  },
+  "map-player-game": {
+    "src": "assets/components-v2/player-game.png",
+    "width": 1024,
+    "height": 1024,
+    "bounds": [0, 0, 1024, 1024]
+  },
+  "map-player-dance": {
+    "src": "assets/components-v2/player-dance.png",
+    "width": 1024,
+    "height": 1024,
+    "bounds": [0, 0, 1024, 1024]
+  },
   "back_steps": {
     "src": "assets/back_steps.png",
     "width": 1774,

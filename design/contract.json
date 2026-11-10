@@ -1,0 +1,85 @@
+{
+  "meta": {
+    "name": "moyu-master-ui",
+    "version": "1.0",
+    "canvas": {
+      "width": 720,
+      "height": 920
+    },
+    "style": "warm comic office"
+  },
+  "components": [
+    {
+      "id": "map-base",
+      "type": "canvas",
+      "implementation": "src/components.js",
+      "export": "drawMapBase",
+      "consumer": "src/render.js",
+      "designReference": "outputs/ui-mapstyle/02-layout-with-doors.png",
+      "states": [
+        "default"
+      ],
+      "constraints": [
+        "2 columns and 3 rows",
+        "12 seats",
+        "3 vertical walkways",
+        "4 horizontal walkways",
+        "4 doors on each side wall",
+        "rear view"
+      ]
+    },
+    {
+      "id": "activity-layer",
+      "type": "canvas",
+      "implementation": "src/components.js",
+      "export": "drawActivity",
+      "consumer": "src/render.js",
+      "designReference": "outputs/ui-rearview/02-rearview-activities.png",
+      "states": [
+        "joke",
+        "game",
+        "dance"
+      ],
+      "constraints": [
+        "rear view",
+        "no extra hardware",
+        "uses the existing seat and monitor",
+        "seat-specific"
+      ]
+    },
+    {
+      "id": "boss-vision",
+      "type": "canvas",
+      "implementation": "src/components.js",
+      "export": "drawVision",
+      "consumer": "src/render.js",
+      "designReference": "outputs/ui-rearview/03-rearview-boss-vision.png",
+      "states": [
+        "patrol",
+        "warning",
+        "checking"
+      ],
+      "constraints": [
+        "originates from the inspector position",
+        "does not move the map layout",
+        "state colors differ clearly"
+      ]
+    },
+    {
+      "id": "hud-sticker",
+      "type": "dom",
+      "implementation": "src/components.js",
+      "export": "initStickerHud",
+      "consumer": "src/app.js",
+      "designReference": "outputs/ui-components/01-ui-components.png",
+      "states": [
+        "default"
+      ],
+      "constraints": [
+        "covers HUD, activity buttons, work button, and tool buttons",
+        "uses sticker borders and highlights",
+        "keeps existing interaction logic"
+      ]
+    }
+  ]
+}

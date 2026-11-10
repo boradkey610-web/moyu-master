@@ -1,6 +1,8 @@
 import {Game,seats,activities,levels} from './engine.js';
 import {Renderer} from './render.js';
+import {initStickerHud} from './components.js';
 const $=s=>document.querySelector(s),canvas=$('#office'),renderer=new Renderer(canvas);
+initStickerHud();
 let save={unlocked:1,best:{}},g=new Game(),screen='menu',lastModal=null,lastTime=0,visualTime=0,sound=true,audio;
 const SAVE_KEY='moyu-master-save-v4-sound';
 function readStoredSave(key){try{const data=JSON.parse(localStorage.getItem(key));return data&&typeof data==='object'&&!Array.isArray(data)?data:null;}catch{return null;}}
@@ -41,7 +43,7 @@ function paintHomeArt(){
   const wash=c.createLinearGradient(0,0,0,430);wash.addColorStop(0,'#b9e4dadd');wash.addColorStop(.35,'#fff2c800');wash.addColorStop(1,'#d6a96766');c.fillStyle=wash;c.fillRect(0,0,360,430);
   // Foreground confrontation: the phone stays hidden behind the desk.
   renderer.ellipse(c,68,270,31,9,'#54412b35');renderer.sprite(c,'idle',1,1,68,270,154);
-  renderer.asset(c,'desk',110,205,253,160);
+  c.save();c.translate(110,205);c.scale(1.33,1.33);renderer.desk(c,0,0,0,0);c.restore();
   renderer.sprite(c,'seated',0,1,251,363,157);renderer.chair(c,251,347,false,'front');
  }
  for(const tile of document.querySelectorAll('canvas[data-level-art]')){
@@ -91,9 +93,9 @@ function instructions(back=()=>hide()){
  ];
  show(panelHead('briefcase','入职手册','摸鱼要有分寸')+'<ul>'+rules.map(rule=>'<li>'+rule+'</li>').join('')+'</ul>',[['知道了，稳稳拿捏',back,'primary']]);
 }
-function pause(){if(g.modal||screen)return;screen='pause';show(panelHead('pause','休息一下','喝口水，再继续')+'<p>时间停在这一刻。<br>准备好了，再回办公室。</p>',[['继续摸鱼',hide,'primary'],['重开本关',()=>start(g.level)],[sound?'音效：开':'音效：关',()=>{sound=!sound;screen=null;hide();pause();}],['返回关卡',selectLevel,'secondary']]);}
+function pause(){if(g.modal||screen||g.show)return;screen='pause';show(panelHead('pause','休息一下','喝口水，再继续')+'<p>时间停在这一刻。<br>准备好了，再回办公室。</p>',[['继续摸鱼',hide,'primary'],['重开本关',()=>start(g.level)],[sound?'音效：开':'音效：关',()=>{sound=!sound;screen=null;hide();pause();}],['返回关卡',selectLevel,'secondary']]);}
 function help(){
- if(g.modal||screen)return;
+ if(g.modal||screen||g.show)return;
  screen='help';
  show(`${panelHead('help','同事支援 · 时间已暂停','给自己留个后手')}<p>空工位也能捡到道具，坐下即可领取。</p><div class="assist-budget"><b>剩余 ${Math.max(0,2-g.ads)} 次助力</b><span>使用后记录为助力成绩</span></div>`);
  if(g.level===0){$('#dialog').append(button('第一天先熟悉玩法',()=>instructions(hide),'primary'));}
@@ -109,7 +111,7 @@ function help(){
  }
  const note=document.createElement('p');note.className='assist-note';note.textContent='试玩奖励模拟 · 不播放广告';$('#dialog').append(note,button('返回办公室',hide,'secondary'));
 }
-function meeting(){if(g.modal||screen)return;if(!g.inventory.meeting){g.notify('空工位拾取开会通知，或在求助中领取');return;}screen='meeting';show(panelHead('briefcase','会议邀请','请谁去开会？')+'<p>对方会步行离场，离场后 10 秒再返回。<br>先收手，再发通知更稳妥。</p>');for(const [i,ins]of g.inspectors.entries()){const b=button(`请${ins.name}去开会`,()=>{hide();g.useMeeting(i);});b.disabled=ins.hidden||ins.leaving;$('#dialog').append(b);}$('#dialog').append(button('先不发了',hide,'secondary'));}
+function meeting(){if(g.modal||screen||g.show)return;if(!g.inventory.meeting){g.notify('空工位拾取开会通知，或在求助中领取');return;}screen='meeting';show(panelHead('briefcase','会议邀请','请谁去开会？')+'<p>对方会步行离场，离场后 10 秒再返回。<br>先收手，再发通知更稳妥。</p>');for(const [i,ins]of g.inspectors.entries()){const b=button(`请${ins.name}去开会`,()=>{hide();g.useMeeting(i);});b.disabled=ins.hidden||ins.leaving;$('#dialog').append(b);}$('#dialog').append(button('先不发了',hide,'secondary'));}
 function record(){const key=`${g.level}-${g.ads?'assisted':'clean'}`,used=g.config.time+(g.extended?15:0)-g.time;save.unlocked=Math.max(save.unlocked,Math.min(levels.length,g.level+2));save.best[key]=Math.min(save.best[key]??Infinity,used);try{localStorage.setItem(SAVE_KEY,JSON.stringify(save));}catch{}}
 function rewardConfirm(type){screen='reward';show(panelHead('help','本地试玩','领取测试奖励')+'<p>这是本地试玩中的奖励模拟。<br>确认后消耗一次助力机会；取消不消耗。</p>',[['确认领取测试奖励',()=>{screen=null;g.paused=false;g.reward(type);lastModal=null;if(!g.modal)hide();},'primary'],['取消',()=>{screen=null;lastModal=null;},'secondary']]);}
 function processModal(){if(!g.modal||screen==='reward'||g.modal===lastModal)return;lastModal=g.modal;screen='result';const m=g.modal;
@@ -130,14 +132,14 @@ function processModal(){if(!g.modal||screen==='reward'||g.modal===lastModal)retu
   if(timeout&&g.level>0&&g.ads<2&&!g.extended)$('#dialog').append(button('再争取 15 秒 · 测试助力',()=>rewardConfirm('extend'),'outlined'));
   $('#dialog').append(button('选择关卡',selectLevel,'secondary'));
  }}
-const seatButtons=seats.map(s=>{const b=document.createElement('button');b.className='seat-hit';b.style.left=`${s.x/720*100}%`;b.style.top=`${s.y/920*100}%`;b.setAttribute('aria-label',`移动到${s.id+1}号工位`);b.onclick=()=>{if(!screen){if(g.moveTo(s.id))beep(520);else g.notify('当前不能换到这个工位');}};$('#seat-buttons').append(b);return b;});
-for(const b of document.querySelectorAll('[data-activity]'))b.onclick=()=>{if(!screen){g.setActivity(b.dataset.activity);beep(b.dataset.activity==='dance'?700:500);}};
-$('#work').onclick=()=>{if(!screen){g.setActivity('work');beep(320);}};$('#mirror').onclick=()=>{if(!screen&&!g.useMirror())g.notify(g.inventory.mirror?'检查者暂时离场，回来后再用':'空工位拾取反光镜，或在求助中领取');};$('#meeting').onclick=meeting;$('#help').onclick=help;$('#pause').onclick=pause;
-document.addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='Escape'){if(screen==='pause')hide();else if(!screen)pause();}if(screen)return;const a={Digit1:'joke',Digit2:'game',Digit3:'dance',Space:'work'}[e.code];if(a){e.preventDefault();g.setActivity(a);}});
+const seatButtons=seats.map(s=>{const b=document.createElement('button');b.className='seat-hit';b.style.left=`${s.x/720*100}%`;b.style.top=`${s.y/920*100}%`;b.setAttribute('aria-label',`移动到${s.id+1}号工位`);b.onclick=()=>{if(!screen&&!g.show){if(g.moveTo(s.id))beep(520);else g.notify('当前不能换到这个工位');}};$('#seat-buttons').append(b);return b;});
+for(const b of document.querySelectorAll('[data-activity]'))b.onclick=()=>{if(!screen&&!g.show){g.setActivity(b.dataset.activity);beep(b.dataset.activity==='dance'?700:500);}};
+$('#work').onclick=()=>{if(!screen&&!g.show){g.setActivity('work');beep(320);}};$('#mirror').onclick=()=>{if(!screen&&!g.show&&!g.useMirror())g.notify(g.inventory.mirror?'检查者暂时离场，回来后再用':'空工位拾取反光镜，或在求助中领取');};$('#meeting').onclick=meeting;$('#help').onclick=help;$('#pause').onclick=pause;
+document.addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='Escape'){if(screen==='pause')hide();else if(!screen&&!g.show)pause();}if(screen||g.show)return;const a={Digit1:'joke',Digit2:'game',Digit3:'dance',Space:'work'}[e.code];if(a){e.preventDefault();g.setActivity(a);}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&!screen&&!g.modal)pause();lastTime=0;});
 function updateUI(){
  const p=g.player,boosted=g.special?.seat===p.seat&&p.seat!==null,multiplier=boosted?2:1,moving=!!p.route.length;
- const blocked=!!screen||!!g.modal,stopping=p.stopping>0,locked=p.lock>0;
+ const blocked=!!screen||!!g.modal||!!g.show,stopping=p.stopping>0,locked=p.lock>0;
  const checks=g.inspectors.filter(i=>!i.hidden).map(i=>{const q=i.queue[0];return `${i.name}${q?.phase==='warning'?(i.threatensPlayer===false?'在查别处':`预告${Math.ceil(q.left)}秒`):q?.phase==='checking'?(i.threatensPlayer===false?'在查别处':`检查${Math.ceil(q.left)}秒`):i.directed?'调查旧位置':i.suspicion>0?'发现动静':'巡逻中'}`;}).join('；');
  const source=g.soundField.sources.find(s=>s.seat===p.seat),soundChecks=g.inspectors.flatMap(i=>{const cue=renderer.soundTarget(i);return cue?[`${i.name}${cue.fresh?'听到了'+(cue.point.kind==='dance'?'音乐':'键盘声'):'正在确认声音'}，${cue.pending?'稍后查看':'目标'}${cue.point.seat+1}号工位${cue.point.seat!==p.seat?'，旧声源':''}${cue.pending&&cue.current?`，当前仍查${cue.current.seat+1}号`:''}`]:[];}).join('；');
  canvas.setAttribute('aria-description',`${checks}；${renderer.noiseLabel(source)}${soundChecks?'；'+soundChecks:''}；连续摸鱼${Math.floor(g.comboTime)}秒，待结算${g.pendingBonus.toFixed(1)}金币；${g.exposure>0?'正在暴露':'安全'}${g.feedback?'；'+g.feedback.text:''}`);
@@ -145,7 +147,7 @@ function updateUI(){
  $('#time').textContent=formatTime(g.time);$('#time').classList.toggle('low-time',g.time<30);
  $('#progress').style.width=`${Math.max(0,Math.min(100,g.coins/g.config.target*100))}%`;
  $('#level-label').textContent=`0${g.level+1} · ${g.config.name}`;
- $('#mirror-status').textContent=g.mirror>0?`全员路线 · ${Math.ceil(g.mirror)} 秒`:'';
+ $('#mirror-status').textContent=g.show?'路线揭示中…':g.mirror>0?`全员路线 · ${Math.ceil(g.mirror)} 秒`:'';
  $('#toast').textContent=g.toast;$('#toast').style.opacity=g.toastLeft>0?1:0;
  let status='认真工作中',detail='选一种摸鱼方式',tone='work';
  if(stopping){status='正在收手…';detail=`还需 ${p.stopping.toFixed(1)} 秒 · 仍会被发现`;tone='caution';}
@@ -164,11 +166,15 @@ function updateUI(){
 
   b.querySelector('small').textContent=unavailable?'第 3 关解锁':`+${activities[a].rate*multiplier} / 秒`;
  }
- const work=$('#work'),inAisle=p.seat===null&&!moving;work.disabled=blocked||stopping||locked||inAisle;
- work.classList.toggle('is-working',!inAisle&&!moving&&p.activity==='work'&&!stopping);
+ // 一键工作始终可见：默认在工作时置灰不可点，只有摸鱼/收手/恢复期才可操作。
+ const work=$('#work'),inAisle=p.seat===null&&!moving,working=p.activity==='work';
+ const canWork=!working||stopping||locked||inAisle||moving;
+ work.hidden=false;
+ work.disabled=blocked||p.seat===null||(working&&!stopping&&!locked);
+ work.classList.toggle('is-working',!inAisle&&!moving&&working&&!stopping);
  work.classList.toggle('is-stopping',stopping);work.classList.toggle('has-context',stopping||moving||locked||inAisle);
  work.querySelector('strong').textContent=stopping?'正在收手…':moving?'停止移动':inAisle?'请先入座':'一键工作';
- work.querySelector('small').textContent=stopping?'等动作收好才安全':moving?'停在过道，重新选座':inAisle?'点击空椅子继续':locked?'等检查结束':'';
+ work.querySelector('small').textContent=stopping?'等动作收好才安全':moving?'停在过道，重新选座':inAisle?'点击空椅子继续':locked?'等检查结束':(working&&!stopping)?'已在工作':'随时收手';
  for(const type of ['mirror','meeting']){
   const el=$('#'+type),count=g.inventory[type],running=type==='mirror'&&g.mirror>0,name=type==='mirror'?'反光镜':'开会';
   $('#'+type+'-count').textContent=running&&!count?`${Math.ceil(g.mirror)}s`:count;
@@ -179,6 +185,6 @@ function updateUI(){
  $('#help').disabled=blocked;$('#pause').disabled=blocked;
  seatButtons.forEach((b,i)=>{b.disabled=blocked||g.occupied(i)||locked||stopping;const drop=g.drops.find(d=>d.seat===i);b.setAttribute('aria-label',`移动到${i+1}号工位${g.special?.seat===i?`，黄金工位 ×2，剩余${Math.ceil(g.special.left)}秒`:''}${drop?`，可拾取${drop.type==='mirror'?'反光镜':'开会通知'}`:''}`);});
 }
-function frame(time){const dt=lastTime?Math.min(.1,(time-lastTime)/1000):0;lastTime=time;if(!g.paused&&!g.modal)visualTime+=dt;g.step(dt);processModal();renderer.draw(g,visualTime);updateUI();requestAnimationFrame(frame);}
+function frame(time){const dt=lastTime?Math.min(.1,(time-lastTime)/1000):0;lastTime=time;if(!g.paused&&!g.modal&&!g.show)visualTime+=dt;g.step(dt);if(g.show&&performance.now()-g.show.t0>=g.show.total)g.finishShow();processModal();renderer.draw(g,visualTime);updateUI();requestAnimationFrame(frame);}
 renderer.ready.then(errors=>{if(errors.length)g.notify('部分画面素材未加载，可刷新重试');});
 menu();requestAnimationFrame(frame);

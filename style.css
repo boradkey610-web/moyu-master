@@ -48,6 +48,8 @@
 .work-button strong{font-size:22px;font-weight:750}.work-button svg,.work-button.is-working svg{width:29px;height:29px;color:#fff}
 .work-copy{display:flex;align-items:center;gap:10px!important;color:inherit!important;font-size:inherit!important;margin:0!important}.work-button small{display:none}
 .work-button.has-context small{display:inline;font-size:11px;font-weight:500;letter-spacing:0;margin:0;opacity:.95}
+/* 一键工作默认收起：只在收手/恢复期/非工作状态出现。 */
+.work-button[hidden]{display:none}
 .work-button.is-stopping{background:#d9aa60;border-color:#b68a46;box-shadow:0 3px 0 #ab8245;filter:none;opacity:1}
 .work-button:disabled:not(.is-stopping){opacity:.65;filter:saturate(.7)}
 .tool-row{padding:0 5px;margin-top:15px;gap:10px;grid-template-columns:1.1fr 1.1fr .85fr}
@@ -130,6 +132,82 @@
 .home-scene-caption{bottom:3%;left:14%;right:14%;padding:7px 10px;border:1px solid #8fac8666;border-radius:20px;background:#f4f8d8e8;box-shadow:0 2px 0 #74987522;text-shadow:none}.home-scene-caption b{font-size:11px;letter-spacing:2px}.home-scene-caption span{font-size:8px}.boss-bubble{top:13%}.player-bubble{top:44%}
 @media(max-height:640px){.dialog[data-kind=levels]{overflow-y:auto}.dialog[data-kind=levels] .adventure-map{flex:none;justify-content:flex-start}.dialog[data-kind=levels] .level-heading{flex:none}.dialog[data-kind=levels] .home-back{flex:none}.dialog[data-kind=menu] .home-title{margin-top:10px}.dialog[data-kind=menu] .home-illustration{min-height:140px}.dialog[data-kind=menu] .home-scene-caption{display:none}}
 .activity.is-risky:before{content:'!';position:absolute;right:6px;top:5px;width:16px;height:16px;display:grid;place-items:center;border:1.5px solid #fff5d6;border-radius:50%;background:#b84d3d;color:#fff8dd;font:bold 11px/1 system-ui;box-shadow:0 1px 3px #773c3140;z-index:2}.activity-summary{border-bottom:1px dashed #dfd3bd;margin:3px 0 8px;padding-bottom:12px}
+
+/* Sticker components: HUD, activity buttons, work button, tool chips. */
+.sticker{
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  border-radius:18px;
+  border:3px solid #fffdf3;
+  box-shadow:0 6px 0 #a27b4e,0 12px 22px #5c422426;
+}
+.sticker-shine{
+  position:absolute;
+  top:3px;
+  left:7px;
+  right:7px;
+  height:10px;
+  border-radius:20px;
+  background:linear-gradient(90deg,rgba(255,255,255,.68),rgba(255,255,255,0));
+  transform:skewX(-12deg);
+  pointer-events:none;
+  z-index:2;
+}
+.hud{
+  background:linear-gradient(120deg,#fffdf2,#f1e5cd);
+}
+.hud-money.sticker,.hud-clock.sticker{
+  padding:3px 7px;
+  background:linear-gradient(150deg,#fff8dd,#f1e0b9);
+  color:#4d3f31;
+}
+.icon-button.sticker{
+  border-radius:12px;
+  background:linear-gradient(#fffaf0,#f2e5cd);
+}
+.activity.sticker{
+  border-radius:20px;
+}
+#work.sticker{
+  border-radius:22px;
+}
+.tool-row button.sticker{
+  border-radius:16px;
+}
+.sticker:disabled{
+  filter:saturate(.45);
+  opacity:.62;
+}
+.sticker:not(:disabled):active{
+  transform:translateY(3px);
+  box-shadow:0 3px 0 #a27b4e,0 6px 12px #5c422426;
+}
+
+/* Comic-office component pass: visual layer only. */
+:root{
+ --comic-paper:#fff8e4;
+ --comic-ink:#4d3f31;
+ --comic-teal:#4fa5a1;
+}
+body{background:radial-gradient(ellipse at 55% 20%,#fff7e4,#e5d8c1)}
+.game-shell{border:2px solid #a5905f;background:var(--comic-paper);box-shadow:0 14px 46px #4c3a2425,0 4px 0 #c9ab7f}
+.hud{background:linear-gradient(120deg,#fffdf2,#f1e5cd);border-bottom:3px solid #b8a173}
+.hud-money,.hud-clock{color:var(--comic-ink)}
+.coin-icon{width:31px;height:31px;background:radial-gradient(circle at 35% 25%,#ffe071,#f0a12b);border:2px solid #b9822b;color:#8f5c1c}
+.hud-clock>svg{filter:drop-shadow(0 2px 0 #f6e4bf)}
+.activity{border-width:3px;box-shadow:0 5px 0 var(--shade),0 8px 12px #5a3f2425}
+.joke{background:linear-gradient(150deg,#ffc069,#f2832d);border-color:#d97727;--shade:#c96f26}
+.game{background:linear-gradient(150deg,#b98ef5,#8f5ad4);border-color:#8458c3;--shade:#784bb3}
+.dance{background:linear-gradient(150deg,#f68bb2,#e45b91);border-color:#d45b84;--shade:#bf4d76}
+.activity.active{box-shadow:0 5px 0 var(--shade),0 0 0 3px #fff2b8,0 10px 18px #5a3f2435}
+.work-button{border:3px solid #519b62;background:linear-gradient(150deg,#7ecb8b,#57ab69);box-shadow:0 5px 0 #458552,0 9px 16px #4c3a2428}
+.tool-row button{border:2px solid #b6a47f;background:linear-gradient(#fffaf0,#f0e3c9);box-shadow:0 4px 0 #cbb48c}
+.tool-row button.is-running{border-color:var(--comic-teal);background:linear-gradient(#e8f4ef,#d4e9e2);color:#3d6f68}
+.dialog button.primary{border:2px solid #4f8b60;background:linear-gradient(#7ac789,#5ba96d);box-shadow:0 4px 0 #498052}
+.dialog button.home-start{border:3px solid #9c5f28;background:linear-gradient(#ffe07d,#ffbe3f);box-shadow:0 5px 0 #9c5f28,0 10px 20px #6c4b2430;color:#7a431c}
+.scene-top span,#toast,#state-label{background:var(--comic-paper)}
+.seat-hit:not(:disabled):hover{background:#f4c45530;outline:3px dashed #d19b3e99}
 .tool-row button.is-empty b{display:inline-block;background:#eee8dd;color:#aa9c85}.tool-row button.is-empty:disabled{opacity:.6;filter:saturate(.45)}.tool-row button.is-running:disabled{opacity:1;filter:none;border-color:#7ba7a7;background:#e4f1ed;color:#517f7a}.tool-row button.is-running b{display:inline-block;background:#6a9c98;color:#fff}
 .dialog[data-kind=guide]{justify-content:flex-start;overflow-y:auto}.dialog[data-kind=guide] ul{flex:none;font-size:12px;line-height:1.7;padding:12px 14px 12px 28px;margin:12px 0 14px}.dialog[data-kind=guide] li+li{margin-top:7px}.dialog[data-kind=guide] button{flex:none}
 @media(max-height:740px){.dialog[data-kind=guide] .panel-symbol{width:42px;height:42px;margin-bottom:8px;border-radius:14px}.dialog[data-kind=guide] .panel-symbol svg{width:27px;height:27px}.dialog[data-kind=guide] h2{font-size:23px;margin-bottom:4px}}

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Game,levels,forecast,seats,advanceInspector} from '../src/engine.js';
 const quiet=()=>{const g=new Game(2,123);g.inspectors=[];g.npcs=[];return g;};
-test('新版短局时长和目标',()=>assert.deepEqual(levels.map(l=>[l.time,l.target]),[[60,90],[75,170],[90,400],[90,440]]));
+test('新版短局时长和目标',()=>assert.deepEqual(levels.map(l=>[l.time,l.target]),[[60,90],[75,170],[120,400],[90,440]]));
 test('基础实时到账，额外逐档积累，安全收手才结算',()=>{const g=quiet();g.setActivity('game');g.step(10);assert.ok(Math.abs(g.coins-30)<1e-7);assert.ok(g.pendingBonus>7&&g.pendingBonus<8);assert.ok(g.comboTime>=9.99);const pending=g.pendingBonus;g.setActivity('work');g.step(.5);assert.equal(g.player.activity,'work');assert.equal(g.pendingBonus,0);assert.equal(g.comboTime,0);assert.ok(g.coins>=30+pending-1e-8);assert.equal(g.feedback.kind,'bank');});
 test('切活动保留连续时长，金椅额外奖励同样翻倍',()=>{const a=quiet(),b=quiet();for(const g of [a,b])g.setActivity('game');b.special={seat:b.player.seat,left:18};a.step(5);b.step(5);assert.ok(Math.abs(b.pendingBonus-2*a.pendingBonus)<1e-7);const combo=a.comboTime;a.setActivity('dance');a.step(.5);assert.ok(a.comboTime>=combo);assert.equal(a.player.activity,'dance');});
 test('抓包清空待结算，首次只警告',()=>{const g=quiet();g.setActivity('game');g.step(5);assert.ok(g.pendingBonus>0);const coins=g.coins;g.catchPlayer('老板');assert.equal(g.pendingBonus,0);assert.equal(g.comboTime,0);assert.equal(g.coins,coins);assert.equal(g.modal.kind,'warning');});

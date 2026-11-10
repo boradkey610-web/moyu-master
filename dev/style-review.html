@@ -1,0 +1,64 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>活动与角色改造评审</title><style>body{margin:0;background:#f7efe0;color:#675844;font:16px system-ui}header{padding:16px;display:flex;align-items:center;gap:14px}button{padding:8px 16px;border:1px solid #b3a184;border-radius:8px;background:#fff8ed;color:inherit}canvas{display:block;max-width:100%;height:auto}#status{font-size:13px}</style><header><b>摸鱼姿态与角色辨识评审（游戏真实素材）</b><button id="toggle">配色：提案</button><span id="status">加载素材</span></header><canvas id="review" width="1000" height="900" aria-label="三种摸鱼活动与四种角色配色对比"></canvas>
+<div id="concepts" style="display:flex;gap:18px;padding:4px 20px 20px;flex-wrap:wrap"></div>
+<script>
+function addConcept(src,label){
+ const f=document.createElement('figure');f.style.margin='0';f.style.textAlign='center';
+ const img=document.createElement('img');img.src=src;img.width=250;img.alt=label;img.style.borderRadius='10px';img.style.border='1px solid #d8c9a8';
+ f.append(img);const cap=document.createElement('figcaption');cap.textContent=label;cap.style.fontSize='13px';cap.style.color='#675844';f.append(cap);
+ document.querySelector('#concepts').append(f);
+}
+</script><script type="module">
+import {Renderer} from '../src/render.js';
+const canvas=document.querySelector('canvas'),r=new Renderer(canvas),c=canvas.getContext('2d');await r.ready;
+document.querySelector('#status').textContent='素材就绪 · 提案为评审用配色，未改游戏代码';
+// Proposed palette (review only). Real code keeps current palette until approved.
+const proposed={player:['#2ba18f','#1f7d6f'],boss:['#3a4553','#262e39'],supervisor:['#8b7cb8','#6f5da6'],npc:['#b7b0a2','#98927f']};
+const original=r.palette.bind(r);
+let proposedOn=true;
+const patch=()=>{r.palette=type=>{const base=original(type),p=proposed[type.startsWith('npc')?'npc':type];return proposedOn&&p?{...base,shirt:p[0],shade:p[1]}:base;};};
+patch();document.querySelector('#toggle').onclick=e=>{proposedOn=!proposedOn;patch();e.target.textContent='配色：'+(proposedOn?'提案':'现状');e.target.style.borderColor=proposedOn?'#2ba18f':'#b3a184';};
+let t=0,last=0;
+function beams(cx,topY,groundY){for(const [dx] of [[-46],[40]]){const hue=(t*60+dx)%360;c.save();c.beginPath();c.moveTo(cx+dx*.5,topY);c.lineTo(cx+dx*1.1,groundY);c.lineTo(cx+dx*1.1+40,groundY);c.lineTo(cx+dx*.5+18,topY);c.closePath();c.globalAlpha=.14+Math.sin(t*5+dx)*.05;c.fillStyle=`hsla(${hue},75%,62%,.9)`;c.fill();c.restore();}}
+function glasses(cx,y){r.box(c,cx-13,y-72,10,7,2,'#2b3a44',1);r.box(c,cx+3,y-72,10,7,2,'#2b3a44',1);r.line(c,[[cx-3,y-70],[cx+3,y-70]],'#2b3a44',2);}
+function badge(cx,y){r.box(c,cx+9,y-46,8,8,2,'#f6f3e8','#5b5548',1);}
+function frame(now){if(last)t+=Math.min(.05,(now-last)/1000);last=now;c.fillStyle='#f7efe0';c.fillRect(0,0,1000,900);
+r.text(c,'三种摸鱼姿态 · 真实工位坐标（办公室背景原样裁切放大）',500,26,20,'#675844','700');
+const cells=[
+ {act:'joke',seat:{x:165,y:280},crop:[52,168,300,238]},
+ {act:'game',seat:{x:455,y:280},crop:[342,168,300,238]},
+ {act:'dance',seat:{x:165,y:515},crop:[52,403,300,238]},
+];
+for(const [i,cell] of cells.entries()){
+ const dx=18+i*324,dy=64,S=1.06,[cx0,cy0,cw,chh]=cell.crop,seat=cell.seat;
+ r.text(c,['看段子 · 低头看手机（现有姿态）','打游戏 · 工位原电脑亮屏，光照脸','蹦迪 · 墨镜 + 顶层扫光 + 地面光影'][i],dx+cw*S/2,46,15,'#675844');
+ c.drawImage(r.bg,cx0,cy0,cw,chh,dx,dy,cw*S,chh*S);
+ c.save();c.translate(dx-cx0*S,dy-cy0*S);c.scale(S,S);
+ if(cell.act==='dance'){
+  r.paintedPerson(c,{x:seat.x,y:seat.y,type:'player',activity:'dance'},{direction:'down',seated:false,moving:false,travel:0},t);
+  beams(seat.x,seat.y-236,seat.y+16);glasses(seat.x,seat.y-10);
+  const hue=(t*60)%360;
+  const pool=c.createRadialGradient(seat.x,seat.y+18,4,seat.x,seat.y+18,66);
+  pool.addColorStop(0,`hsla(${hue},72%,66%,.30)`);pool.addColorStop(1,`hsla(${hue},72%,60%,0)`);
+  c.fillStyle=pool;c.fillRect(seat.x-72,seat.y-52,144,108);
+ }
+ else{
+  r.paintedPerson(c,{x:seat.x,y:seat.y,type:'player',activity:cell.act},{seated:true},t);
+  if(cell.act==='game'){
+   const g2=c.createLinearGradient(seat.x,158,seat.x,250);g2.addColorStop(0,'#aae2ef7a');g2.addColorStop(1,'#aae2ef00');
+   c.fillStyle=g2;c.fillRect(seat.x-46,152,92,110);
+  }
+  if(cell.act==='joke'){const g3=c.createRadialGradient(seat.x+22,seat.y-46,2,seat.x+22,seat.y-46,24);g3.addColorStop(0,'#fff3cf55');g3.addColorStop(1,'#fff3cf00');c.fillStyle=g3;c.fillRect(seat.x,seat.y-72,48,52);}
+ }
+ c.restore();
+}
+// Character identification row (vector fallback art, palette driven)
+r.text(c,'角色辨识 · 矢量皮肤配色调色（按钮切换 现状/提案）',500,356,20,'#675844','700');
+const cy=760;
+for(const [i,type] of ['player','boss','supervisor','npc0'].entries()){
+ const cx=185+i*210;r.ellipse(c,cx,cy+1,19,6,'#353c3524');r.person(c,cx,cy,type,t,false,'work','down');
+ if(type==='player'&&proposedOn)badge(cx,cy);
+ r.text(c,type==='player'?'玩家：青绿 + 浅色肩徽':type==='boss'?'老板：炭蓝西装 + 红领带':type==='supervisor'?'主管：紫外套 + 眼镜':'同事（降饱和无标识）',cx,cy+34,14,'#4b5a52');
+}
+requestAnimationFrame(frame);}
+requestAnimationFrame(frame);
+</script></html>
