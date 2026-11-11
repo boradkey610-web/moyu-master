@@ -1,0 +1,11 @@
+{
+  "model": "GPT-Image-2",
+  "drawnFrames": 28,
+  "previewFrames": 84,
+  "durationMs": 4000,
+  "interpolation": "bidirectional DIS optical-flow",
+  "recommendedPreview": "dance-drawn-frames.gif",
+  "interpolationStatus": "experimental; facial deformation can occur, not production-ready",
+  "activeGameAsset": "frames.png",
+  "status": "original drawn frames active in game; optical-flow preview remains experimental"
+}

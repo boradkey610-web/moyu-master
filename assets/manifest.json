@@ -1,4 +1,18 @@
 {
+  "player-dance": {
+    "src": "assets/generated/player-dance-eight-beat-v4/frames.png",
+    "width": 2688,
+    "height": 1920,
+    "columns": 7,
+    "rows": 4,
+    "frameCount": 28,
+    "cellWidth": 384,
+    "cellHeight": 480,
+    "anchor": 192,
+    "footBaseline": 466,
+    "bodyHeight": 360,
+    "duration": 4
+  },
   "back_steps": {
     "src": "assets/back_steps.png",
     "width": 1774,

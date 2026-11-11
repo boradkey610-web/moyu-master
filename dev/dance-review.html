@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>八拍舞蹈 · 游戏内验收</title>
+<style>
+:root{background:#242c2e;color:#eee0c4;font-family:Georgia,"Songti SC",serif}body{max-width:720px;margin:20px auto;padding:0 12px}h1{font-size:24px}p{line-height:1.6}button,a{color:#e9c17e}button{background:#364244;border:1px solid #8a8469;border-radius:6px;padding:10px 14px;margin:0 8px 10px 0;cursor:pointer}canvas{display:block;width:100%;height:auto}#status{font-family:monospace;font-size:13px}
+</style>
+<h1>八拍舞蹈 · 游戏内验收</h1>
+<p>使用正式游戏的角色与灯光渲染。此页固定检查者用于观察完整循环，不读写通关记录；正式游戏仍按原规则巡视、收手和被抓。</p>
+<button id="dance">重新跳舞</button><button id="pause">暂停</button><button id="work">收手工作</button><button id="catch">模拟被抓</button>
+<a href="../">正式游戏</a><p id="status">加载中</p>
+<canvas width="720" height="920" aria-label="实际办公室中的连续八拍舞蹈与聚光灯"></canvas>
+<script type="module">
+import {Game} from '../src/engine.js';
+import {Renderer} from '../src/render.js';
+const canvas=document.querySelector('canvas'),r=new Renderer(canvas);
+let g,last=0;
+function restart(){g=new Game(2,1);for(const ins of g.inspectors)ins.hold=10000;g.setActivity('dance');document.querySelector('#pause').textContent='暂停';}
+restart();await r.ready;
+document.querySelector('#dance').onclick=restart;
+document.querySelector('#pause').onclick=()=>{g.paused=!g.paused;document.querySelector('#pause').textContent=g.paused?'继续':'暂停';};
+document.querySelector('#work').onclick=()=>g.setActivity('work');
+document.querySelector('#catch').onclick=()=>g.catchPlayer('老板');
+window.danceReview={renderer:r,get game(){return g;}};
+function frame(now){
+ const dt=last?Math.min(.1,(now-last)/1000):0;last=now;g.step(dt);r.draw(g,g.elapsed);
+ const state=r.danceState(g),m=r.art['player-dance']?.meta;
+ document.querySelector('#status').textContent=`${g.player.activity} · frame=${state&&m?Math.floor(state.time%4/4*28):'-'}/28 · light=${state?.strength.toFixed(2)??'off'} · ${g.paused?'paused':g.modal?'caught':'running'} · assets=${canvas.dataset.artStatus} · errors=${r.assetErrors.join(',')||'none'}`;
+ requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</html>

@@ -1,5 +1,6 @@
 import {seats,activities,forecastAll} from './engine.js';
 const W=720,H=920;
+const DANCE_FLOOR_RADIUS=40,DANCE_FLOOR_FLATTEN=.35;
 export class Renderer{
  constructor(canvas){this.canvas=canvas;this.c=canvas.getContext('2d');this.bg=document.createElement('canvas');this.bg.width=W;this.bg.height=H;this.drawOffice(this.bg.getContext('2d'));this.predictions=[];this.predictionTime=-1;this.art={};this.motion=new Map();this.ready=this.loadArt();}
  loadImage(src){
@@ -78,6 +79,7 @@ export class Renderer{
    this.sprite(c,'seated',row,frame,a.x,a.y+16,99);
    this.chair(c,a.x,a.y,!!a.gold,'front');return true;
   }
+  if(name==='player'&&a.activity==='dance'&&this.paintedDance(c,a,t))return true;
   if(name==='supervisor')return this.paintedSupervisor(c,a,pose,t);
   if(!this.art[characterAtlas])return false;
   this.ellipse(c,a.x,y+1,17,6,'#4d463a2b');
@@ -103,6 +105,87 @@ export class Renderer{
    this.text(c,'♪',a.x+35,y-99+Math.sin(t*5+2)*5,20,'#9866c8','800');
   }
   return true;
+ }
+ danceState(g){
+  const p=g.player;
+  if(p.activity!=='dance'||p.seat==null||p.route.length)return null;
+  const time=Math.max(0,g.elapsed-(p.danceStartedAt??g.elapsed));
+  const strength=Math.min(1,time/.2,p.stopping>0?p.stopping/activities.dance.stop:1);
+  return {time,strength,x:p.x,feet:p.y+36};
+ }
+ paintedDance(c,a,time){
+  const asset=this.art['player-dance'];if(!asset)return false;
+  const m=asset.meta,frame=Math.floor((time%m.duration)/m.duration*m.frameCount),scale=98/m.bodyHeight;
+  const x=frame%m.columns*m.cellWidth,y=Math.floor(frame/m.columns)*m.cellHeight;
+  this.ellipse(c,a.x,a.y+37,19,6,'#4d463a2b');
+  // Draw original cells without rotation, mirroring or optical-flow warping.
+  c.drawImage(asset.img,x,y,m.cellWidth,m.cellHeight,a.x-m.anchor*scale,a.y+36-m.footBaseline*scale,m.cellWidth*scale,m.cellHeight*scale);
+  return true;
+ }
+ spotlightLayers(x,feet){
+  if(this.danceLight?.x===x&&this.danceLight.feet===feet)return this.danceLight;
+  const dark=document.createElement('canvas'),warm=document.createElement('canvas');
+  dark.width=warm.width=W;dark.height=warm.height=H;
+  const d=dark.getContext('2d'),w=warm.getContext('2d'),height=98,top=feet-height-15;
+  // Only this workstation's cylindrical stage is darkened, not the office.
+  const stageRadius=DANCE_FLOOR_RADIUS,cap=stageRadius*DANCE_FLOOR_FLATTEN;
+  const stageTop=top,stageBottom=feet+cap;
+  for(let y=stageTop;y<stageBottom;y+=1){
+   const capDistance=Math.max(0,stageTop+cap-y,y-(stageBottom-cap))/cap;
+   const radius=stageRadius*Math.sqrt(Math.max(0,1-capDistance*capDistance));
+   if(radius<=0)continue;
+   const shade=d.createLinearGradient(x-radius,y,x+radius,y);
+   shade.addColorStop(0,'rgba(9,14,21,0)');shade.addColorStop(.18,'rgba(9,14,21,.52)');
+   shade.addColorStop(.82,'rgba(9,14,21,.52)');shade.addColorStop(1,'rgba(9,14,21,0)');
+   d.fillStyle=shade;d.fillRect(x-radius,y,radius*2,1);
+  }
+  d.globalCompositeOperation='destination-out';
+  // Cache soft-edged scanline gradients, not a full-canvas pixel read per frame.
+  for(let y=top;y<feet+13;y+=1){
+   const u=Math.max(0,Math.min(1,(y-top)/(feet-top))),radius=height*(.14+.22*u),edge=radius*1.22;
+   const alpha=Math.min(1,Math.max(0,(y-top+4)/15),Math.max(0,(feet+13-y)/18));
+   for(const [ctx,color]of [[d,'255,255,255'],[w,'255,224,151']]){
+    const g=ctx.createLinearGradient(x-edge,y,x+edge,y);
+    g.addColorStop(0,`rgba(${color},0)`);g.addColorStop(.156,`rgba(${color},${alpha})`);
+    g.addColorStop(.844,`rgba(${color},${alpha})`);g.addColorStop(1,`rgba(${color},0)`);
+    ctx.fillStyle=g;ctx.fillRect(x-edge,y,edge*2,1);
+   }
+  }
+  for(const ctx of [d,w]){
+   ctx.save();ctx.translate(x,feet);ctx.scale(1,DANCE_FLOOR_FLATTEN);
+   const glow=ctx.createRadialGradient(0,0,6,0,0,stageRadius);glow.addColorStop(0,'#fff');glow.addColorStop(1,'#fff0');
+   ctx.fillStyle=glow;ctx.fillRect(-stageRadius,-stageRadius,stageRadius*2,stageRadius*2);ctx.restore();
+  }
+  this.danceLight={x,feet,top,dark,warm};return this.danceLight;
+ }
+ danceSpotlight(c,state){
+  if(!state||state.strength<=0)return;
+  const light=this.spotlightLayers(state.x,state.feet),beat=(state.time%4)/.5;
+  const accent=Math.max(0,1-Math.abs(beat-3.5)/.5);
+  c.save();c.globalAlpha=state.strength;c.drawImage(light.dark,0,0);
+  c.globalAlpha=state.strength*(.07+accent*.025);c.drawImage(light.warm,0,0);
+  c.globalAlpha=state.strength;
+  this.line(c,[[state.x,light.top-18],[state.x,light.top-7]],'#555d60',3);
+  this.box(c,state.x-9,light.top-8,18,9,3,'#394348','#85867b',1);
+  this.ellipse(c,state.x,light.top+1,7,2,'#fff0bc','#c4a55c');c.restore();
+  this.danceNotes(c,state);
+ }
+ danceNotes(c,state){
+  if(!state||state.strength<=0)return;
+  for(let i=0;i<4;i++){
+   const phase=(state.time/4+i/4)%1,side=i%2===0?-1:1;
+   const x=state.x+side*(DANCE_FLOOR_RADIUS+10+Math.sin(phase*Math.PI*2)*4),y=state.feet-24-phase*62;
+   const color=['#bc7960','#739b99','#c59943','#bc7960'][i];
+   c.save();c.globalAlpha=state.strength*Math.sin(phase*Math.PI)*.85;
+   c.translate(x,y);c.rotate(side*.12+Math.sin(phase*Math.PI*2)*.08);
+   this.ellipse(c,0,0,4,2.7,color);this.line(c,[[3,-1],[3,-17]],color,2);
+   if(i%2===0)this.line(c,[[3,-17],[10,-13],[9,-8]],color,2);
+   else{
+    this.line(c,[[3,-17],[13,-20],[13,-4]],color,2);
+    this.ellipse(c,10,-3,4,2.7,color);
+   }
+   c.restore();
+  }
  }
  paintedSupervisor(c,a,pose,t){
   // Independent left art keeps the folder in the anatomical right hand.
@@ -504,7 +587,7 @@ export class Renderer{
  }
  draw(g,t){if(this.lastGame!==g){this.lastGame=g;this.facings=new Map();this.motion.clear();this.predictionTime=-1;this.predictions=[];}const c=this.c;c.clearRect(0,0,W,H);c.drawImage(this.bg,0,0);this.soundSources(c,g,t);
  if(g.mirror>0){if(g.elapsed-this.predictionTime>.1||this.predictionTime<0){this.predictions=forecastAll(g.inspectors,g.mirror);this.predictionTime=g.elapsed;}this.predictions.forEach((points,i)=>{c.setLineDash([10,8]);this.line(c,points.filter(p=>!p.hidden).map(p=>[p.x,p.y]),i?'#d77c77':'#499dbb',4);c.setLineDash([]);const end=points.filter(p=>!p.hidden).at(-1);if(end){this.ellipse(c,end.x,end.y,8,8,i?'#d77c77':'#499dbb');this.text(c,'•',end.x,end.y,18,'#fff');}let last;for(const p of points)if(p.waiting&&(!last||Math.hypot(p.x-last.x,p.y-last.y)>5)){this.chip(c,'停',p.x,p.y-18,'#fff8e9');last=p;}});}
- const p=g.player;if(p.route.length){c.setLineDash([7,7]);this.line(c,[[p.x,p.y],...p.route.map(n=>[n.x,n.y])],'#bfa65c',3);c.setLineDash([]);}
+ const p=g.player,dance=this.danceState(g);if(p.route.length){c.setLineDash([7,7]);this.line(c,[[p.x,p.y],...p.route.map(n=>[n.x,n.y])],'#bfa65c',3);c.setLineDash([]);}
  for(const ins of g.inspectors)if(!ins.hidden)this.inspectionCone(c,ins,p.activity==='work'?(p.riskActivity||'game'):p.activity,t);
  if(g.special)this.goldGlow(c,seats[g.special.seat],t);
  for(const s of seats){const occupant=[p,...g.npcs].find(a=>a.seat===s.id&&a.activity!=='dance');this.chair(c,s.x,s.y,g.special?.seat===s.id,occupant?'base':'all');}
@@ -513,10 +596,16 @@ export class Renderer{
  for(const a of actors){
   a.gold=a.seat!=null&&g.special?.seat===a.seat;
   const pose=this.pose(a,a.visualKey||a.type),actorY=a.y+(a.activity==='dance'?35:0);
-  if(!this.paintedPerson(c,a,pose,t)){
+  a.renderPose=pose;
+  if(!this.paintedPerson(c,a,pose,a.type==='player'&&dance?dance.time:t)){
    if(pose.seated)this.seatedPerson(c,a.x,a.y,a.type,t,a.activity||'work',a.gold);
    else this.person(c,a.x,actorY,a.type,t,pose.moving,a.activity,pose.direction);
   }
+ }
+ this.danceSpotlight(c,dance);
+ // Keep all risk/inspection labels above scene lighting, including other actors.
+ for(const a of actors){
+  const pose=a.renderPose;
   if(a.type==='player'){
    this.text(c,'★',a.x,a.y-108,25,'#e9ad32','900');
    const greeting=g.greeting?.left>0?g.greeting:null;
