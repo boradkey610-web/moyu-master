@@ -1,0 +1,17 @@
+{
+  "model": "GPT-Image-2",
+  "provider": "myflicker-image-skill",
+  "endpoint": "https://codeflicker.corp.kuaishou.com/eapi/kwaipilot/image/generate",
+  "ratio": "21:9",
+  "layouts": {"strip": "21:9", "pose": "1:1"},
+  "quality": "high",
+  "sizeTier": "2K",
+  "count": 1,
+  "allowModelFallback": false,
+  "matting": {
+    "tool": "opencv-grabcut",
+    "model": "foreground-background-gmm",
+    "alphaMatting": true,
+    "decontaminateWhite": true
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "createdAt": "2026-11-11T17:04:50.064000",
+  "model": "GPT-Image-2",
+  "matting": {
+    "tool": "opencv-grabcut",
+    "model": "foreground-background-gmm",
+    "alphaMatting": true,
+    "decontaminateWhite": true
+  },
+  "sources": [
+    {
+      "direction": "right",
+      "source": "/Users/lijin15/.myflicker/internal/skills/designai-generate-image/tmp/ref_20261111_162330_0.png",
+      "sha256": "785acbabe138f1d0df7b3c1a34b0348608330a065aafa1d9ad86e72fa41a8c77"
+    },
+    {
+      "direction": "front",
+      "source": "/Users/lijin15/.myflicker/internal/skills/designai-generate-image/tmp/ref_20261111_162330_1.png",
+      "sha256": "9205ed826c6be78254ace65b481828fe9884d10f41c960717e439ddb12d43304"
+    },
+    {
+      "direction": "back",
+      "source": "/Users/lijin15/.myflicker/internal/skills/designai-generate-image/tmp/ref_20261111_162330_2.png",
+      "sha256": "4d0a1eaf6071b3cebaf7b45abcf9dbc0f4c4e0cf59445e9a2574c748155e6d9f"
+    },
+    {
+      "direction": "left",
+      "source": "/Users/lijin15/.myflicker/internal/skills/designai-generate-image/tmp/ref_20261111_162330_3.png",
+      "sha256": "54c32a2c21ef41b0817f01e81aa443876321e90b9411bd6a9df7e92d26987001"
+    },
+    {
+      "direction": "right-contact-b",
+      "source": "/Users/lijin15/.myflicker/internal/skills/designai-generate-image/tmp/ref_20261111_163150_0.png",
+      "sha256": "96e80e2362c7dc4858f6975e69800d6a53cc29998fc0bf88fa3b16414ca10dd6"
+    },
+    {
+      "direction": "left-contact-b",
+      "source": "/Users/lijin15/.myflicker/internal/skills/designai-generate-image/tmp/ref_20261111_163150_1.png",
+      "sha256": "b4dbf5c0bb3799905e9f6845eb7a623a56da780364230433488a4bf26380369b"
+    }
+  ],
+  "cell": [
+    384,
+    480
+  ],
+  "bodyHeight": 420,
+  "continuity": "Folder arm and head remain fixed; anatomical left arm swings around shoulder, behind torso in right profile.",
+  "layout": {
+    "rows": [
+      "right",
+      "front",
+      "back",
+      "left"
+    ],
+    "columns": [
+      "idle",
+      "contact A",
+      "contact B"
+    ]
+  },
+  "armAnimation": [
+    {
+      "direction": "right",
+      "pivot": [
+        212,
+        168
+      ],
+      "angles": [
+        25,
+        -25
+      ]
+    },
+    {
+      "direction": "front",
+      "pivot": [
+        229,
+        168
+      ],
+      "angles": [
+        -17,
+        17
+      ]
+    },
+    {
+      "direction": "back",
+      "pivot": [
+        153,
+        157
+      ],
+      "angles": [
+        17,
+        -17
+      ]
+    },
+    {
+      "direction": "left",
+      "pivot": [
+        209,
+        173
+      ],
+      "angles": [
+        -25,
+        25
+      ]
+    }
+  ]
+}

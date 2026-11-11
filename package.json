@@ -1,1 +1,1 @@
-{"name":"moyu-master","version":"1.0.0","type":"module","private":true,"scripts":{"test":"node --test","start":"node server.mjs","build":"node --check src/engine.js && node --check src/render.js && node --check src/app.js"}}
+{"name":"moyu-master","version":"1.0.0","type":"module","private":true,"scripts":{"test":"node --test tests/*.test.js","test:art":"python3 -m unittest discover -s tests -p 'test_supervisor_art.py'","start":"node server.mjs","build":"node --check src/engine.js && node --check src/render.js && node --check src/app.js"}}

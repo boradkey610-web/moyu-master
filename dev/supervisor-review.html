@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>女主管资源验收</title>
+<style>
+:root{color:#eadbc4;background:#252c2d;font-family:Georgia,"Songti SC",serif}body{margin:24px auto;max-width:1100px;padding:0 20px}h1{font-size:28px}p{line-height:1.7;color:#bcb8a9}button,a{color:#e7b76d}button{background:#343e3d;border:1px solid #7e785f;padding:10px 18px;margin:0 12px 12px 0;cursor:pointer}canvas{max-width:100%;height:auto;display:block}#status{font-family:monospace}img{max-width:100%}
+</style>
+<h1>女主管 · 四向资源验收</h1>
+<p>上排深色背景，下排办公室暖色背景。右手持文件夹；左行使用独立素材，不镜像。下方对比原版人物与新主管的游戏内实际大小。</p>
+<button id="toggle">暂停动画</button><button id="step">下一帧</button><span id="status">加载中</span>
+<canvas id="review" width="1100" height="650" aria-label="女主管四向行走与原角色尺寸对比"></canvas>
+<p><a href="../assets/generated/supervisor-v7/poses.png">透明原始图集</a> · <a href="../assets/generated/supervisor-v7/supervisor-review-dark.png">深色边缘检查</a> · <a href="../assets/generated/supervisor-v7/supervisor-review-white.png">白底边缘检查</a></p>
+<script type="module">
+import {Renderer} from '../src/render.js';
+const canvas=document.querySelector('canvas'),c=canvas.getContext('2d'),r=new Renderer(canvas);
+window.supervisorReview={renderer:r,phase:0};
+await r.ready;
+let running=true,last=0,travel=0;
+document.querySelector('#toggle').onclick=()=>{running=!running;document.querySelector('#toggle').textContent=running?'暂停动画':'播放动画';};
+document.querySelector('#step').onclick=()=>{running=false;travel=(Math.floor(travel/8.5)+1)*8.5+.001;document.querySelector('#toggle').textContent='播放动画';};
+function draw(now){
+ if(running&&last)travel+=Math.min(.05,(now-last)/1000)*62;last=now;
+ c.fillStyle='#252c2d';c.fillRect(0,0,1100,650);c.fillStyle='#efe3ca';c.fillRect(0,260,1100,250);
+ for(const [i,direction]of ['right','left','down','up'].entries()){
+  r.text(c,['向右','向左','向下','向上'][i],140+i*270,28,18,'#ddbb84');
+  for(const feet of [240,490])r.paintedPerson(c,{type:'supervisor',x:140+i*270,y:feet,activity:'work'},{direction,moving:true,travel},0);
+ }
+ for(const [i,type]of ['player','boss','supervisor','npc'].entries()){
+  r.text(c,type,140+i*270,540,15,'#ddbb84');
+  r.paintedPerson(c,{type,x:140+i*270,y:645,activity:'work'},{direction:'down',moving:false,travel:0},0);
+ }
+ const phase=Math.floor(travel/8.5)%4;window.supervisorReview.phase=phase;
+ document.querySelector('#status').textContent=`phase=${phase} assets=${canvas.dataset.artStatus} errors=${r.assetErrors.join(',')||'none'}`;
+ requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+</script>
+</html>

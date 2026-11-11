@@ -1,8 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Renderer} from '../src/render.js';
+import {readFileSync} from 'node:fs';
+const manifest=JSON.parse(readFileSync(new URL('../assets/manifest.json',import.meta.url)));
+const supervisorArt=()=>Object.fromEntries(Object.entries(manifest).filter(([name])=>name.includes('supervisor-female')).map(([name,meta])=>[name,{meta}]));
 
 const renderer=()=>Object.assign(Object.create(Renderer.prototype),{motion:new Map(),facings:new Map()});
+test('图片加载不依赖内嵌浏览器可能永久等待的decode，失败可进入回退',async()=>{
+ const previous=globalThis.Image;
+ try{
+  globalThis.Image=class{set src(value){queueMicrotask(()=>value==='bad'?this.onerror():this.onload());}decode(){throw new Error('decode must not be called');}};
+  const r=renderer();assert.ok(await r.loadImage('good'));
+  await assert.rejects(r.loadImage('bad'),/image load/);
+ }finally{if(previous===undefined)delete globalThis.Image;else globalThis.Image=previous;}
+});
 test('收益币面与数字墨迹垂直居中，单双位数保持相同间距',()=>{
  const r=renderer();
  for(const [activity,gold,width]of [['game',false,29],['dance',true,43]]){
@@ -45,6 +56,57 @@ test('坐姿素材未加载时必须进入坐姿回退，不能画成站在椅�
  const r=renderer();r.art={player:{}};
  const c=new Proxy({}, {get:()=>()=>{throw new Error('不应调用站姿绘制');}});
  assert.equal(r.paintedPerson(c,{type:'player',x:0,y:0,activity:'work'},{seated:true,direction:'up'},0),false);
+});
+test('主管默认使用女性主管图集，不回退到原男性主管素材',()=>{
+ const r=renderer();
+ r.art=supervisorArt();
+ r.ellipse=()=>{};
+ const c={save(){},restore(){}};
+ const calls=[];r.sprite=(...args)=>{calls.push(args.slice(1,4));return true;};
+ r.paintedPerson(c,{type:'supervisor',x:0,y:0,activity:'work'},{seated:false,moving:false,direction:'down',travel:0},0);
+ assert.equal(calls.length,1);
+ assert.deepEqual(calls[0],['idle-supervisor-female',1,0]);
+});
+test('女性主管四向行走引用实际注册的资源，向左使用独立列且绝不镜像',()=>{
+ const r=renderer();r.art=supervisorArt();r.ellipse=()=>{};
+ const calls=[];r.sprite=(...args)=>{calls.push(args.slice(1));return true;};
+ for(const [direction,row,atlas,column] of [['right',0,'side-steps-supervisor-female',0],['left',3,'side-steps-supervisor-female',1],['down',1,'front-steps-supervisor-female',0],['up',2,'back-steps-supervisor-female',0]]){
+  calls.length=0;
+  for(let phase=0;phase<4;phase++)assert.equal(r.paintedPerson({}, {type:'supervisor',x:10,y:20,activity:'work'}, {direction,moving:true,travel:phase*8.5},0),true);
+  assert.deepEqual(calls.map(call=>call.slice(0,3)),[[atlas,0,column],['idle-supervisor-female',row,0],[atlas,1,column],['idle-supervisor-female',row,0]]);
+  assert.ok(calls.every(call=>!call[6]),'手持文件夹的主管不能水平翻转');
+ }
+});
+test('女性主管动作素材缺失时用独立原始图集，全部缺失才进入女性矢量回退',()=>{
+ const r=renderer();r.art={'supervisor-female':supervisorArt()['supervisor-female']};r.ellipse=()=>{};
+ const calls=[];r.sprite=(...args)=>{calls.push(args.slice(1,4));return true;};
+ assert.equal(r.paintedPerson({}, {type:'supervisor',x:0,y:0}, {direction:'left',moving:true,travel:17},0),true);
+ assert.deepEqual(calls,[['supervisor-female',3,2]]);
+ r.art={supervisor:{},idle:{}};
+ assert.equal(r.paintedPerson({}, {type:'supervisor',x:0,y:0}, {direction:'left',moving:false},0),false);
+ assert.equal(calls.length,1);
+});
+test('主管头像使用同一独立正面站姿入口，素材缺失时不会显示旧男性主管',()=>{
+ const r=renderer(),calls=[];r.sprite=(...args)=>{calls.push(args.slice(1,4));return true;};
+ r.portrait({},'supervisor',72,300,286);
+ assert.deepEqual(calls,[['idle-supervisor-female',1,0]]);
+ r.sprite=()=>false;let fallback;
+ r.person=(...args)=>fallback=args[3];
+ const c={save(){},restore(){},translate(){},scale(){}};
+ r.portrait(c,'supervisor',72,300,286);assert.equal(fallback,'supervisor');
+});
+test('女性主管注册图片尺寸及每个裁片均有效，包含独立左向站姿和左右接触步',()=>{
+ for(const [name,{meta}]of Object.entries(supervisorArt())){
+  const png=readFileSync(new URL('../'+meta.src,import.meta.url));
+  assert.equal(png.readUInt32BE(16),meta.width,name+' width');
+  assert.equal(png.readUInt32BE(20),meta.height,name+' height');
+  for(const row of meta.frames)for(const frame of row){
+   assert.ok(frame.x>=0&&frame.y>=0&&frame.x+frame.w<=meta.width&&frame.y+frame.h<=meta.height,name+' crop');
+   assert.equal(frame.h,420);assert.equal(frame.anchor,192);
+  }
+ }
+ assert.equal(manifest['idle-supervisor-female'].frames.length,4);
+ assert.equal(manifest['side-steps-supervisor-female'].frames[0].length,2);
 });
 test('上下行走的两个接触相位分别使用左腿和右腿素材，过渡帧不复用同侧抬脚',()=>{
  const r=renderer();r.art={boss:{},idle:{},back_steps:{},front_steps:{}};r.ellipse=()=>{};

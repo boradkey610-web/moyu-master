@@ -476,6 +476,86 @@
       ]
     ]
   },
+  "supervisor-female": {
+    "src": "assets/generated/supervisor-v7/supervisor.png",
+    "width": 1536,
+    "height": 1920,
+    "bounds": [0, 50, 1536, 1910],
+    "frames": [
+      [
+        {"x":0,"y":50,"w":384,"h":420,"anchor":192},
+        {"x":384,"y":50,"w":384,"h":420,"anchor":192},
+        {"x":768,"y":50,"w":384,"h":420,"anchor":192},
+        {"x":1152,"y":50,"w":384,"h":420,"anchor":192}
+      ],
+      [
+        {"x":0,"y":530,"w":384,"h":420,"anchor":192},
+        {"x":384,"y":530,"w":384,"h":420,"anchor":192},
+        {"x":768,"y":530,"w":384,"h":420,"anchor":192},
+        {"x":1152,"y":530,"w":384,"h":420,"anchor":192}
+      ],
+      [
+        {"x":0,"y":1010,"w":384,"h":420,"anchor":192},
+        {"x":384,"y":1010,"w":384,"h":420,"anchor":192},
+        {"x":768,"y":1010,"w":384,"h":420,"anchor":192},
+        {"x":1152,"y":1010,"w":384,"h":420,"anchor":192}
+      ],
+      [
+        {"x":0,"y":1490,"w":384,"h":420,"anchor":192},
+        {"x":384,"y":1490,"w":384,"h":420,"anchor":192},
+        {"x":768,"y":1490,"w":384,"h":420,"anchor":192},
+        {"x":1152,"y":1490,"w":384,"h":420,"anchor":192}
+      ]
+    ]
+  },
+  "idle-supervisor-female": {
+    "src": "assets/generated/supervisor-v7/idle.png",
+    "width": 384,
+    "height": 1920,
+    "bounds": [0, 50, 384, 1910],
+    "frames": [
+      [{"x":0,"y":50,"w":384,"h":420,"anchor":192}],
+      [{"x":0,"y":530,"w":384,"h":420,"anchor":192}],
+      [{"x":0,"y":1010,"w":384,"h":420,"anchor":192}],
+      [{"x":0,"y":1490,"w":384,"h":420,"anchor":192}]
+    ]
+  },
+  "front-steps-supervisor-female": {
+    "src": "assets/generated/supervisor-v7/front-steps.png",
+    "width": 384,
+    "height": 960,
+    "bounds": [0, 50, 384, 950],
+    "frames": [
+      [{"x":0,"y":50,"w":384,"h":420,"anchor":192}],
+      [{"x":0,"y":530,"w":384,"h":420,"anchor":192}]
+    ]
+  },
+  "back-steps-supervisor-female": {
+    "src": "assets/generated/supervisor-v7/back-steps.png",
+    "width": 384,
+    "height": 960,
+    "bounds": [0, 50, 384, 950],
+    "frames": [
+      [{"x":0,"y":50,"w":384,"h":420,"anchor":192}],
+      [{"x":0,"y":530,"w":384,"h":420,"anchor":192}]
+    ]
+  },
+  "side-steps-supervisor-female": {
+    "src": "assets/generated/supervisor-v7/side-steps.png",
+    "width": 768,
+    "height": 960,
+    "bounds": [0, 50, 768, 950],
+    "frames": [
+      [
+        {"x":0,"y":50,"w":384,"h":420,"anchor":192},
+        {"x":384,"y":50,"w":384,"h":420,"anchor":192}
+      ],
+      [
+        {"x":0,"y":530,"w":384,"h":420,"anchor":192},
+        {"x":384,"y":530,"w":384,"h":420,"anchor":192}
+      ]
+    ]
+  },
   "chair": {
     "src": "assets/chair.png",
     "width": 1199,

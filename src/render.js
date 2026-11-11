@@ -2,6 +2,16 @@ import {seats,activities,forecastAll} from './engine.js';
 const W=720,H=920;
 export class Renderer{
  constructor(canvas){this.canvas=canvas;this.c=canvas.getContext('2d');this.bg=document.createElement('canvas');this.bg.width=W;this.bg.height=H;this.drawOffice(this.bg.getContext('2d'));this.predictions=[];this.predictionTime=-1;this.art={};this.motion=new Map();this.ready=this.loadArt();}
+ loadImage(src){
+  // Some embedded webviews never settle decode(); the load event remains
+  // reliable for these local PNG/SVG resources and drawImage decodes on use.
+  return new Promise((resolve,reject)=>{
+   const img=new Image();
+   img.onload=()=>{img.onload=null;img.onerror=null;resolve(img);};
+   img.onerror=()=>{img.onload=null;img.onerror=null;reject(new Error('image load'));};
+   img.src=src;
+  });
+ }
  async loadArt(){
   this.assetErrors=[];this.toolIcons={};this.canvas.dataset.artStatus='loading';
   const iconsReady=this.loadToolIcons();
@@ -10,8 +20,7 @@ export class Renderer{
    if(!response.ok)throw new Error('asset manifest');
    this.artManifest=await response.json();
    await Promise.all(Object.entries(this.artManifest).map(async([name,meta])=>{
-    const img=new Image();img.src=new URL('../'+meta.src,import.meta.url).href;
-    try{await img.decode();this.art[name]={img,meta};}catch{this.assetErrors.push(name);}
+    try{const img=await this.loadImage(new URL('../'+meta.src,import.meta.url).href);this.art[name]={img,meta};}catch{this.assetErrors.push(name);}
    }));
    this.drawOffice(this.bg.getContext('2d'));
   }catch{this.assetErrors.push('manifest');}
@@ -24,8 +33,8 @@ export class Renderer{
   await Promise.all(['mirror','meeting'].map(async type=>{
    const source=document.querySelector(`#${type} svg`);if(!source)return;
    const svg=source.cloneNode(true);svg.setAttribute('width','32');svg.setAttribute('height','32');
-   const img=new Image();img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(svg));
-   try{await img.decode();this.toolIcons[type]=img;}catch{this.assetErrors.push(type+'-icon');}
+   const src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(svg));
+   try{this.toolIcons[type]=await this.loadImage(src);}catch{this.assetErrors.push(type+'-icon');}
   }));
  }
  asset(c,name,x,y,w,h){
@@ -53,13 +62,15 @@ export class Renderer{
  }
  sprite(c,name,row,frame,x,feet,height,flip=false){
   const asset=this.art[name],frames=asset?.meta.frames?.[row];if(!frames)return false;
-  const f=frames[frame%frames.length],scale=height/Math.max(...frames.map(f=>f.h));
+  const f=frames[frame%frames.length];if(!f)return false;
+  const scale=height/Math.max(...frames.map(f=>f.h));
   c.save();c.translate(x,feet);if(flip)c.scale(-1,1);
   c.drawImage(asset.img,f.x,f.y,f.w,f.h,-f.anchor*scale,-f.h*scale,f.w*scale,f.h*scale);
   c.restore();return true;
  }
  paintedPerson(c,a,pose,t){
   const name=a.type.startsWith('npc')?'npc':a.type;
+  const characterAtlas=name,idleAtlas='idle';
   const y=a.y+(a.activity==='dance'?36:0);
   if(pose.seated){
    if(!this.art.seated)return false;
@@ -67,7 +78,8 @@ export class Renderer{
    this.sprite(c,'seated',row,frame,a.x,a.y+16,99);
    this.chair(c,a.x,a.y,!!a.gold,'front');return true;
   }
-  if(!this.art[name])return false;
+  if(name==='supervisor')return this.paintedSupervisor(c,a,pose,t);
+  if(!this.art[characterAtlas])return false;
   this.ellipse(c,a.x,y+1,17,6,'#4d463a2b');
   const row=pose.direction==='up'?2:pose.direction==='down'?1:0;
   let frame=pose.moving?[0,1,3,2][Math.floor(pose.travel/8.5)%4]:1;
@@ -78,19 +90,41 @@ export class Renderer{
   }
   const characterColumn={player:0,boss:1,supervisor:2,npc:3}[name];
   const walkAtlas=row===2?'back_steps':row===1?'front_steps':'side_steps';
-  if(!pose.moving&&a.activity!=='dance'&&this.art.idle)
-   this.sprite(c,'idle',row,characterColumn,a.x,y,98,pose.direction==='left');
-  else if(pose.moving&&a.activity!=='dance'&&this.art[walkAtlas]&&this.art.idle){
+  if(!pose.moving&&a.activity!=='dance'&&this.art[idleAtlas])
+   this.sprite(c,idleAtlas,row,characterColumn,a.x,y,98,pose.direction==='left');
+  else if(pose.moving&&a.activity!=='dance'&&this.art[walkAtlas]&&this.art[idleAtlas]){
    const phase=Math.floor(pose.travel/8.5)%4;
    if(phase%2===0)this.sprite(c,walkAtlas,phase/2,characterColumn,a.x,y,98,pose.direction==='left');
-   else this.sprite(c,'idle',row,characterColumn,a.x,y,98,pose.direction==='left');
-  }else this.sprite(c,name,a.activity==='dance'?1:row,frame,a.x,y,98,pose.direction==='left');
+   else this.sprite(c,idleAtlas,row,characterColumn,a.x,y,98,pose.direction==='left');
+  }else this.sprite(c,characterAtlas,a.activity==='dance'?1:row,frame,a.x,y,98,pose.direction==='left');
   c.restore();
   if(a.activity==='dance'){
    this.text(c,'♫',a.x-34,y-80+Math.sin(t*5)*5,23,'#d96098','800');
    this.text(c,'♪',a.x+35,y-99+Math.sin(t*5+2)*5,20,'#9866c8','800');
   }
   return true;
+ }
+ paintedSupervisor(c,a,pose,t){
+  // Independent left art keeps the folder in the anatomical right hand.
+  const row={right:0,down:1,up:2,left:3}[pose.direction]??1;
+  const phase=pose.moving?Math.floor(pose.travel/8.5)%4:1;
+  const walking=pose.moving&&phase%2===0;
+  const walkAtlas=row===1?'front-steps-supervisor-female':row===2?'back-steps-supervisor-female':'side-steps-supervisor-female';
+  const choices=walking?[[walkAtlas,phase/2,row===3?1:0],['supervisor-female',row,phase]]:
+   [['idle-supervisor-female',row,0],['supervisor-female',row,1]];
+  const selected=choices.find(([atlas,r,f])=>this.art[atlas]?.meta?.frames?.[r]?.[f]);
+  if(!selected)return false;
+  this.ellipse(c,a.x,a.y+1,17,6,'#4d463a2b');
+  return this.sprite(c,...selected,a.x,a.y,98);
+ }
+ portrait(c,type,x,feet,height){
+  if(type==='supervisor'){
+   if(this.sprite(c,'idle-supervisor-female',1,0,x,feet,height))return true;
+   if(this.sprite(c,'supervisor-female',1,1,x,feet,height))return true;
+   c.save();c.translate(x,feet);c.scale(height/90,height/90);
+   this.person(c,0,0,'supervisor',0,false,'work','down');c.restore();return false;
+  }
+  return this.sprite(c,'idle',1,{player:0,boss:1,npc:3}[type]??0,x,feet,height);
  }
  box(c,x,y,w,h,r,fill,stroke='#897d65',line=2){c.beginPath();c.roundRect(x,y,w,h,r);c.fillStyle=fill;c.fill();if(stroke){c.strokeStyle=stroke;c.lineWidth=line;c.stroke();}}
  ellipse(c,x,y,rx,ry,fill,stroke){c.beginPath();c.ellipse(x,y,rx,ry,0,0,Math.PI*2);c.fillStyle=fill;c.fill();if(stroke){c.strokeStyle=stroke;c.lineWidth=2;c.stroke();}}
@@ -151,13 +185,14 @@ export class Renderer{
  }
  palette(type){
   const player=type==='player',boss=type==='boss',supervisor=type==='supervisor';
-  return {skin:'#edc4a0',hair:boss?'#343333':supervisor?'#544037':player?'#684735':'#594b40',
-   shirt:player?'#f0c451':boss?'#3e4854':supervisor?'#e2ece6':['#9eafa1','#9eafc5','#c5a7a0'][Number(type.slice(-1))||0],
-   shade:player?'#c89532':boss?'#293440':supervisor?'#a6bbb7':'#778b8b'};
+  return {skin:'#edc4a0',hair:boss?'#343333':supervisor?'#3f312a':player?'#684735':'#594b40',
+   shirt:player?'#f0c451':boss?'#3e4854':supervisor?'#2f5d4f':['#9eafa1','#9eafc5','#c5a7a0'][Number(type.slice(-1))||0],
+   shade:player?'#c89532':boss?'#293440':supervisor?'#24473d':'#778b8b'};
  }
  head(c,type,direction,cy=-63){
   const p=this.palette(type),back=direction==='up',side=direction==='left'||direction==='right';
   c.save();c.translate(0,cy);if(direction==='left')c.scale(-1,1);
+  if(type==='supervisor')this.ellipse(c,side?-16:back?0:14,13,7,11,p.hair,'#493a31');
   this.ellipse(c,0,0,side?15:18,20,p.skin,'#70503c');
   if(back){
    this.ellipse(c,-17,4,3,5,p.skin,'#8e694b');this.ellipse(c,17,4,3,5,p.skin,'#8e694b');
@@ -219,6 +254,7 @@ export class Renderer{
   this.chair(c,x,y,gold,'front');
  }
  person(c,x,y,type,time,moving=false,activity='work',direction='down'){
+  if(type==='supervisor')return this.supervisorFallback(c,x,y,time,moving,direction);
   const p=this.palette(type),side=direction==='left'||direction==='right',back=direction==='up';
   const phase=moving?Math.sin(time*11):0,bob=moving?-Math.abs(Math.cos(time*11))*1.8:0;
   c.save();c.translate(x,y+bob);if(direction==='left')c.scale(-1,1);
@@ -259,6 +295,38 @@ export class Renderer{
   }
   if(type==='supervisor')this.box(c,side?-17:20,-32,15,22,2,'#81afbb','#4f7882',1.5);
   if(activity==='dance'){this.text(c,'♫',-32,-85,25,'#d76c9c','800');this.text(c,'♪',32,-95+Math.sin(time*5)*5,22,'#9e6bc5','800');}
+  c.restore();
+ }
+ supervisorFallback(c,x,y,time,moving,direction){
+  const p=this.palette('supervisor'),side=direction==='left'||direction==='right',back=direction==='up';
+  const facing=direction==='left'?-1:1,phase=moving?Math.sin(time*11):0;
+  c.save();c.translate(x,y);
+  this.ellipse(c,0,0,19,6,'#353c3524');
+  for(const leg of [-1,1]){
+   const sx=side?leg*4:leg*8,fx=sx+phase*leg*(side?8:2);
+   this.line(c,[[sx,-27],[sx,-14],[fx,-4]],p.skin,6);
+   this.line(c,[[fx,-8],[fx,-2]],'#343532',7);
+   this.ellipse(c,fx+(side?facing*3:0),-1,side?7:5,3,'#30312e');
+  }
+  const folderX=side?(direction==='left'?-15:-11):back?19:-26;
+  const folder=()=>this.box(c,folderX,-38,side?12:15,22,2,'#795a3b','#493e30',1.5);
+  if(direction==='left')folder();
+  this.box(c,side?-13:-18,-43,side?26:36,22,4,p.shade,'#41473b',1.5);
+  this.box(c,side?-12:-17,-54,side?24:34,27,5,p.shirt,'#41473b',1.5);
+  if(!back){
+   this.line(c,[[-5,-51],[0,-43],[5,-51]],'#eee3cd',2);
+   this.line(c,[[-5,-50],[0,-35],[5,-50]],'#b35c43',1.5);
+   this.box(c,-3,-35,6,8,1,'#b35c43','#dccbb1',1);
+  }
+  const heldArm=side?-7:back?18:-18,freeArm=side?7:back?-18:18;
+  this.line(c,[[heldArm,-48],[heldArm,-35],[heldArm,-24]],p.shade,7);
+  if(direction!=='left'){
+   folder();this.ellipse(c,heldArm,-22,3,4,p.skin,'#957052');
+  }
+  this.line(c,[[freeArm,-48],[freeArm+phase*3,-35],[freeArm+phase*5,-25]],p.shirt,7);
+  this.ellipse(c,freeArm+phase*5,-23,3,4,p.skin,'#957052');
+  this.box(c,-5,-60,10,9,3,p.skin,'#8d6b50',1);
+  this.head(c,'supervisor',direction,-72);
   c.restore();
  }
  pose(actor,key){

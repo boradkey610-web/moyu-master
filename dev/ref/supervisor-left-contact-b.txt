@@ -1,0 +1,7 @@
+Generate ONE SINGLE full-body sprite, NOT a strip or sheet. Copy the FIRST reference's character identity, low brown ponytail, rectangular glasses, green fitted office jacket and skirt, ivory blouse, red lanyard, black ankle boots, compact cartoon proportions and exact warm hand-painted rendering style. Strict LEFT-facing profile, nose points LEFT.
+
+The EMPTY NEAR LEFT ARM is down. The RIGHT hand holding the ONE brown folder is on the FAR SIDE, partially occluded: only the folder's small brown sliver is visible at the forward/LEFT edge of her hip. Do NOT copy the erroneous central reference frame's near-side folder; the LEFTMOST reference sprite has the correct far-side folder placement. No hand switching, no duplicate folder, exactly two arms and two legs.
+
+The walking pose is the OPPOSITE leg phase from the reference: visible NEAR anatomical LEFT LEG is BACK, knee slightly bent with heel LIFTED off the floor to the RIGHT behind her. FAR anatomical RIGHT LEG extends slightly forward to the LEFT with boot flat on the ground SUPPORTING her weight. Both toes point LEFT. One boot distinctly LIFTED behind, the other planted flat ahead, not the same wide spread two-grounded-boots pose as the reference. Keep the head and upper body unchanged and upright.
+
+Single isolated full-body game sprite on a plain pure white background, NO floor shadow, NO white outline/halo/sticker border, NO text. Entire head and both boots visible with generous white margin on a square canvas.

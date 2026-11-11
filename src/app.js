@@ -30,7 +30,7 @@ function portrait(type){return `<canvas class="story-portrait" width="144" heigh
 function activitySummary(){return `<div class="result-facts activity-summary">${['joke','game','dance'].map(a=>`<span>${activities[a].name}<b>${Math.floor(g.stats.activityTime[a])} 秒</b></span>`).join('')}</div>`;}
 function statement(){return `<div class="shift-score"><span>本局摸鱼收入</span><div><strong>${Math.floor(g.coins)}</strong><small> / ${g.config.target} 金币</small></div><div class="score-track"><i style="width:${Math.max(0,Math.min(100,g.coins/g.config.target*100))}%"></i></div><footer><span>${g.config.name}</span><span>${g.ads?'助力挑战':'独立挑战'}</span></footer></div>`;}
 function modalBackground(inert){for(const el of document.querySelectorAll('.hud,.scene,.controls'))el.inert=inert;}
-function show(html,buttons=[]){modalBackground(true);$('#overlay').dataset.page=['menu','levels','guide'].includes(screen)?screen:'';$('#overlay').classList.remove('hidden');$('#dialog').dataset.kind=screen==='result'?g.modal?.kind||'result':screen||'';$('#dialog').innerHTML=html;for(const b of buttons)$('#dialog').append(button(...b));g.paused=true;queueMicrotask(()=>$('#dialog button:not(:disabled)')?.focus({preventScroll:true}));renderer.ready.then(()=>{paintHomeArt();for(const portrait of document.querySelectorAll('#dialog canvas[data-person]')){const c=portrait.getContext('2d');c.clearRect(0,0,144,170);renderer.sprite(c,'idle',1,{player:0,boss:1,supervisor:2}[portrait.dataset.person],72,300,286);}});}
+function show(html,buttons=[]){modalBackground(true);$('#overlay').dataset.page=['menu','levels','guide'].includes(screen)?screen:'';$('#overlay').classList.remove('hidden');$('#dialog').dataset.kind=screen==='result'?g.modal?.kind||'result':screen||'';$('#dialog').innerHTML=html;for(const b of buttons)$('#dialog').append(button(...b));g.paused=true;queueMicrotask(()=>$('#dialog button:not(:disabled)')?.focus({preventScroll:true}));renderer.ready.then(()=>{paintHomeArt();for(const portrait of document.querySelectorAll('#dialog canvas[data-person]')){const c=portrait.getContext('2d');c.clearRect(0,0,144,170);renderer.portrait(c,portrait.dataset.person,72,300,286);}});}
 function hide(){modalBackground(false);$('#overlay').dataset.page='';screen=null;$('#overlay').classList.add('hidden');g.paused=false;lastModal=null;}
 function start(level){g=new Game(level);lastModal=null;hide();beep(660);}
 function paintHomeArt(){
@@ -48,7 +48,7 @@ function paintHomeArt(){
   const c=tile.getContext('2d'),i=Number(tile.dataset.levelArt);c.clearRect(0,0,100,100);
   if(i===1){renderer.asset(c,'chair-gold',15,12,72,82);}
   else if(i===3){renderer.sprite(c,'seated',0,2,50,97,91);}
-  else{renderer.sprite(c,'idle',1,i===2?2:1,50,98,92);}
+  else{renderer.portrait(c,i===2?'supervisor':'boss',50,98,92);}
  }
 }
 function menu(){
