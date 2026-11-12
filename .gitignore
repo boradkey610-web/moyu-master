@@ -3,3 +3,5 @@ node_modules/
 outputs/*.jpg
 __pycache__/
 .image_generation_tasks/
+dist/
+.static-site-deploy.json

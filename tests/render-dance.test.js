@@ -14,7 +14,7 @@ test('approved dance atlas uses 28 original cells, eight beats and a four-second
  assert.equal(meta.frameCount,28);assert.equal(meta.duration,4);
  assert.equal(meta.width,meta.columns*meta.cellWidth);assert.equal(meta.height,meta.rows*meta.cellHeight);
  assert.ok(meta.footBaseline<meta.cellHeight);assert.ok(meta.anchor<meta.cellWidth);
- assert.match(meta.src,/eight-beat-v4\/frames.png$/);
+ assert.match(meta.src,/eight-beat-clean\/frames.png$/);
 });
 test('all three dance phrases play in order without flipping or deforming the artwork',()=>{
  const r=renderer(),calls=[],c={drawImage(...args){calls.push(args);}};r.ellipse=()=>{};
@@ -51,14 +51,15 @@ test('seated work is unchanged and missing dance art keeps the existing fallback
  assert.equal(r.paintedPerson({}, {type:'player',x:0,y:0,activity:'work'},{seated:true},0),true);
  assert.deepEqual(calls,[['seated',0,0]]);
 });
-test('lighting composites after actors but before every inspection label and risk cue',()=>{
+test('disco hides map and inspector labels but keeps player feedback and a fixed warning',()=>{
  const r=renderer(),g=new Game(2,1),order=[];g.setActivity('dance');g.elapsed=.4;
  r.c=context();r.bg={};
  for(const name of ['soundSources','inspectionCone','chair','text','chip','noiseBadge','incomePop','playerStakes','momentFeedback','soundSignals','inspectionLabel'])r[name]=()=>order.push(name);
- r.paintedPerson=()=>{order.push('actor');return true;};r.danceSpotlight=()=>order.push('light');
+ r.paintedPerson=()=>{order.push('actor');return true;};r.discoOverlay=()=>order.push('light');r.discoWarning=()=>order.push('warning');
  r.draw(g,200);
  const light=order.indexOf('light');assert.ok(light>order.lastIndexOf('actor'));
- for(const name of ['inspectionLabel','noiseBadge','playerStakes','momentFeedback','soundSignals'])assert.ok(order.indexOf(name)>light,name);
+ for(const name of ['inspectionLabel','soundSignals'])assert.ok(order.indexOf(name)<light,name);
+ for(const name of ['noiseBadge','playerStakes','momentFeedback','warning'])assert.ok(order.indexOf(name)>light,name);
 });
 test('spotlight geometry is cached across frames, with no scene pixel reads',()=>{
  const old=globalThis.document;let canvases=0;
@@ -98,7 +99,7 @@ test('music notes float outside the spotlight and disappear with the light',()=>
 test('dance rolls the player chair under the desk and restores it before seated work',()=>{
  const r=renderer(),g=new Game(2,1),chairs=[],tucks=[];
  r.c=context();r.bg={};g.inspectors=[];g.special={seat:g.player.seat,left:10};
- for(const name of ['soundSources','goldGlow','goldBadge','text','chip','noiseBadge','incomePop','playerStakes','momentFeedback','soundSignals','danceSpotlight'])r[name]=()=>{};
+ for(const name of ['soundSources','goldGlow','goldBadge','text','chip','noiseBadge','incomePop','playerStakes','momentFeedback','soundSignals','discoOverlay','discoWarning'])r[name]=()=>{};
  r.chair=(c,x,y,gold,layer)=>chairs.push({x,y,gold,layer});
  r.tuckedChair=(c,seat,gold,progress)=>tucks.push({seat:seat.id,gold,progress});
  r.paintedPerson=(c,a,pose)=>{if(pose.seated)r.chair(c,a.x,a.y,!!a.gold,'front');return true;};

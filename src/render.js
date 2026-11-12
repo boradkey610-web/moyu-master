@@ -1,4 +1,5 @@
 import {seats,activities,forecastAll} from './engine.js';
+import {DiscoScene,discoOpacity} from './disco.js';
 const W=720,H=920;
 const DANCE_FLOOR_RADIUS=40,DANCE_FLOOR_FLATTEN=.35;
 export class Renderer{
@@ -112,7 +113,7 @@ export class Renderer{
   const time=Math.max(0,g.elapsed-(p.danceStartedAt??g.elapsed));
   const strength=Math.min(1,time/.2,p.stopping>0?p.stopping/activities.dance.stop:1);
   const chairTuck=Math.min(1,time/.45,p.stopping>0?p.stopping/.45:1);
-  return {time,strength,chairTuck,x:p.x,feet:p.y+36};
+  return {time,strength,chairTuck,x:p.x,feet:p.y+36,stopping:p.stopping||0};
  }
  paintedDance(c,a,time){
   const asset=this.art['player-dance'];if(!asset)return false;
@@ -122,6 +123,20 @@ export class Renderer{
   // Draw original cells without rotation, mirroring or optical-flow warping.
   c.drawImage(asset.img,x,y,m.cellWidth,m.cellHeight,a.x-m.anchor*scale,a.y+36-m.footBaseline*scale,m.cellWidth*scale,m.cellHeight*scale);
   return true;
+ }
+ discoOverlay(c,state){
+  if(!state)return;
+  const opacity=discoOpacity({...state,stopping:state.stopping||0},activities.dance.stop);
+  if(opacity<=0)return;
+  this.discoScene??=new DiscoScene(this);
+  this.discoScene.draw(c,state,opacity);
+ }
+ discoWarning(c,g,state){
+  if(!state)return;
+  const threats=g.activityThreats('dance');
+  if(!threats.length)return;
+  this.box(c,204,105,312,44,7,'#533226ed','#cda077',1);
+  this.text(c,'有人靠近…准备收手',360,127,18,'#f4d8aa');
  }
  spotlightLayers(x,feet){
   if(this.danceLight?.x===x&&this.danceLight.feet===feet)return this.danceLight;
@@ -614,13 +629,19 @@ export class Renderer{
   a.gold=a.seat!=null&&g.special?.seat===a.seat;
   const pose=this.pose(a,a.visualKey||a.type),actorY=a.y+(a.activity==='dance'?35:0);
   a.renderPose=pose;
-  if(!this.paintedPerson(c,a,pose,a.type==='player'&&dance?dance.time:t)){
+  const seatedFade=a.type==='player'&&dance&&this.art.seated;
+  if(seatedFade)this.sprite(c,'seated',0,0,a.x,a.y+16,99);
+  else if(!this.paintedPerson(c,a,pose,a.type==='player'&&dance?dance.time:t)){
    if(pose.seated)this.seatedPerson(c,a.x,a.y,a.type,t,a.activity||'work',a.gold);
    else this.person(c,a.x,actorY,a.type,t,pose.moving,a.activity,pose.direction);
   }
  }
- this.danceSpotlight(c,dance);
- // Keep all risk/inspection labels above scene lighting, including other actors.
+ // Inspector positions and map-only cues belong to the office layer.
+ for(const a of actors)if(a.name)this.inspectionLabel(c,a,a.renderPose);
+ if(g.special)this.goldBadge(c,seats[g.special.seat],g.special.left,t);
+ this.soundSignals(c,g,t);
+ this.discoOverlay(c,dance);
+ // Keep the player's feedback and a non-positional warning above the disco.
  for(const a of actors){
   const pose=a.renderPose;
   if(a.type==='player'){
@@ -634,9 +655,8 @@ export class Renderer{
     this.noiseBadge(c,g,a);
     this.incomePop(c,a,t);
    }
-  }else if(a.name)this.inspectionLabel(c,a,pose);
+  }
  }
- if(g.special)this.goldBadge(c,seats[g.special.seat],g.special.left,t);
- this.playerStakes(c,g);this.momentFeedback(c,g);this.soundSignals(c,g,t);
+ this.playerStakes(c,g);this.momentFeedback(c,g);this.discoWarning(c,g,dance);
  }
 }

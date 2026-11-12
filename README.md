@@ -39,3 +39,21 @@ npm run build
 ```
 
 `build` 是无打包项目的语法检查。测试覆盖收入、连摸结算、收手、首次警告、罚款、冻结、联合预测、独立声源与待查记忆、双倍、道路最短路、占座竞争、存档迁移和绘制回归。
+
+## 静态站发布包
+
+运行 `npm run build:site` 生成 `dist/`。发布包仅包含首页、样式、三个运行模块、素材清单及其引用图片和蹦迪验收页，不包含仓库配置、生图配置、密钥、历史试验素材或 `DramaClip/`。
+
+使用 MyFlicker 静态站平台部署时，先运行 `appwrite-cf whoami`，未登录则通过 `appwrite-cf login-ks` 授权；只上传经过审查的 `dist/`，不要上传整个工作目录。部署生成的本地站点配置不纳入 Git。
+
+## 在线访问（2026-11-12）
+
+- 游戏：https://moyulijin15.frontend-cloud.corp.kuaishou.com/
+- 蹦迪预览：https://moyulijin15.frontend-cloud.corp.kuaishou.com/dev/dance-review.html
+- 当前固定版本：https://moyulijin15-ddc50699.frontend-cloud.corp.kuaishou.com/
+- 访问范围：所有已登录的快手用户；这是公司站点，不是匿名公网地址。
+- 权限管理：https://myflicker.corp.kuaishou.com/web-artifacts/detail?id=29425&tab=AccessControl
+- 更新：在 SSO 已登录的前提下，运行 `npm run build:site`，复审 `dist/` 后通过 `npx -y --registry https://npm.corp.kuaishou.com/ @codeflicker/frontend-cloud-cli@latest deploy --dir dist` 上传。
+- 浏览器回归：打开游戏或预览页，获得当前浏览器的 tab ID 后运行 `bash tests/browser/smoke.test.sh <tab-id>`；检查脚本结果 `passed=true`，并检查控制台和网络结果。
+
+首次上线已验证首页、关卡选择、全部素材加载及蹦迪预览；部署记录详见 `CHANGELOG.md`。

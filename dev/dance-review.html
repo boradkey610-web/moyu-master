@@ -2,22 +2,23 @@
 <html lang="zh-CN">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>八拍舞蹈 · 游戏内验收</title>
+<title>迪厅渐变 · 游戏内验收</title>
 <style>
 :root{background:#242c2e;color:#eee0c4;font-family:Georgia,"Songti SC",serif}body{max-width:720px;margin:20px auto;padding:0 12px}h1{font-size:24px}p{line-height:1.6}button,a{color:#e9c17e}button{background:#364244;border:1px solid #8a8469;border-radius:6px;padding:10px 14px;margin:0 8px 10px 0;cursor:pointer}canvas{display:block;width:100%;height:auto}#status{font-family:monospace;font-size:13px}
 </style>
-<h1>八拍舞蹈 · 游戏内验收</h1>
-<p>使用正式游戏的角色与灯光渲染。此页固定检查者用于观察完整循环，不读写通关记录；正式游戏仍按原规则巡视、收手和被抓。</p>
+<h1>迪厅渐变 · 游戏内验收</h1>
+<p>使用正式游戏的迪厅与渐变渲染：准备跳舞 0.8 秒渐入，一键工作在 1 秒收手期内渐回办公室。此页固定检查者用于观察完整循环，不读写通关记录；正式游戏仍按原规则巡视、收手和被抓。</p>
 <button id="dance">重新跳舞</button><button id="slow">椅子慢动作</button><button id="pause">暂停</button><button id="work">收手工作</button><button id="catch">模拟被抓</button>
 <a href="../">正式游戏</a><p id="status">加载中</p>
-<canvas width="720" height="920" aria-label="实际办公室中的连续八拍舞蹈与聚光灯"></canvas>
+<canvas width="720" height="920" aria-label="实际游戏中的迪厅渐变与连续八拍舞蹈"></canvas>
 <script type="module">
 import {Game} from '../src/engine.js';
 import {Renderer} from '../src/render.js';
 const canvas=document.querySelector('canvas'),r=new Renderer(canvas);
 let g,last=0,speed=1;
 function restart(){g=new Game(2,1);for(const ins of g.inspectors)ins.hold=10000;g.setActivity('dance');document.querySelector('#pause').textContent='暂停';}
-restart();await r.ready;
+restart();await r.ready;r.draw(g,g.elapsed);
+document.querySelector('#status').textContent=`资源已加载 · ${r.assetErrors.length?'资源异常':'准备跳舞'}`;
 document.querySelector('#dance').onclick=restart;
 document.querySelector('#slow').onclick=()=>{speed=speed===1?.25:1;document.querySelector('#slow').textContent=speed===1?'椅子慢动作':'恢复正常速度';restart();};
 document.querySelector('#pause').onclick=()=>{g.paused=!g.paused;document.querySelector('#pause').textContent=g.paused?'继续':'暂停';};
