@@ -69,28 +69,58 @@ test('spotlight geometry is cached across frames, with no scene pixel reads',()=
   assert.notEqual(r.spotlightLayers(255,551),first);assert.equal(canvases,4);
  }finally{if(old===undefined)delete globalThis.document;else globalThis.document=old;}
 });
-test('dark stage stays inside the workstation cylinder instead of covering the office',()=>{
- const old=globalThis.document,rects=[];let canvases=0;
+test('full-scene dance darkness has a soft tapered spotlight opening, not enclosing walls',()=>{
+ const old=globalThis.document,darkRects=[],warmRects=[];let canvases=0;
  try{
   globalThis.document={createElement(){
    const index=canvases++,c=context();
    c.createLinearGradient=c.createRadialGradient=()=>({addColorStop(){}});
-   c.fillRect=(...args)=>{if(index===0&&c.globalCompositeOperation!=='destination-out')rects.push(args);};
+   c.fillRect=(...args)=>(index===0?darkRects:warmRects).push(args);
    return{getContext:()=>c};
   }};
   renderer().spotlightLayers(545,551);
-  assert.ok(rects.length>100);
-  for(const [x,y,w,h]of rects){
-   assert.ok(x>=505&&x+w<=585,'cylinder matches the 40px floor light radius');
-   assert.ok(y>=438&&y+h<=565,'cylinder extends from lamp to floor ellipse');assert.equal(h,1);
-  }
+  assert.deepEqual(darkRects[0],[0,0,720,920],'ambient darkness covers the entire map');
+  const beam=warmRects.filter(rect=>rect[3]===1);
+  assert.ok(beam.length>100);assert.equal(beam[0][2],12);
+  assert.ok(beam.at(-1)[2]>78&&beam.at(-1)[2]<80);
+  assert.ok(beam.every(([x,y,w,h])=>x>=505&&x+w<=585&&y>=438&&y+h<=551));
+  assert.deepEqual(darkRects.filter(rect=>rect[3]===1),beam,'the bright opening follows the tapered light, not a cylinder');
  }finally{if(old===undefined)delete globalThis.document;else globalThis.document=old;}
 });
-test('music notes float outside the floor-sized cylinder and disappear with the light',()=>{
+test('music notes float outside the spotlight and disappear with the light',()=>{
  const r=renderer(),positions=[],heads=[],c=context();
  c.translate=(x,y)=>positions.push([x,y]);r.ellipse=(...args)=>heads.push(args);r.line=()=>{};
  r.danceNotes(c,{time:1,strength:1,x:545,feet:551});
  assert.equal(positions.length,4);assert.equal(heads.length,6);
  assert.ok(positions.every(([x,y])=>Math.abs(x-545)>40&&y<551&&y>438));
  r.danceNotes(c,null);r.danceNotes(c,{time:1,strength:0,x:545,feet:551});assert.equal(positions.length,4);
+});
+test('dance rolls the player chair under the desk and restores it before seated work',()=>{
+ const r=renderer(),g=new Game(2,1),chairs=[],tucks=[];
+ r.c=context();r.bg={};g.inspectors=[];g.special={seat:g.player.seat,left:10};
+ for(const name of ['soundSources','goldGlow','goldBadge','text','chip','noiseBadge','incomePop','playerStakes','momentFeedback','soundSignals','danceSpotlight'])r[name]=()=>{};
+ r.chair=(c,x,y,gold,layer)=>chairs.push({x,y,gold,layer});
+ r.tuckedChair=(c,seat,gold,progress)=>tucks.push({seat:seat.id,gold,progress});
+ r.paintedPerson=(c,a,pose)=>{if(pose.seated)r.chair(c,a.x,a.y,!!a.gold,'front');return true;};
+ const countPlayer=()=>chairs.filter(ch=>ch.x===g.player.x&&ch.y===g.player.y);
+ const draw=()=>{chairs.length=0;tucks.length=0;r.draw(g,g.elapsed);};
+ g.setActivity('dance');draw();assert.equal(countPlayer().length,0);
+ assert.deepEqual(tucks,[{seat:g.player.seat,gold:true,progress:0}]);
+ g.step(.45);draw();assert.equal(tucks[0].progress,1);
+ assert.ok(chairs.some(ch=>ch.x===g.npcs[0].x&&ch.y===g.npcs[0].y),'other workstation chairs stay visible');
+ g.setActivity('work');g.step(.5);draw();assert.equal(countPlayer().length,0);
+ assert.equal(tucks[0].progress,1);
+ g.step(.3);draw();assert.ok(tucks[0].progress>0&&tucks[0].progress<1);
+ g.step(.2);draw();assert.deepEqual(countPlayer().map(ch=>ch.layer),['base','front']);assert.equal(tucks.length,0);
+ assert.ok(countPlayer().every(ch=>ch.gold),'gold chair style is restored');
+ g.setActivity('dance');g.catchPlayer('老板');draw();assert.equal(countPlayer().length,2);
+});
+test('chair tuck translates the original chair, clips behind the desk and never scales or fades it',()=>{
+ const r=renderer(),rects=[],translations=[],c=context();
+ c.rect=(...args)=>rects.push(args);c.translate=(...args)=>translations.push(args);
+ c.scale=c.drawImage=()=>assert.fail('chair must retain its size');
+ r.chair=(ctx,x,y,gold,layer)=>{assert.equal(x,545);assert.equal(y,515);assert.equal(gold,true);assert.equal(layer,'all');};
+ for(const progress of [0,.5,1])r.tuckedChair(c,{x:545,y:515},true,progress);
+ assert.deepEqual(translations,[[0,-0],[0,-18],[0,-36]]);
+ assert.deepEqual(rects.map(rect=>rect[1]),[491,501,511]);
 });

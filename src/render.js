@@ -111,7 +111,8 @@ export class Renderer{
   if(p.activity!=='dance'||p.seat==null||p.route.length)return null;
   const time=Math.max(0,g.elapsed-(p.danceStartedAt??g.elapsed));
   const strength=Math.min(1,time/.2,p.stopping>0?p.stopping/activities.dance.stop:1);
-  return {time,strength,x:p.x,feet:p.y+36};
+  const chairTuck=Math.min(1,time/.45,p.stopping>0?p.stopping/.45:1);
+  return {time,strength,chairTuck,x:p.x,feet:p.y+36};
  }
  paintedDance(c,a,time){
   const asset=this.art['player-dance'];if(!asset)return false;
@@ -127,35 +128,37 @@ export class Renderer{
   const dark=document.createElement('canvas'),warm=document.createElement('canvas');
   dark.width=warm.width=W;dark.height=warm.height=H;
   const d=dark.getContext('2d'),w=warm.getContext('2d'),height=98,top=feet-height-15;
-  // Only this workstation's cylindrical stage is darkened, not the office.
-  const stageRadius=DANCE_FLOOR_RADIUS,cap=stageRadius*DANCE_FLOOR_FLATTEN;
-  const stageTop=top,stageBottom=feet+cap;
-  for(let y=stageTop;y<stageBottom;y+=1){
-   const capDistance=Math.max(0,stageTop+cap-y,y-(stageBottom-cap))/cap;
-   const radius=stageRadius*Math.sqrt(Math.max(0,1-capDistance*capDistance));
-   if(radius<=0)continue;
-   const shade=d.createLinearGradient(x-radius,y,x+radius,y);
-   shade.addColorStop(0,'rgba(9,14,21,0)');shade.addColorStop(.18,'rgba(9,14,21,.52)');
-   shade.addColorStop(.82,'rgba(9,14,21,.52)');shade.addColorStop(1,'rgba(9,14,21,0)');
-   d.fillStyle=shade;d.fillRect(x-radius,y,radius*2,1);
-  }
+  d.fillStyle='rgba(9,14,21,.68)';d.fillRect(0,0,W,H);
   d.globalCompositeOperation='destination-out';
-  // Cache soft-edged scanline gradients, not a full-canvas pixel read per frame.
-  for(let y=top;y<feet+13;y+=1){
-   const u=Math.max(0,Math.min(1,(y-top)/(feet-top))),radius=height*(.14+.22*u),edge=radius*1.22;
-   const alpha=Math.min(1,Math.max(0,(y-top+4)/15),Math.max(0,(feet+13-y)/18));
-   for(const [ctx,color]of [[d,'255,255,255'],[w,'255,224,151']]){
-    const g=ctx.createLinearGradient(x-edge,y,x+edge,y);
-    g.addColorStop(0,`rgba(${color},0)`);g.addColorStop(.156,`rgba(${color},${alpha})`);
-    g.addColorStop(.844,`rgba(${color},${alpha})`);g.addColorStop(1,`rgba(${color},0)`);
-    ctx.fillStyle=g;ctx.fillRect(x-edge,y,edge*2,1);
-   }
+  // Volumetric light has a tapered bright core, never an opaque enclosure.
+  for(let y=top;y<feet;y+=1){
+   const u=(y-top)/(feet-top),radius=6+(DANCE_FLOOR_RADIUS-6)*u;
+   const alpha=(.52-.28*u)*Math.min(1,(feet-y)/12);
+   const beam=w.createLinearGradient(x-radius,y,x+radius,y);
+   beam.addColorStop(0,'rgba(255,234,189,0)');
+   beam.addColorStop(.2,`rgba(255,234,189,${alpha*.25})`);
+   beam.addColorStop(.5,`rgba(255,248,223,${alpha})`);
+   beam.addColorStop(.8,`rgba(255,234,189,${alpha*.25})`);
+   beam.addColorStop(1,'rgba(255,234,189,0)');
+   w.fillStyle=beam;w.fillRect(x-radius,y,radius*2,1);
+   const opening=d.createLinearGradient(x-radius,y,x+radius,y);
+   opening.addColorStop(0,'rgba(255,255,255,0)');opening.addColorStop(.25,'rgba(255,255,255,.96)');
+   opening.addColorStop(.75,'rgba(255,255,255,.96)');opening.addColorStop(1,'rgba(255,255,255,0)');
+   d.fillStyle=opening;d.fillRect(x-radius,y,radius*2,1);
   }
-  for(const ctx of [d,w]){
-   ctx.save();ctx.translate(x,feet);ctx.scale(1,DANCE_FLOOR_FLATTEN);
-   const glow=ctx.createRadialGradient(0,0,6,0,0,stageRadius);glow.addColorStop(0,'#fff');glow.addColorStop(1,'#fff0');
-   ctx.fillStyle=glow;ctx.fillRect(-stageRadius,-stageRadius,stageRadius*2,stageRadius*2);ctx.restore();
-  }
+  d.save();d.translate(x,feet);d.scale(1,DANCE_FLOOR_FLATTEN);
+  const floorOpening=d.createRadialGradient(0,0,3,0,0,DANCE_FLOOR_RADIUS);
+  floorOpening.addColorStop(0,'rgba(255,255,255,.98)');floorOpening.addColorStop(.4,'rgba(255,255,255,.85)');floorOpening.addColorStop(1,'rgba(255,255,255,0)');
+  d.fillStyle=floorOpening;d.fillRect(-DANCE_FLOOR_RADIUS,-DANCE_FLOOR_RADIUS,DANCE_FLOOR_RADIUS*2,DANCE_FLOOR_RADIUS*2);d.restore();
+  d.globalCompositeOperation='source-over';
+  d.save();d.translate(x,feet+2);d.scale(1,DANCE_FLOOR_FLATTEN);
+  const shadow=d.createRadialGradient(0,0,2,0,0,DANCE_FLOOR_RADIUS);
+  shadow.addColorStop(0,'rgba(24,32,38,.23)');shadow.addColorStop(.45,'rgba(24,32,38,.12)');shadow.addColorStop(1,'rgba(24,32,38,0)');
+  d.fillStyle=shadow;d.fillRect(-DANCE_FLOOR_RADIUS,-DANCE_FLOOR_RADIUS,DANCE_FLOOR_RADIUS*2,DANCE_FLOOR_RADIUS*2);d.restore();
+  w.save();w.translate(x,feet);w.scale(1,DANCE_FLOOR_FLATTEN);
+  const pool=w.createRadialGradient(0,0,3,0,0,DANCE_FLOOR_RADIUS);
+  pool.addColorStop(0,'rgba(255,251,231,.85)');pool.addColorStop(.4,'rgba(255,243,204,.5)');pool.addColorStop(1,'rgba(255,234,189,0)');
+  w.fillStyle=pool;w.fillRect(-DANCE_FLOOR_RADIUS,-DANCE_FLOOR_RADIUS,DANCE_FLOOR_RADIUS*2,DANCE_FLOOR_RADIUS*2);w.restore();
   this.danceLight={x,feet,top,dark,warm};return this.danceLight;
  }
  danceSpotlight(c,state){
@@ -163,10 +166,17 @@ export class Renderer{
   const light=this.spotlightLayers(state.x,state.feet),beat=(state.time%4)/.5;
   const accent=Math.max(0,1-Math.abs(beat-3.5)/.5);
   c.save();c.globalAlpha=state.strength;c.drawImage(light.dark,0,0);
-  c.globalAlpha=state.strength*(.07+accent*.025);c.drawImage(light.warm,0,0);
+  c.globalCompositeOperation='screen';
+  c.globalAlpha=state.strength*(.55+accent*.04);c.drawImage(light.warm,0,0);
+  c.globalCompositeOperation='source-over';
   c.globalAlpha=state.strength;
   this.line(c,[[state.x,light.top-18],[state.x,light.top-7]],'#555d60',3);
-  this.box(c,state.x-9,light.top-8,18,9,3,'#394348','#85867b',1);
+  const housing=c.createLinearGradient(state.x-9,0,state.x+9,0);
+  housing.addColorStop(0,'#303b41');housing.addColorStop(.45,'#657473');housing.addColorStop(1,'#303b41');
+  this.box(c,state.x-9,light.top-8,18,9,3,housing,'#85867b',1);
+  const halo=c.createRadialGradient(state.x,light.top+1,1,state.x,light.top+1,14);
+  halo.addColorStop(0,'#fff6d570');halo.addColorStop(1,'#fff6d500');
+  c.fillStyle=halo;c.fillRect(state.x-14,light.top-13,28,28);
   this.ellipse(c,state.x,light.top+1,7,2,'#fff0bc','#c4a55c');c.restore();
   this.danceNotes(c,state);
  }
@@ -233,6 +243,13 @@ export class Renderer{
  desk(c,x,y,row,col){this.box(c,x+4,y+15,187,103,4,'#68553820',null);this.box(c,x,y+11,190,95,4,'#bca27d','#847459');for(const dx of [10,108]){this.box(c,x+dx,y+78,68,27,3,'#c6ad86','#8f7f64');this.line(c,[[x+dx+5,y+88],[x+dx+63,y+88]],'#a38b67',1);this.line(c,[[x+dx+27,y+94],[x+dx+39,y+94]],'#796d55',2);}const g=c.createLinearGradient(x,y,x,y+92);g.addColorStop(0,'#e2c69b');g.addColorStop(1,'#c8ae85');this.box(c,x,y,190,83,4,g,'#89775a');this.line(c,[[x+4,y+4],[x+186,y+4]],'#f4dfb6',2);for(let i=0;i<5;i++)this.line(c,[[x+5,y+18+i*13],[x+185,y+19+i*13]],'#a68a6022',1);this.box(c,x+92,y-6,5,93,1,'#b9b79b','#8f9278',1);
  for(let s=0;s<2;s++){const dx=x+21+s*90;this.box(c,dx+7,y+47,30,6,2,'#a1a5a0','#66777a',1);this.box(c,dx+18,y+34,8,16,1,'#8d9a9a','#697a7b',1);this.box(c,dx,y+11,51,35,3,'#d5ded6','#687d81',2);const screen=c.createLinearGradient(dx,y+12,dx+50,y+46);screen.addColorStop(0,'#7bb4cb');screen.addColorStop(1,'#cce6e9');this.box(c,dx+4,y+15,43,25,1,screen,null);c.fillStyle='#f7ffff7a';c.beginPath();c.moveTo(dx+9,y+16);c.lineTo(dx+30,y+16);c.lineTo(dx+12,y+39);c.lineTo(dx+5,y+39);c.fill();this.box(c,dx+2,y+58,45,14,2,'#73818a','#536269',1);for(let r=0;r<3;r++)for(let k=0;k<9;k++){c.fillStyle='#b8c6c6';c.fillRect(dx+5+k*4.3,y+61+r*3,2.5,1.5);}this.box(c,dx+55,y+60,8,13,4,'#c8d1c9','#7d8982',1);}
  this.plant(c,x+177,y+12,.45);if((row+col)%2){for(let i=0;i<3;i++)this.box(c,x+5+i*7,y-5,6,29,1,['#9eb795','#d7ae72','#8eafb7'][i],'#8d8972',1);}else{this.box(c,x+5,y+27,9,21,3,'#e9d2ae','#aa9979',1);this.ellipse(c,x+9.5,y+27,5,3,'#e8ece1','#a29579');} }
+ tuckedChair(c,seat,gold,progress){
+  const u=Math.max(0,Math.min(1,progress)),ease=u*u*(3-2*u);
+  c.save();
+  // The desk front occludes the chair as its wheels roll under the workstation.
+  c.beginPath();c.rect(seat.x-40,seat.y-24+20*ease,80,84);c.clip();
+  c.translate(0,-36*ease);this.chair(c,seat.x,seat.y,gold,'all');c.restore();
+ }
  chair(c,x,y,gold=false,layer='all'){
   const texture=gold?'chair-gold':'chair';
   if(this.art?.[texture]){
@@ -590,7 +607,7 @@ export class Renderer{
  const p=g.player,dance=this.danceState(g);if(p.route.length){c.setLineDash([7,7]);this.line(c,[[p.x,p.y],...p.route.map(n=>[n.x,n.y])],'#bfa65c',3);c.setLineDash([]);}
  for(const ins of g.inspectors)if(!ins.hidden)this.inspectionCone(c,ins,p.activity==='work'?(p.riskActivity||'game'):p.activity,t);
  if(g.special)this.goldGlow(c,seats[g.special.seat],t);
- for(const s of seats){const occupant=[p,...g.npcs].find(a=>a.seat===s.id&&a.activity!=='dance');this.chair(c,s.x,s.y,g.special?.seat===s.id,occupant?'base':'all');}
+ for(const s of seats){if(dance&&p.seat===s.id){this.tuckedChair(c,s,g.special?.seat===s.id,dance.chairTuck);continue;}const occupant=[p,...g.npcs].find(a=>a.seat===s.id&&a.activity!=='dance');this.chair(c,s.x,s.y,g.special?.seat===s.id,occupant?'base':'all');}
  for(const d of g.drops){const s=seats[d.seat],y=s.y-70+Math.sin(t*3)*3;this.ellipse(c,s.x,y+24,19,6,'#5c6d6c20');this.box(c,s.x-18,y-18,36,36,9,d.type==='mirror'?'#e1f2f1':'#fff0c9',d.type==='mirror'?'#73a6ab':'#bf9d52',2);const icon=this.toolIcons?.[d.type];if(icon)c.drawImage(icon,s.x-14,y-14,28,28);if(d.type==='meeting')this.text(c,'开会',s.x,y+29,11,'#7c806e');}
  const actors=[...g.npcs.map((n,i)=>({...n,type:`npc${n.color}`,visualKey:`npc-${i}`})),...g.inspectors.filter(i=>!i.hidden).map((i,k)=>({...i,type:i.name==='老板'?'boss':'supervisor'})),{...p,type:'player'}].sort((a,b)=>a.y-b.y);
  for(const a of actors){

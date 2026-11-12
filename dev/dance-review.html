@@ -8,25 +8,26 @@
 </style>
 <h1>八拍舞蹈 · 游戏内验收</h1>
 <p>使用正式游戏的角色与灯光渲染。此页固定检查者用于观察完整循环，不读写通关记录；正式游戏仍按原规则巡视、收手和被抓。</p>
-<button id="dance">重新跳舞</button><button id="pause">暂停</button><button id="work">收手工作</button><button id="catch">模拟被抓</button>
+<button id="dance">重新跳舞</button><button id="slow">椅子慢动作</button><button id="pause">暂停</button><button id="work">收手工作</button><button id="catch">模拟被抓</button>
 <a href="../">正式游戏</a><p id="status">加载中</p>
 <canvas width="720" height="920" aria-label="实际办公室中的连续八拍舞蹈与聚光灯"></canvas>
 <script type="module">
 import {Game} from '../src/engine.js';
 import {Renderer} from '../src/render.js';
 const canvas=document.querySelector('canvas'),r=new Renderer(canvas);
-let g,last=0;
+let g,last=0,speed=1;
 function restart(){g=new Game(2,1);for(const ins of g.inspectors)ins.hold=10000;g.setActivity('dance');document.querySelector('#pause').textContent='暂停';}
 restart();await r.ready;
 document.querySelector('#dance').onclick=restart;
+document.querySelector('#slow').onclick=()=>{speed=speed===1?.25:1;document.querySelector('#slow').textContent=speed===1?'椅子慢动作':'恢复正常速度';restart();};
 document.querySelector('#pause').onclick=()=>{g.paused=!g.paused;document.querySelector('#pause').textContent=g.paused?'继续':'暂停';};
 document.querySelector('#work').onclick=()=>g.setActivity('work');
 document.querySelector('#catch').onclick=()=>g.catchPlayer('老板');
 window.danceReview={renderer:r,get game(){return g;}};
 function frame(now){
- const dt=last?Math.min(.1,(now-last)/1000):0;last=now;g.step(dt);r.draw(g,g.elapsed);
+ const dt=last?Math.min(.1,(now-last)/1000)*speed:0;last=now;g.step(dt);r.draw(g,g.elapsed);
  const state=r.danceState(g),m=r.art['player-dance']?.meta;
- document.querySelector('#status').textContent=`${g.player.activity} · frame=${state&&m?Math.floor(state.time%4/4*28):'-'}/28 · light=${state?.strength.toFixed(2)??'off'} · ${g.paused?'paused':g.modal?'caught':'running'} · assets=${canvas.dataset.artStatus} · errors=${r.assetErrors.join(',')||'none'}`;
+ document.querySelector('#status').textContent=`${g.player.activity} · frame=${state&&m?Math.floor(state.time%4/4*28):'-'}/28 · chair=${Math.round((state?.chairTuck??0)*100)}% · light=${state?.strength.toFixed(2)??'off'} · ${g.paused?'paused':g.modal?'caught':'running'} · assets=${canvas.dataset.artStatus} · errors=${r.assetErrors.join(',')||'none'}`;
  requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
