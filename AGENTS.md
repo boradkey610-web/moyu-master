@@ -28,3 +28,11 @@
 - Build and review `dist/` before every deploy. Reuse the platform-generated `.static-site-deploy.json`; never upload that configuration.
 - Browser smoke checks live in `tests/browser/`. Run them on the game and dance preview pages, checking `passed=true` and resource/console results.
 - The hosting platform injects security and telemetry SDKs. Their localhost WebSocket warnings are platform behavior, not game-origin networking; do not attempt to probe those services.
+
+## Latest Deployment
+
+- Deployed 2026-11-12 17:49 GMT+8: immutable version `55c383f9`, runtime source commit `9b4319f` on `lj_step`.
+- Immutable URL: https://moyulijin15-55c383f9.frontend-cloud.corp.kuaishou.com/
+- Independent disco rendering lives in `src/disco.js`; the manifest selects `assets/generated/player-dance-eight-beat-clean/frames.png`.
+- Fade timing follows game simulation: 0.8-second dance warmup and 1-second stop; preserve foot anchors, pause behavior and inspection rules.
+- Deployed main/demo smoke checks and disco pixel/state checks passed; 109 JS tests and 7 art tests passed. Only 28 allowlisted runtime files were uploaded.
