@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {readFileSync} from 'node:fs';
 import {Game} from '../src/engine.js';
 import {createRunner,jumpRunner,stepRunner} from '../src/runner.js';
 
@@ -10,6 +12,34 @@ function play(game,seconds){
  }
 }
 function quiet(){const g=new Game(2,123);g.inspectors=[];g.npcs=[];g.setActivity('game');return g;}
+
+function runnerInput(g){
+ const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8'),button={};
+ const start=app.indexOf("$('#runner-jump')."),end=app.indexOf("$('#work').",start);
+ assert.ok(start>=0&&end>start);
+ const context=vm.createContext({g,screen:null,$:()=>button,beep(){}});
+ vm.runInContext(app.slice(start,end),context);
+ return button;
+}
+
+test('runner jumps on press and releasing after landing cannot start a second jump',()=>{
+ const g=quiet(),button=runnerInput(g);
+ button.onpointerdown({button:0,isPrimary:true});
+ assert.equal(g.runner.velocity,180,'press must start the jump before a click is emitted');
+ g.step(.95);assert.equal(g.runner.height,0);
+ button.onclick({detail:1});assert.equal(g.runner.velocity,0,'release must not jump again');
+ button.onclick({detail:0});assert.equal(g.runner.velocity,180,'keyboard activation still jumps');
+});
+test('runner input respects pause, stop and primary-pointer controls',()=>{
+ const g=quiet(),button=runnerInput(g);
+ button.onpointerdown({button:2,isPrimary:true});
+ button.onpointerdown({button:0,isPrimary:false});assert.equal(g.runner.velocity,0);
+ g.paused=true;button.onpointerdown({button:0,isPrimary:true});button.onclick({detail:0});
+ assert.equal(g.runner.velocity,0);
+ g.paused=false;g.setActivity('work');
+ button.onpointerdown({button:0,isPrimary:true});button.onclick({detail:0});
+ assert.equal(g.runner.velocity,0);assert.ok(g.player.stopping>0);
+});
 
 test('selecting game starts running immediately without jumping or earning idle coins',()=>{
  const g=quiet(),x=g.runner.obstacle.x;g.step(1);
