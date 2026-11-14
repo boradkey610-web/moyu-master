@@ -10,7 +10,8 @@ const renderer=()=>Object.assign(Object.create(Renderer.prototype),{motion:new M
 test('换座引导沿原路线圆滑转角，终点圆环不改变寻路点',()=>{
  const r=renderer(),p={x:545,y:515,route:[{x:545,y:585},{x:255,y:585},{x:255,y:515}]},curves=[],rings=[];
  const before=JSON.stringify(p);r.line=()=>{};r.ellipse=(c,...args)=>rings.push(args);
- const c=new Proxy({quadraticCurveTo:(...a)=>curves.push(a)}, {get:(o,k)=>o[k]??(()=>{})});
+ let routeStroked=false;
+ const c=new Proxy({quadraticCurveTo:(...a)=>{if(!routeStroked)curves.push(a);},stroke:()=>{routeStroked=true;}}, {get:(o,k)=>o[k]??(()=>{})});
  r.movePath(c,p,1);
  assert.deepEqual(curves,[[545,585,523,585],[255,585,255,563]]);
  assert.deepEqual(rings[0].slice(0,4),[255,555,28,10]);assert.equal(JSON.stringify(p),before);

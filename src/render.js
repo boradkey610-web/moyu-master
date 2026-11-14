@@ -670,15 +670,19 @@ export class Renderer{
    c.lineTo(corner.x-(corner.x-before.x)*radius/incoming,corner.y-(corner.y-before.y)*radius/incoming);
    c.quadraticCurveTo(corner.x,corner.y,corner.x+(after.x-corner.x)*radius/outgoing,corner.y+(after.y-corner.y)*radius/outgoing);
   }
-  c.lineTo(end.x,end.y);c.strokeStyle='#fffaf190';c.lineWidth=7;c.stroke();
-  c.strokeStyle='#6b9e9b99';c.lineWidth=2.5;c.stroke();
+  c.lineTo(end.x,end.y);c.strokeStyle='#fffaf1db';c.lineWidth=8.5;c.stroke();
+  c.strokeStyle='#73aaa1';c.lineWidth=4.8;c.stroke();
   let travelled=0;
   for(let i=1;i<points.length;i++){
    const start=points[i-1],finish=points[i],length=Math.hypot(finish.x-start.x,finish.y-start.y),angle=Math.atan2(finish.y-start.y,finish.x-start.x);
-   for(let offset=((t*30-travelled)%76+76)%76;offset<length;offset+=76){
-    if(offset<18||length-offset<26)continue;
+   for(let offset=((t*30-travelled)%112+112)%112;offset<length;offset+=112){
+    if(offset<(i===1?48:30)||length-offset<(i===points.length-1?60:30))continue;
     c.save();c.translate(start.x+Math.cos(angle)*offset,start.y+Math.sin(angle)*offset);c.rotate(angle);
-    this.line(c,[[-5,-4],[0,0],[-5,4]],'#528f8c',2.5);c.restore();
+    c.beginPath();c.moveTo(-7,-3);c.lineTo(0,-3);c.lineTo(0,-6);
+    c.quadraticCurveTo(0,-8,2,-6.5);c.lineTo(9,-1.5);c.quadraticCurveTo(11,0,9,1.5);
+    c.lineTo(2,6.5);c.quadraticCurveTo(0,8,0,6);c.lineTo(0,3);c.lineTo(-7,3);
+    c.quadraticCurveTo(-9,3,-9,1);c.lineTo(-9,-1);c.quadraticCurveTo(-9,-3,-7,-3);c.closePath();
+    c.fillStyle='#4e8c83';c.strokeStyle='#fff7e7';c.lineWidth=1.8;c.stroke();c.fill();c.restore();
    }
    travelled+=length;
   }
