@@ -42,7 +42,18 @@ test('light fades while stopping and disappears on work, movement or catch',()=>
  g.step(.5);assert.equal(r.danceState(g),null);
  g.setActivity('dance');g.catchPlayer('老板');assert.equal(r.danceState(g),null);
  g.player.activity='dance';g.player.seat=null;assert.equal(r.danceState(g),null);
- assert.equal(new Game(0,1).setActivity('dance'),false);
+});
+test('dance is playable from the first day with the same warmup and stop timing in all levels',()=>{
+ for(let level=0;level<4;level++){
+  const g=new Game(level,1);g.inspectors=[];g.npcs=[];
+  assert.equal(g.setActivity('dance'),true);
+  assert.equal(g.player.activity,'dance');
+  g.step(.5);assert.equal(g.coins,0);
+  g.step(.5);assert.ok(g.coins>0);
+  assert.equal(g.setActivity('work'),true);
+  g.step(.5);assert.equal(g.player.activity,'dance');assert.ok(g.player.stopping>0);
+  g.step(.5);assert.equal(g.player.activity,'work');assert.equal(g.player.stopping,0);
+ }
 });
 test('seated work is unchanged and missing dance art keeps the existing fallback',()=>{
  const r=renderer();r.art={};

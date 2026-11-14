@@ -82,7 +82,7 @@ function selectLevel(){
 function instructions(back=()=>hide()){
  screen=back===menu?'guide':'instructions';
  const rules=[
-  '选玩法赚钱：段子安静、游戏适中、蹦迪更吵。蹦迪第3关开放。',
+  '三种摸鱼方式从第1关就能玩：段子安静、游戏适中、蹦迪更吵。',
   '检查前有预告。可降档继续摸鱼，藏不住就一键工作；收手需要时间。',
   '连摸有额外奖金，切玩法不断连；安全工作或换座时到账，被抓就丢奖金。',
   '点空椅子换座，移动不赚钱。金椅限时×2，道具坐下拾取。',
@@ -156,13 +156,13 @@ function updateUI(){
  else if(boosted){detail=`双倍剩 ${Math.ceil(g.special.left)} 秒 · 选玩法开始`;tone='bonus';}
  $('.control-status').dataset.tone=tone;$('#state-label').textContent=status;$('#state-detail').textContent=detail;
  for(const b of document.querySelectorAll('[data-activity]')){
-  const a=b.dataset.activity,unavailable=a==='dance'&&g.level<2,active=p.activity===a&&!stopping;
+  const a=b.dataset.activity,active=p.activity===a&&!stopping;
   b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));
-  b.disabled=blocked||p.seat===null||locked||stopping||unavailable;
-  const threats=g.activityThreats(a),risk=threats.length>0&&!unavailable;
+  b.disabled=blocked||p.seat===null||locked||stopping;
+  const threats=g.activityThreats(a),risk=threats.length>0;
   b.classList.toggle('is-risky',risk);b.setAttribute('aria-description',`${a==='joke'?'无声，可安静降低动静':a==='game'?'轻声，动静缓慢增加':'音乐声大，声源会留在原工位'}；${risk?'当前检查范围内：'+threats.join('、'):'当前检查范围外'}`);b.title=b.getAttribute('aria-description');
 
-  b.querySelector('small').textContent=unavailable?'第 3 关解锁':`+${activities[a].rate*multiplier} / 秒`;
+  b.querySelector('small').textContent=`+${activities[a].rate*multiplier} / 秒`;
  }
  const work=$('#work'),inAisle=p.seat===null&&!moving;work.disabled=blocked||stopping||locked||inAisle;
  work.classList.toggle('is-working',!inAisle&&!moving&&p.activity==='work'&&!stopping);
