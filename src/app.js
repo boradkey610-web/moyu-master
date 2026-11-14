@@ -98,7 +98,20 @@ function instructions(back=()=>hide()){
  ];
  show(panelHead('briefcase','入职手册','摸鱼要有分寸')+'<ul>'+rules.map(rule=>'<li>'+rule+'</li>').join('')+'</ul>',[['知道了，稳稳拿捏',back,'primary']]);
 }
-function pause(){if(g.modal||screen)return;screen='pause';show(panelHead('pause','休息一下','喝口水，再继续')+'<p>时间停在这一刻。<br>准备好了，再回办公室。</p>',[['继续摸鱼',hide,'primary'],['重开本关',()=>start(g.level)],[sound?'音效：开':'音效：关',()=>{sound=!sound;screen=null;hide();pause();}],['返回关卡',selectLevel,'secondary']]);}
+function pause(){
+ if(g.modal||screen)return;
+ screen='pause';
+ show(`<div class="pause-heading"><span class="pause-label">暂时离岗</span><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">${dialogIcons.pause}</svg><h2 id="dialog-title">歇一会儿，再摸</h2><p>放心，金币和倒计时都暂停了。</p></div><div class="pause-actions"></div><div class="pause-options"></div>`);
+ $('#dialog .pause-actions').append(button('继续摸鱼',hide,'primary'));
+ $('#dialog .pause-options').append(button('重开本关',()=>start(g.level)),button('返回关卡',selectLevel));
+ const audioToggle=button('',()=>{
+  sound=!sound;audioToggle.setAttribute('aria-checked',String(sound));
+  audioToggle.querySelector('.pause-sound-state').textContent=sound?'已开':'已关';
+ },'pause-audio');
+ audioToggle.setAttribute('role','switch');audioToggle.setAttribute('aria-label','音效');audioToggle.setAttribute('aria-checked',String(sound));
+ audioToggle.innerHTML=`<span>音效</span><span class="pause-sound-control"><span class="pause-sound-state">${sound?'已开':'已关'}</span><i aria-hidden="true"></i></span>`;
+ $('#dialog').append(audioToggle);
+}
 function help(){
  if(g.modal||screen)return;
  screen='help';
