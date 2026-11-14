@@ -160,13 +160,8 @@
 .runner-jump:active:not(:disabled){filter:brightness(1.04);transform:none}
 .runner-jump:disabled{opacity:1}
 .is-playing-runner .control-status{display:none}
-.is-playing-runner .activity-row{align-self:end}
-.is-playing-runner .activity{flex-direction:row;gap:4px;min-height:25px;height:25px;padding:2px 6px;border-color:#d4c8b6;border-radius:7px;background:#fbf6eb;color:#877663;box-shadow:none}
-.is-playing-runner .activity.active{border-color:#8c77a9;background:#9c85bd;color:#fffaf3}
-.is-playing-runner .activity .activity-icon{width:16px;height:16px;flex:0 0 16px}
-.is-playing-runner .activity strong{font-size:10px;line-height:1;font-weight:700}
-.is-playing-runner .activity small{display:none}
-.is-playing-runner .activity:not(.active) .activity-icon{opacity:.72}
+.controls.is-playing-runner{grid-template-rows:auto 43px 29px}
+.is-playing-runner .activity-row{display:none}
 @media(max-width:370px){.controls{padding-inline:10px}.activity strong{font-size:14px}.runner-heading strong{font-size:9px}.runner-heading>span{font-size:8px}}
 
 /* In-game documents are desk objects, with printed ink and stamped outcomes. */
