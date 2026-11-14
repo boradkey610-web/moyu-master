@@ -1,5 +1,5 @@
 workflow: tweak
-phase: build
+phase: archive
 context_compression: off
 build_mode: direct
 build_pause: null
@@ -11,9 +11,9 @@ auto_transition: true
 base_ref: 239384a3f69ab9e2aee7c59a8592279aba4c8546
 design_doc: null
 plan: null
-verify_result: pending
-verification_report: null
-branch_status: pending
+verify_result: pass
+verification_report: docs/superpowers/reports/2026-11-14-hide-runner-activity-buttons-verify.md
+branch_status: handled
 created_at: 2026-11-14
-verified_at: null
+verified_at: 2026-11-14
 archived: false
