@@ -26,6 +26,23 @@ test('actual timed jumps clear obstacles, increase rewards and earn pending bonu
  const g=quiet();play(g,12);
  assert.ok(g.runner.cleared>=4);assert.ok(g.runner.streak>=4);assert.ok(g.coins>=22);assert.ok(g.pendingBonus>0);
 });
+test('cleared obstacle keeps its appearance and scrolls left without scoring twice',()=>{
+ const r=createRunner();r.started=true;r.height=35;r.obstacle.x=43;
+ assert.equal(stepRunner(r,.02),4);
+ assert.ok(r.passedObstacle);assert.ok(r.passedObstacle.x>0);
+ assert.equal(r.passedObstacle.variant,0);assert.equal(r.obstacle.variant,1);
+ const x=r.passedObstacle.x;
+ assert.equal(stepRunner(r,.1),0);assert.ok(r.passedObstacle.x<x);
+ assert.equal(r.cleared,1);assert.equal(r.streak,1);
+});
+test('passed obstacle is removed only when its full artwork has left the screen',()=>{
+ const r=createRunner();r.started=true;r.height=35;r.obstacle.x=43;stepRunner(r,.02);
+ assert.ok(r.passedObstacle);
+ r.passedObstacle.x=-r.passedObstacle.width+1;
+ stepRunner(r,.002);assert.ok(r.passedObstacle,'partly visible obstacle must remain');
+ stepRunner(r,.05);assert.equal(r.passedObstacle,null);
+ assert.equal(r.cleared,1);
+});
 test('missing a jump clears the streak and gives no reward, recovery allows another attempt',()=>{
  const r=createRunner();r.started=true;r.streak=3;r.obstacle.x=90;
  assert.equal(stepRunner(r,.02),0);assert.equal(r.streak,0);assert.ok(r.hitLeft>0);

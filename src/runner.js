@@ -5,7 +5,7 @@ const PLAYER_WIDTH = 26;
 const GROUND = 87;
 
 export function createRunner() {
- return {started:false,clock:0,height:0,velocity:0,obstacle:{x:420,width:22,height:24},streak:0,cleared:0,hitLeft:0,feedback:'',feedbackLeft:0};
+ return {started:false,clock:0,height:0,velocity:0,obstacle:{x:420,width:22,height:24,variant:0},passedObstacle:null,streak:0,cleared:0,hitLeft:0,feedback:'',feedbackLeft:0};
 }
 
 export function jumpRunner(runner) {
@@ -23,7 +23,12 @@ export function stepRunner(runner,dt) {
  runner.height=Math.max(0,runner.height+runner.velocity*dt-200*dt*dt);
  runner.velocity=runner.height>0?runner.velocity-400*dt:0;
  const obstacle=runner.obstacle;
- obstacle.x-=(125+Math.min(runner.streak,5)*4)*dt;
+ const distance=(125+Math.min(runner.streak,5)*4)*dt;
+ obstacle.x-=distance;
+ if(runner.passedObstacle){
+  runner.passedObstacle.x-=distance;
+  if(runner.passedObstacle.x+runner.passedObstacle.width+4<0)runner.passedObstacle=null;
+ }
  if(obstacle.x<PLAYER_X+PLAYER_WIDTH-3&&obstacle.x+obstacle.width>PLAYER_X+3&&runner.height<obstacle.height-3){
   runner.streak=0;runner.height=0;runner.velocity=0;runner.hitLeft=.65;
   runner.feedback='撞到啦 · 连击重来';runner.feedbackLeft=1.2;
@@ -31,10 +36,12 @@ export function stepRunner(runner,dt) {
   return 0;
  }
  if(obstacle.x+obstacle.width<PLAYER_X){
+  runner.passedObstacle={...obstacle};
   runner.streak++;runner.cleared++;
   const reward=4+Math.min(4,runner.streak-1);
   obstacle.x=PLAYER_X+260+(runner.cleared%3)*24;
   obstacle.height=20+(runner.cleared%3)*4;
+  obstacle.variant=runner.cleared%2;
   runner.feedback=`+${reward}`;runner.feedbackLeft=.8;
   return reward;
  }
@@ -56,21 +63,25 @@ export function drawRunner(canvas,runner,stopping,renderer) {
  for(let i=0;i<6;i++){
   const x=(i*100-runner.clock*125%100);c.beginPath();c.moveTo(x,GROUND+10);c.lineTo(x+65,GROUND+10);c.stroke();
  }
- const obstacle=runner.obstacle,x=obstacle.x,y=GROUND-obstacle.height;
- c.lineWidth=1.5;
- if(runner.cleared%2===0){
-  c.fillStyle='#bd9a73';c.strokeStyle='#957654';
-  c.beginPath();c.roundRect(x,y+2,obstacle.width,obstacle.height-2,2);c.fill();c.stroke();
-  c.fillStyle='#f6edd6';c.strokeStyle='#b6a082';
-  for(let i=0;i<3;i++){c.beginPath();c.roundRect(x+2-i,y+5+i*5,obstacle.width-2,4,1);c.fill();c.stroke();}
-  c.fillStyle='#8ca88a';c.fillRect(x+5,y,10,4);
- }else{
-  c.strokeStyle='#967d66';c.fillStyle='#f9f3e7';
-  c.beginPath();c.ellipse(x+obstacle.width-1,y+12,5,7,0,0,Math.PI*2);c.stroke();
-  c.beginPath();c.roundRect(x,y+4,obstacle.width-3,obstacle.height-4,3);c.fill();c.stroke();
-  c.fillStyle='#876551';c.beginPath();c.ellipse(x+(obstacle.width-3)/2,y+4,(obstacle.width-4)/2,3,0,0,Math.PI*2);c.fill();
-  c.strokeStyle='#c4ad8b';c.beginPath();c.moveTo(x+6,y-2);c.quadraticCurveTo(x+10,y-6,x+7,y-10);c.stroke();
+ for(const obstacle of [runner.passedObstacle,runner.obstacle]){
+  if(!obstacle)continue;
+  const x=obstacle.x,y=GROUND-obstacle.height;
+  c.lineWidth=1.5;
+  if(obstacle.variant===0){
+   c.fillStyle='#bd9a73';c.strokeStyle='#957654';
+   c.beginPath();c.roundRect(x,y+2,obstacle.width,obstacle.height-2,2);c.fill();c.stroke();
+   c.fillStyle='#f6edd6';c.strokeStyle='#b6a082';
+   for(let i=0;i<3;i++){c.beginPath();c.roundRect(x+2-i,y+5+i*5,obstacle.width-2,4,1);c.fill();c.stroke();}
+   c.fillStyle='#8ca88a';c.fillRect(x+5,y,10,4);
+  }else{
+   c.strokeStyle='#967d66';c.fillStyle='#f9f3e7';
+   c.beginPath();c.ellipse(x+obstacle.width-1,y+12,5,7,0,0,Math.PI*2);c.stroke();
+   c.beginPath();c.roundRect(x,y+4,obstacle.width-3,obstacle.height-4,3);c.fill();c.stroke();
+   c.fillStyle='#876551';c.beginPath();c.ellipse(x+(obstacle.width-3)/2,y+4,(obstacle.width-4)/2,3,0,0,Math.PI*2);c.fill();
+   c.strokeStyle='#c4ad8b';c.beginPath();c.moveTo(x+6,y-2);c.quadraticCurveTo(x+10,y-6,x+7,y-10);c.stroke();
+  }
  }
+ const obstacle=runner.obstacle;
  const feet=GROUND-runner.height;
  c.fillStyle='#715b4230';c.beginPath();c.ellipse(PLAYER_X+13,GROUND+2,16,3,0,0,Math.PI*2);c.fill();
  c.save();
