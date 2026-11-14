@@ -11,7 +11,23 @@ const jokePosts=[
  '老板：你在忙什么？\n我：忙着显得很忙。',
  '开会要带脑子。\n我带了本子，先记着。',
  '同事问我怎么这么准时。\n我说的是下班。',
- '下班不是结束。\n是我今天正式开机。'
+ '下班不是结束。\n是我今天正式开机。',
+ '我把需求写进了愿望清单。\n希望它自己实现。',
+ '老板问我有没有大局观。\n我说已经看到周五了。',
+ '我的工作状态很稳定。\n稳定地想下班。',
+ '领导说要多一点弹性。\n我把椅背往后调了一格。',
+ '今天的待办只有两项。\n上班，和下班。',
+ '我不是在发呆。\n我在给脑子放缓存。',
+ '会议结束得很突然。\n因为下一场会议开始了。',
+ '工作让我学会了耐心。\n尤其是等待电梯的时候。',
+ '同事问我怎么总喝水。\n我说给灵感留条水路。',
+ '我最擅长的时间管理。\n是把午休管理得很准。',
+ '周五的进度条很慢。\n但我一直没有退出。',
+ '领导说这是个小改动。\n我先把周末收起来了。',
+ '我的键盘有个梦想。\n每天六点准时关灯。',
+ '我给文件取名“最终版”。\n它又多了三个弟弟。',
+ '今日成就：保持在线。\n实际操作：移动鼠标。',
+ '我在等一个重要通知。\n下班铃。'
 ];
 const SAVE_KEY='moyu-master-save-v5-runner';
 function readStoredSave(key){try{const data=JSON.parse(localStorage.getItem(key));return data&&typeof data==='object'&&!Array.isArray(data)?data:null;}catch{return null;}}
@@ -148,9 +164,9 @@ function processModal(){if(!g.modal||screen==='reward'||g.modal===lastModal)retu
   show(`${panelHead('clock','入职练习 · 时间已暂停','先看预告，再收手')}<div class="speech">看到「即将检查」，就准备切回工作。</div><ul><li>检查者正常巡视，看见可疑行为才靠近；正式检查前有 2 秒预告。</li><li>点击「一键工作」收手；打游戏和蹦迪需要更久，别等检查开始才点。</li><li>检查时留意暴露条，涨满就会被抓。</li><li>连续摸鱼的额外奖励，要安全收手才能拿到。</li></ul>`,[['记住了，开始练习',()=>{g.dismiss();hide();},'primary']]);
  }else if(m.kind==='warning'){
   const who=m.who==='老板'?'boss':'supervisor';
-  show(`<div class="story-top"><span>办公室小插曲</span><span class="story-paused"><svg viewBox="0 0 48 48" fill="currentColor" aria-hidden="true"><rect x="13" y="10" width="7" height="28" rx="2"/><rect x="28" y="10" width="7" height="28" rx="2"/></svg>时间已暂停</span></div><div class="story-scene">${portrait(who)}<div class="story-bubble"><h2 id="dialog-title">${m.who}</h2><div class="story-line">${m.lines[0]}</div></div></div><div class="story-note">首次提醒不扣金币 · 再被抓到扣 50</div><div class="reply-label">你的回应</div>`,[[m.lines[1].replaceAll('老板',m.who),()=>{g.dismiss();hide();},'primary reply']]);
+  show(`<div class="story-top"><span>办公室小插曲</span><span class="story-paused"><svg viewBox="0 0 48 48" fill="currentColor" aria-hidden="true"><rect x="13" y="10" width="7" height="28" rx="2"/><rect x="28" y="10" width="7" height="28" rx="2"/></svg>时间已暂停</span></div><div class="story-scene">${portrait(who)}<div class="story-bubble"><h2 id="dialog-title">${m.who}</h2><div class="story-line">${m.lines[0]}</div></div></div><div class="story-note">首次提醒不扣金币 · 再被抓到扣 50${m.lostBonus>0?`<br>未收手奖金 ${m.lostBonus} 金币已清空`:''}</div><div class="reply-label">你的回应</div>`,[[m.lines[1].replaceAll('老板',m.who),()=>{g.dismiss();hide();},'primary reply']]);
  }else if(m.kind==='fine'){
-  show(`${panelHead('chat','被抓包了',g.coins<0?'今天有点不顺':'老板的提醒升级了')}<div class="speech">“上班时间，收敛一点。”</div><div class="fine-amount">−50 <small>金币</small></div><p>当前余额 ${Math.floor(g.coins)} 金币${g.coins<0?'，请同事帮忙解释或重新挑战。':'，下次记得早点收手。'}</p>`,[[g.coins<0?'重新挑战':'知道了，继续工作',()=>{if(g.coins<0)start(g.level);else{g.dismiss();hide();}},'primary']]);
+  show(`${panelHead('chat','被抓包了',g.coins<0?'今天有点不顺':'老板的提醒升级了')}<div class="speech">“上班时间，收敛一点。”</div><div class="fine-amount">−50 <small>金币</small></div><p>当前余额 ${Math.floor(g.coins)} 金币${g.coins<0?'，请同事帮忙解释或重新挑战。':'，下次记得早点收手。'}${m.lostBonus>0?`<br>未收手奖金 ${m.lostBonus} 金币已清空`:''}</p>`,[[g.coins<0?'重新挑战':'知道了，继续工作',()=>{if(g.coins<0)start(g.level);else{g.dismiss();hide();}},'primary']]);
   if(g.level>0&&g.ads<2)$('#dialog').append(button('请同事帮忙解释 · 测试助力',()=>rewardConfirm('explain'),'outlined'));$('#dialog').append(button('返回关卡',selectLevel,'secondary'));
  }else if(m.kind==='win'){
   record();const used=g.config.time+(g.extended?15:0)-g.time;
@@ -202,7 +218,7 @@ function updateUI(){
  const jokeVisible=p.activity==='joke'&&p.seat!==null&&!moving;
  $('#joke-panel').hidden=!jokeVisible;$('.controls').classList.toggle('is-reading-joke',jokeVisible);
  if(jokeVisible){
-  const j=g.joke,text=jokePosts[j.post%jokePosts.length];
+  const j=g.joke,text=jokePosts[(g.level*6+j.post)%jokePosts.length];
   if($('#joke-text').textContent!==text)$('#joke-text').textContent=text;
   $('#joke-counter').textContent=`第 ${j.post+1} 条`;
   $('#joke-card').disabled=blocked||stopping||locked;

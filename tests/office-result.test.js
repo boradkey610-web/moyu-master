@@ -9,6 +9,16 @@ const coinCode=app.slice(app.indexOf('function coinAmount('),app.indexOf('functi
 const statementCode=coinCode+app.slice(app.indexOf('function statement('),app.indexOf('function modalBackground('));
 const modalCode=app.slice(app.indexOf('function processModal('),app.indexOf('const seatButtons='));
 
+test('警告和罚款分别说明未收手奖金损失，不额外扣除工资',()=>{
+ const g=new Game(2,1);g.inspectors=[];g.player.activity='game';g.coins=100;g.pendingBonus=11.9;g.catchPlayer('老板');
+ for(const [amount,coins]of [[11,100],[7,50]]){
+  let rendered='';const context=vm.createContext({g,screen:null,lastModal:null,portrait:()=>'<canvas></canvas>',panelHead:()=>'',show:html=>{rendered=html;},button:()=>({}),selectLevel(){},$:()=>({append(){}})});
+  vm.runInContext(modalCode+';processModal()',context);
+  assert.match(rendered,new RegExp(`未收手奖金 ${amount} 金币已清空`));assert.equal(g.coins,coins);
+  if(amount===11){g.dismiss();g.player.activity='game';g.pendingBonus=7.9;g.catchPlayer('主管');}
+ }
+});
+
 test('工资条使用实际收入和目标，通关与失败盖不同结果印章',()=>{
  for(const [kind,stamp]of [['timeout','未达标'],['win','准点溜走'],['lose','摸鱼翻车']]){
   const g={modal:{kind},config:{name:'周五抢座大战',target:440},coins:135.8,level:3,ads:0};
