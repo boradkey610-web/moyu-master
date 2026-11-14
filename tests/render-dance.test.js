@@ -1,12 +1,22 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
 import {Renderer} from '../src/render.js';
-import {Game} from '../src/engine.js';
+import {Game,activities} from '../src/engine.js';
 
 const meta=JSON.parse(readFileSync(new URL('../assets/manifest.json',import.meta.url)))['player-dance'];
 const renderer=()=>Object.assign(Object.create(Renderer.prototype),{art:{'player-dance':{meta,img:{}}},motion:new Map(),facings:new Map()});
 const context=()=>new Proxy({}, {get:(target,key)=>target[key]??(()=>{}),set:(target,key,value)=>{target[key]=value;return true;}});
+
+test('蹦迪按钮不轮询检查者接近状态，也不显示风险感叹号或范围提醒',()=>{
+ const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
+ const start=app.indexOf(" for(const b of document.querySelectorAll('[data-activity]')){"),end=app.indexOf(' const jokeVisible',start);
+ assert.ok(start>=0&&end>start);
+ const marks={},attributes={},button={dataset:{activity:'dance'},classList:{toggle:(k,v)=>marks[k]=v},setAttribute:(k,v)=>attributes[k]=v,getAttribute:k=>attributes[k],querySelector:()=>({})};
+ vm.runInNewContext(app.slice(start,end),{document:{querySelectorAll:()=>[button]},p:{activity:'dance',seat:7},stopping:false,locked:false,blocked:false,multiplier:1,activities,g:{activityThreats(){assert.fail('蹦迪不应查询靠近提示');}}});
+ assert.equal(marks['is-risky'],false);assert.doesNotMatch(attributes['aria-description'],/当前检查范围/);
+});
 
 test('approved dance atlas uses 28 original cells, eight beats and a four-second loop',()=>{
  const png=readFileSync(new URL('../'+meta.src,import.meta.url));

@@ -194,8 +194,8 @@ function updateUI(){
   const a=b.dataset.activity,active=p.activity===a&&!stopping;
   b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));
   b.disabled=blocked||p.seat===null||locked||stopping;
-  const threats=g.activityThreats(a),risk=threats.length>0;
-  b.classList.toggle('is-risky',risk);b.setAttribute('aria-description',`${a==='joke'?'无声，会让先前的声音消散':a==='game'?'键盘声逐渐变大，附近的检查者可能听见':'音乐声增长更快，远处的检查者也可能听见'}；${risk?'当前检查范围内：'+threats.join('、'):'当前检查范围外'}`);b.title=b.getAttribute('aria-description');
+  const threats=a==='dance'?[]:g.activityThreats(a),risk=threats.length>0;
+  b.classList.toggle('is-risky',risk);b.setAttribute('aria-description',`${a==='joke'?'无声，会让先前的声音消散':a==='game'?'键盘声逐渐变大，附近的检查者可能听见':'音乐声增长更快，远处的检查者也可能听见'}${a==='dance'?'':'；'+(risk?'当前检查范围内：'+threats.join('、'):'当前检查范围外')}`);b.title=b.getAttribute('aria-description');
 
   b.querySelector('small').textContent=a==='game'?'点按闯关':`+${activities[a].rate*multiplier} / 秒`;
  }
