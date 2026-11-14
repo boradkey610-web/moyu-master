@@ -97,7 +97,7 @@ function selectLevel(){
 function instructions(back=()=>hide()){
  screen=back===menu?'guide':'instructions';
  const rules=[
-  '三种玩法从第1关可用。打游戏点按跳障碍；看段子上滑换一条，双击点赞额外赚金币。',
+  '三种玩法从第1关可用。打游戏点按跳障碍；看段子点击卡片看下一条。',
   '互动窗口在下方，办公室照常巡逻；段子安静，蹦迪更吵。空格或绿色按钮收手。',
   '检查前有预告。可降档继续摸鱼，藏不住就一键工作；收手需要时间。',
   '头顶的“收手领”是额外奖金，按一键工作或换座后到账，被抓就丢。连玩越久，奖金越多。',
@@ -163,22 +163,7 @@ function processModal(){if(!g.modal||screen==='reward'||g.modal===lastModal)retu
  }}
 const seatButtons=seats.map(s=>{const b=document.createElement('button');b.className='seat-hit';b.style.left=`${s.x/720*100}%`;b.style.top=`${s.y/920*100}%`;b.setAttribute('aria-label',`移动到${s.id+1}号工位`);b.onclick=()=>{if(!screen){if(g.moveTo(s.id))beep(520);else g.notify('当前不能换到这个工位');}};$('#seat-buttons').append(b);return b;});
 for(const b of document.querySelectorAll('[data-activity]'))b.onclick=()=>{if(!screen){g.setActivity(b.dataset.activity);beep(b.dataset.activity==='dance'?700:500);}};
-let jokePress=null,lastJokeTap=0;
-function jokeGesture(e){
- if(e.type==='pointerdown'){jokePress={id:e.pointerId,x:e.clientX,y:e.clientY};e.currentTarget.setPointerCapture(e.pointerId);return;}
- if(e.type==='pointercancel'){jokePress=null;lastJokeTap=0;return;}
- if(!jokePress||jokePress.id!==e.pointerId)return;
- const dx=e.clientX-jokePress.x,dy=e.clientY-jokePress.y;jokePress=null;
- if(dy< -28&&Math.abs(dy)>Math.abs(dx)){g.jokeAction('next');lastJokeTap=0;}
- else if(Math.abs(dx)<10&&Math.abs(dy)<10){
-  if(lastJokeTap>0&&e.timeStamp-lastJokeTap<350){if(g.jokeAction('like'))beep(630);lastJokeTap=0;}
-  else lastJokeTap=e.timeStamp;
- }else lastJokeTap=0;
-}
-for(const type of ['pointerdown','pointerup','pointercancel'])$('#joke-card').addEventListener(type,jokeGesture);
-$('#joke-card').ondblclick=e=>{e.preventDefault();if(g.jokeAction('like'))beep(630);};
-$('#joke-card').onclick=e=>{if(e.detail===0&&g.jokeAction('like'))beep(630);};
-$('#joke-card').onkeydown=e=>{if(e.code==='ArrowUp'||e.code==='Enter'){e.preventDefault();e.stopPropagation();if(g.jokeAction(e.code==='ArrowUp'?'next':'like'))beep(570);}};
+$('#joke-card').onclick=()=>{if(g.nextJoke())beep(570);};
 $('#runner-jump').onclick=()=>{if(!screen&&g.jump())beep(600);};
 $('#work').onclick=()=>{if(!screen){g.setActivity('work');beep(320);}};$('#mirror').onclick=()=>{if(!screen&&!g.useMirror())g.notify(g.inventory.mirror?'检查者暂时离场，回来后再用':'空工位拾取反光镜，或在求助中领取');};$('#meeting').onclick=meeting;$('#help').onclick=help;$('#pause').onclick=pause;
 document.addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='Escape'){if(screen==='pause')hide();else if(!screen)pause();}if(screen)return;if(e.code==='ArrowUp'||e.code==='KeyJ'){e.preventDefault();if(g.jump())beep(600);return;}const a={Digit1:'joke',Digit2:'game',Digit3:'dance',Space:'work'}[e.code];if(a){e.preventDefault();g.setActivity(a);}});
@@ -216,14 +201,12 @@ function updateUI(){
  const jokeVisible=p.activity==='joke'&&p.seat!==null&&!moving;
  $('#joke-panel').hidden=!jokeVisible;$('.controls').classList.toggle('is-reading-joke',jokeVisible);
  if(jokeVisible){
-  const j=g.joke,text=jokePosts[j.post%jokePosts.length],reward=boosted?2:1;
+  const j=g.joke,text=jokePosts[j.post%jokePosts.length];
   if($('#joke-text').textContent!==text)$('#joke-text').textContent=text;
-  $('#joke-counter').textContent=`第 ${j.post+1} 条 · 赞 ${j.likes}`;
+  $('#joke-counter').textContent=`第 ${j.post+1} 条`;
   $('#joke-card').disabled=blocked||stopping||locked;
-  $('#joke-card').setAttribute('aria-label',`${text.replace('\n',' ')}。${j.liked?'已点赞，上滑下一条':'双击点赞额外'+reward+'金币，上滑下一条'}。键盘Enter点赞，向上箭头换一条，空格收手。`);
-  $('#joke-heart').classList.toggle('liked',j.liked);$('#joke-heart').style.transform=`scale(${1+Math.sin(j.heartLeft/.8*Math.PI)*.25})`;
-  $('#joke-reward').textContent=j.heartLeft>0?`+${j.reward}`:'';
-  $('#joke-hint').textContent=stopping?'正在收好段子…':j.liked?'已点赞 · ↑ 上滑换一条':`↑ 上滑换一条 · 双击点赞 +${reward}`;
+  $('#joke-card').setAttribute('aria-label',`${text.replace('\n',' ')} 点击看下一条。Enter也可换条，空格收手。`);
+  $('#joke-hint').textContent=stopping?'正在收好段子…':'点一下，换个段子';
  }
  const runnerVisible=p.activity==='game'&&p.seat!==null&&!moving;
  $('#runner-panel').hidden=!runnerVisible;$('.controls').classList.toggle('is-playing-runner',runnerVisible);
