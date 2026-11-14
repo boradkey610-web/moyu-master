@@ -7,6 +7,24 @@ const manifest=JSON.parse(readFileSync(new URL('../assets/manifest.json',import.
 const supervisorArt=()=>Object.fromEntries(Object.entries(manifest).filter(([name])=>name.includes('supervisor-female')).map(([name,meta])=>[name,{meta}]));
 
 const renderer=()=>Object.assign(Object.create(Renderer.prototype),{motion:new Map(),facings:new Map()});
+test('换座引导沿原路线圆滑转角，终点圆环不改变寻路点',()=>{
+ const r=renderer(),p={x:545,y:515,route:[{x:545,y:585},{x:255,y:585},{x:255,y:515}]},curves=[],rings=[];
+ const before=JSON.stringify(p);r.line=()=>{};r.ellipse=(c,...args)=>rings.push(args);
+ const c=new Proxy({quadraticCurveTo:(...a)=>curves.push(a)}, {get:(o,k)=>o[k]??(()=>{})});
+ r.movePath(c,p,1);
+ assert.deepEqual(curves,[[545,585,523,585],[255,585,255,563]]);
+ assert.deepEqual(rings[0].slice(0,4),[255,555,28,10]);assert.equal(JSON.stringify(p),before);
+});
+test('短路段圆角受长度限制，暂停时间一致时箭头不漂移，到达后不绘制',()=>{
+ const r=renderer(),p={x:10,y:10,route:[{x:10,y:16},{x:13,y:16},{x:13,y:160}]},draw=()=>{
+  const points=[];r.line=()=>{};r.ellipse=()=>{};
+  const c=new Proxy({quadraticCurveTo:(...a)=>points.push(a),translate:(...a)=>points.push(a)}, {get:(o,k)=>o[k]??(()=>{})});
+  r.movePath(c,p,2);return points;
+ };
+ assert.deepEqual(draw(),draw());assert.ok(draw().flat().every(Number.isFinite));
+ assert.deepEqual(draw()[0],[10,16,11,16]);
+ assert.doesNotThrow(()=>r.movePath(new Proxy({}, {get(){throw new Error('arrived route must not draw');}}),{route:[]},2));
+});
 test('声音提示区分传出阈值和已停止的声源，不误报有人听见',()=>{
  const r=renderer();
  assert.equal(r.noiseLabel({active:true,volume:39.9}),'暂未传出');

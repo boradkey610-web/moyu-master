@@ -660,9 +660,34 @@ export class Renderer{
   c.beginPath();c.moveTo(cx-1,y-4);c.lineTo(cx+1,y-1);c.lineTo(cx-1,y+2);c.lineTo(cx-3,y-1);c.closePath();c.fillStyle='#d69c2e';c.fill();
   c.lineWidth=3;c.lineJoin='round';c.strokeStyle='#fff8e8';c.strokeText(label,left+26,textY);c.fillStyle='#92601f';c.fillText(label,left+26,textY);c.restore();
  }
+ movePath(c,p,t){
+  if(!p.route.length)return;
+  const points=[p,...p.route],end=points.at(-1);
+  c.save();c.lineCap='round';c.lineJoin='round';c.beginPath();c.moveTo(p.x,p.y);
+  for(let i=1;i<points.length-1;i++){
+   const before=points[i-1],corner=points[i],after=points[i+1];
+   const incoming=Math.hypot(corner.x-before.x,corner.y-before.y),outgoing=Math.hypot(after.x-corner.x,after.y-corner.y),radius=Math.min(22,incoming/3,outgoing/3);
+   c.lineTo(corner.x-(corner.x-before.x)*radius/incoming,corner.y-(corner.y-before.y)*radius/incoming);
+   c.quadraticCurveTo(corner.x,corner.y,corner.x+(after.x-corner.x)*radius/outgoing,corner.y+(after.y-corner.y)*radius/outgoing);
+  }
+  c.lineTo(end.x,end.y);c.strokeStyle='#fffaf190';c.lineWidth=7;c.stroke();
+  c.strokeStyle='#6b9e9b99';c.lineWidth=2.5;c.stroke();
+  let travelled=0;
+  for(let i=1;i<points.length;i++){
+   const start=points[i-1],finish=points[i],length=Math.hypot(finish.x-start.x,finish.y-start.y),angle=Math.atan2(finish.y-start.y,finish.x-start.x);
+   for(let offset=((t*30-travelled)%76+76)%76;offset<length;offset+=76){
+    if(offset<18||length-offset<26)continue;
+    c.save();c.translate(start.x+Math.cos(angle)*offset,start.y+Math.sin(angle)*offset);c.rotate(angle);
+    this.line(c,[[-5,-4],[0,0],[-5,4]],'#528f8c',2.5);c.restore();
+   }
+   travelled+=length;
+  }
+  this.ellipse(c,end.x,end.y+40,28,10,'#8cc0b51c','#6a9f98',2);
+  c.restore();
+ }
  draw(g,t){if(this.lastGame!==g){this.lastGame=g;this.facings=new Map();this.motion.clear();this.predictionTime=-1;this.predictions=[];}const c=this.c;c.clearRect(0,0,W,H);c.drawImage(this.bg,0,0);this.soundSources(c,g,t);
  if(g.mirror>0){if(g.elapsed-this.predictionTime>.1||this.predictionTime<0){this.predictions=forecastAll(g.inspectors,g.mirror);this.predictionTime=g.elapsed;}this.predictions.forEach((points,i)=>{c.setLineDash([10,8]);this.line(c,points.filter(p=>!p.hidden).map(p=>[p.x,p.y]),i?'#d77c77':'#499dbb',4);c.setLineDash([]);const end=points.filter(p=>!p.hidden).at(-1);if(end){this.ellipse(c,end.x,end.y,8,8,i?'#d77c77':'#499dbb');this.text(c,'•',end.x,end.y,18,'#fff');}let last;for(const p of points)if(p.waiting&&(!last||Math.hypot(p.x-last.x,p.y-last.y)>5)){this.chip(c,'停',p.x,p.y-18,'#fff8e9');last=p;}});}
- const p=g.player,dance=this.danceState(g);if(p.route.length){c.setLineDash([7,7]);this.line(c,[[p.x,p.y],...p.route.map(n=>[n.x,n.y])],'#bfa65c',3);c.setLineDash([]);}
+ const p=g.player,dance=this.danceState(g);this.movePath(c,p,g.elapsed);
  for(const ins of g.inspectors)if(!ins.hidden)this.inspectionCone(c,ins,p.activity==='work'?(p.riskActivity||'game'):p.activity,t);
  if(g.special)this.goldGlow(c,seats[g.special.seat],t);
  for(const s of seats){if(dance&&p.seat===s.id){this.tuckedChair(c,s,g.special?.seat===s.id,dance.chairTuck);continue;}const occupant=[p,...g.npcs].find(a=>a.seat===s.id&&a.activity!=='dance');this.chair(c,s.x,s.y,g.special?.seat===s.id,occupant?'base':'all');}
