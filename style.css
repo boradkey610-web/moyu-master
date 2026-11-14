@@ -137,9 +137,9 @@
 
 /* The minigame and activity cards share a fixed control area below the office. */
 .game-shell{container-type:inline-size;width:min(100vw,calc((100svh - 216px)/1.511))}
-.controls{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:calc(48px + 23.333cqw) 43px 29px;gap:8px;padding:10px 12px 9px}
-.activity-row{grid-row:1;grid-column:1;align-self:center;gap:8px}
-.activity{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:92px;height:92px;padding:7px 3px;border-width:1px;border-radius:13px;box-shadow:inset 0 1px 0 #ffffff66,0 3px 0 var(--shade)}
+.controls{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:calc(26px + 23.333cqw) 43px 29px;gap:8px;padding:10px 12px 9px}
+.activity-row{grid-row:1;grid-column:1;align-self:stretch;gap:8px}
+.activity{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:0;height:100%;padding:5px 3px;border-width:1px;border-radius:13px;box-shadow:inset 0 1px 0 #ffffff66,0 3px 0 var(--shade)}
 .activity .activity-icon{width:28px;height:28px;flex:none}
 .activity strong{font-size:15px;line-height:1.1;letter-spacing:.5px}
 .activity small{font-size:10px;letter-spacing:0;line-height:1.2}
@@ -149,7 +149,7 @@
 .tool-row button{padding:3px;border-radius:8px;font-size:10px}
 .tool-row button svg{width:19px;height:19px}
 .runner-panel[hidden]{display:none}
-.runner-panel{grid-row:1;grid-column:1;align-self:start;margin:0;padding:5px 6px;border:1px solid #c7b394;border-radius:12px;background:linear-gradient(#fffaf1,#f2e6d2);box-shadow:0 2px 0 #c6b18f}
+.runner-panel{grid-row:1;grid-column:1;align-self:stretch;margin:0;padding:5px 6px;border:1px solid #c7b394;border-radius:12px;background:linear-gradient(#fffaf1,#f2e6d2);box-shadow:0 2px 0 #c6b18f}
 .runner-heading{display:flex;align-items:center;justify-content:space-between;gap:5px;margin:0 2px 4px;color:#76644e;line-height:1.2}
 .runner-heading strong{display:flex;align-items:center;gap:5px;font-size:10px;letter-spacing:.5px}
 .runner-heading strong>span{display:grid;place-items:center;width:15px;height:15px;border-radius:5px;background:#9c8aae;color:#fff9f1;font-size:7px}
@@ -160,7 +160,6 @@
 .runner-jump:active:not(:disabled){filter:brightness(1.04);transform:none}
 .runner-jump:disabled{opacity:1}
 .is-playing-runner .control-status{display:none}
-.controls.is-playing-runner{grid-template-rows:auto 43px 29px}
 .is-playing-runner .activity-row{display:none}
 @media(max-width:370px){.controls{padding-inline:10px}.activity strong{font-size:14px}.runner-heading strong{font-size:9px}.runner-heading>span{font-size:8px}}
 

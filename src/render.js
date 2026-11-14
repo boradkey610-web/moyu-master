@@ -131,13 +131,6 @@ export class Renderer{
   this.discoScene??=new DiscoScene(this);
   this.discoScene.draw(c,state,opacity);
  }
- discoWarning(c,g,state){
-  if(!state)return;
-  const threats=g.activityThreats('dance');
-  if(!threats.length)return;
-  this.box(c,204,105,312,44,7,'#533226ed','#cda077',1);
-  this.text(c,'有人靠近…准备收手',360,127,18,'#f4d8aa');
- }
  spotlightLayers(x,feet){
   if(this.danceLight?.x===x&&this.danceLight.feet===feet)return this.danceLight;
   const dark=document.createElement('canvas'),warm=document.createElement('canvas');
@@ -586,7 +579,7 @@ export class Renderer{
    const ratio=Math.min(1,exposure/limit),x=Math.max(67,Math.min(W-67,p.x)),y=Math.max(19,p.y-233);
    c.save();this.box(c,x-82,y-15,164,30,8,'#583e37','#fff1de',1.5);
    if(ratio>0)this.box(c,x-80,y-13,160*ratio,26,6,ratio>.65?'#dd6950':'#d6a044',null);
-   this.text(c,ratio>.65?'快收手！':'正在暴露',x,y,19,'#fff9e9','800');c.restore();
+   this.text(c,p.activity!=='dance'&&ratio>.65?'快收手！':'正在暴露',x,y,19,'#fff9e9','800');c.restore();
   }
  }
  momentFeedback(c,g){
@@ -660,6 +653,6 @@ export class Renderer{
    }
   }
  }
- this.playerStakes(c,g);this.momentFeedback(c,g);this.discoWarning(c,g,dance);
+ this.playerStakes(c,g);this.momentFeedback(c,g);
  }
 }

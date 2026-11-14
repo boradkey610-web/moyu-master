@@ -62,15 +62,15 @@ test('seated work is unchanged and missing dance art keeps the existing fallback
  assert.equal(r.paintedPerson({}, {type:'player',x:0,y:0,activity:'work'},{seated:true},0),true);
  assert.deepEqual(calls,[['seated',0,0]]);
 });
-test('disco hides map and inspector labels but keeps player feedback and a fixed warning',()=>{
+test('disco keeps player feedback without polling for a predictive approach warning',()=>{
  const r=renderer(),g=new Game(2,1),order=[];g.setActivity('dance');g.elapsed=.4;
  r.c=context();r.bg={};
  for(const name of ['soundSources','inspectionCone','chair','text','chip','noiseBadge','incomePop','playerStakes','momentFeedback','soundSignals','inspectionLabel'])r[name]=()=>order.push(name);
- r.paintedPerson=()=>{order.push('actor');return true;};r.discoOverlay=()=>order.push('light');r.discoWarning=()=>order.push('warning');
+ r.paintedPerson=()=>{order.push('actor');return true;};r.discoOverlay=()=>order.push('light');g.activityThreats=()=>{throw new Error('dance must not predict nearby inspectors');};
  r.draw(g,200);
  const light=order.indexOf('light');assert.ok(light>order.lastIndexOf('actor'));
  for(const name of ['inspectionLabel','soundSignals'])assert.ok(order.indexOf(name)<light,name);
- for(const name of ['noiseBadge','playerStakes','momentFeedback','warning'])assert.ok(order.indexOf(name)>light,name);
+ for(const name of ['noiseBadge','playerStakes','momentFeedback'])assert.ok(order.indexOf(name)>light,name);
 });
 test('spotlight geometry is cached across frames, with no scene pixel reads',()=>{
  const old=globalThis.document;let canvases=0;
@@ -110,7 +110,7 @@ test('music notes float outside the spotlight and disappear with the light',()=>
 test('dance rolls the player chair under the desk and restores it before seated work',()=>{
  const r=renderer(),g=new Game(2,1),chairs=[],tucks=[];
  r.c=context();r.bg={};g.inspectors=[];g.special={seat:g.player.seat,left:10};
- for(const name of ['soundSources','goldGlow','goldBadge','text','chip','noiseBadge','incomePop','playerStakes','momentFeedback','soundSignals','discoOverlay','discoWarning'])r[name]=()=>{};
+ for(const name of ['soundSources','goldGlow','goldBadge','text','chip','noiseBadge','incomePop','playerStakes','momentFeedback','soundSignals','discoOverlay'])r[name]=()=>{};
  r.chair=(c,x,y,gold,layer)=>chairs.push({x,y,gold,layer});
  r.tuckedChair=(c,seat,gold,progress)=>tucks.push({seat:seat.id,gold,progress});
  r.paintedPerson=(c,a,pose)=>{if(pose.seated)r.chair(c,a.x,a.y,!!a.gold,'front');return true;};

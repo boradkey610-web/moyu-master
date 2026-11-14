@@ -49,9 +49,9 @@ test('independent disco layer is cached, opaque and enlarges around the unchange
   assert.notEqual(scene.background,r.bg);
  }finally{if(old===undefined)delete globalThis.document;else globalThis.document=old;}
 });
-test('fixed disco warning uses actual inspection threats, not a fabricated timer',()=>{
- const r=renderer(),labels=[];r.box=()=>{};r.text=(c,label,x,y)=>labels.push({label,x,y});
- r.discoWarning({}, {activityThreats:()=>[]},{time:1});assert.equal(labels.length,0);
- r.discoWarning({}, {activityThreats:a=>{assert.equal(a,'dance');return['老板'];}},{time:1});
- assert.deepEqual(labels,[{label:'有人靠近…准备收手',x:360,y:127}]);
+test('蹦迪实际暴露只显示进度，不主动指示快收手',()=>{
+ const r=renderer(),labels=[];r.box=()=>{};r.text=(c,text)=>labels.push(text);
+ const c={save(){},restore(){},fillRect(){}};
+ r.playerStakes(c,{player:{activity:'dance',x:545,y:515},pendingBonus:0,exposure:.4,exposureLimit:.5});
+ assert.deepEqual(labels,['正在暴露']);
 });
