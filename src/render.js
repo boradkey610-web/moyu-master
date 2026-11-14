@@ -491,7 +491,7 @@ export class Renderer{
    c.save();c.shadowColor='#ffc739';c.shadowBlur=6;c.beginPath();c.moveTo(x+dx,sy-r);c.lineTo(x+dx+2,sy-2);c.lineTo(x+dx+r,sy);c.lineTo(x+dx+2,sy+2);c.lineTo(x+dx,sy+r);c.lineTo(x+dx-2,sy+2);c.lineTo(x+dx-r,sy);c.lineTo(x+dx-2,sy-2);c.closePath();c.fillStyle='#fff9d2';c.fill();c.strokeStyle='#e9b53c';c.lineWidth=1;c.stroke();c.restore();
   }
  }
- noiseLabel(source){return !source?.active?(source?.volume>0?'声音渐小':'安静'):source.volume<40?'轻声':source.volume<75?'声音传开':'很吵';}
+ noiseLabel(source){return !source?.active?(source?.volume>0?'余音在消散':'没有声音'):source.volume<40?'暂未传出':source.volume<75?'附近可听见':'远处也可听见';}
  soundTarget(ins){
   if(ins.hidden||ins.leaving)return null;
   const point=ins.pendingSound||(ins.directed&&ins.evidenceKind==='sound'?ins.lastHeard:null)||ins.lastHeard;
@@ -525,13 +525,20 @@ export class Renderer{
   }
  }
  noiseBadge(c,g,a){
-  const source=g.soundField?.sources.find(s=>s.seat===a.seat),volume=source?.volume||0,label=a.warmup>0?'音箱启动中':this.noiseLabel(source),loud=source?.active&&volume>=40;
-  const x=Math.max(140,Math.min(W-140,a.x)),y=a.y-140,ink=loud?'#9c627f':'#798771';
-  this.box(c,x-133,y-17,266,34,9,loud?'#f6e6ed':'#f4f4e5',loud?'#c58ca8':'#b6c0a4',1.5);
-  c.save();c.fillStyle=ink;c.beginPath();c.moveTo(x-119,y-4);c.lineTo(x-113,y-4);c.lineTo(x-106,y-10);c.lineTo(x-106,y+10);c.lineTo(x-113,y+4);c.lineTo(x-119,y+4);c.closePath();c.fill();c.restore();
-  this.text(c,`${activities[a.activity].name} · ${label}`,x-6,y,19,ink,'750');
-  const bars=Math.min(4,Math.ceil(volume/25));
-  for(let k=0;k<4;k++)this.box(c,x+98+k*7,y+8-(5+k*4),4,5+k*4,1,k<bars?ink:'#d9d8ca',null);
+  const source=g.soundField?.sources.find(s=>s.seat===a.seat),volume=source?.volume||0;
+  const loud=source?.active&&volume>=40,far=source?.active&&volume>=75;
+  const sound=a.activity==='dance'?'音乐声':'键盘声';
+  const label=a.warmup>0?'音箱启动中':source?.active?`${sound} · ${this.noiseLabel(source)}`:this.noiseLabel(source);
+  c.save();c.font='700 26px "PingFang SC",sans-serif';
+  const width=Math.max(220,c.measureText(label).width+60),x=Math.max(width/2+6,Math.min(W-width/2-6,a.x)),y=a.y-140,left=x-width/2;
+  const ink=far?'#9d493a':loud?'#8d642b':'#607253';
+  this.box(c,left,y-22,width,44,6,far?'#f9e8df':loud?'#fff0d4':'#f1f3e7',far?'#cc9a86':loud?'#cba66b':'#afbea3',1.5);
+  c.fillStyle=ink;c.beginPath();c.moveTo(left+12,y-5);c.lineTo(left+18,y-5);c.lineTo(left+26,y-12);c.lineTo(left+26,y+12);c.lineTo(left+18,y+5);c.lineTo(left+12,y+5);c.closePath();c.fill();
+  c.strokeStyle=ink;c.lineWidth=1.7;
+  const waves=far?3:loud?2:source?.active?1:0;
+  for(let wave=0;wave<waves;wave++){c.beginPath();c.arc(left+25,y,8+wave*5,-.7,.7);c.stroke();}
+  if(!source?.active)this.line(c,[[left+12,y+13],[left+34,y-13]],ink,1.7);
+  this.text(c,label,left+48+(width-56)/2,y,26,ink,'700');c.restore();
  }
  inspectionCone(c,ins,activity,t){
   const range=activities[activity]?.range||100,phase=ins.queue?.[0]?.phase;
@@ -566,22 +573,17 @@ export class Renderer{
   this.chip(c,label,actor.x,Math.max(17,actor.y-110),color,ink,21);
  }
  playerStakes(c,g){
-  const p=g.player,combo=Math.max(0,g.comboTime||0),pending=Math.max(0,g.pendingBonus||0);
-  if(combo>0&&p.activity!=='work'&&!(g.feedback?.left>0)){
-   const stage=combo>=9?60:combo>=6?40:combo>=3?20:0;
-   const earned=pending.toFixed(1),label=stage?`连摸 +${stage}% · 待收 +${earned}`:`连摸蓄力 · 再摸 ${Math.ceil(3-combo)} 秒`;
-   c.save();c.font='700 21px "PingFang SC",sans-serif';
-   const width=Math.max(210,c.measureText(label).width+24),x=Math.max(width/2+5,Math.min(W-width/2-5,p.x)),y=Math.max(44,p.y-181);
-   this.box(c,x-width/2,y-20,width,40,9,stage?'#fff0c8':'#fff8e8',stage?'#c39642':'#c7b68c',1.5);
-   this.text(c,label,x,y-2,21,stage?'#946222':'#8c7b53','750');
-   const progress=stage===60?1:(combo%3)/3;
-   this.box(c,x-width/2+8,y+15,width-16,3,1.5,'#e5d8b8',null);
-   if(progress>0)this.box(c,x-width/2+8,y+15,(width-16)*progress,3,1.5,stage?'#d19a36':'#aaa375',null);
-   c.restore();
+  const p=g.player,pending=Math.max(0,g.pendingBonus||0);
+  if(pending>0&&p.activity!=='work'&&!(g.feedback?.left>0)){
+   const label=`收手领 ${pending.toFixed(1)} 金币`;
+   c.save();c.font='750 29px "PingFang SC",sans-serif';
+   const width=Math.max(222,c.measureText(label).width+28),x=Math.max(width/2+5,Math.min(W-width/2-5,p.x)),y=Math.max(44,p.y-190);
+   this.box(c,x-width/2,y-23,width,46,6,'#fff0c8','#b68b45',1.5);
+   this.text(c,label,x,y,29,'#906126','750');c.restore();
   }
   const exposure=Math.max(0,g.exposure||0),limit=Number(g.exposureLimit)||1;
   if(exposure>0){
-   const ratio=Math.min(1,exposure/limit),x=Math.max(67,Math.min(W-67,p.x)),y=Math.max(19,p.y-225);
+   const ratio=Math.min(1,exposure/limit),x=Math.max(67,Math.min(W-67,p.x)),y=Math.max(19,p.y-233);
    c.save();this.box(c,x-82,y-15,164,30,8,'#583e37','#fff1de',1.5);
    if(ratio>0)this.box(c,x-80,y-13,160*ratio,26,6,ratio>.65?'#dd6950':'#d6a044',null);
    this.text(c,ratio>.65?'快收手！':'正在暴露',x,y,19,'#fff9e9','800');c.restore();

@@ -168,3 +168,55 @@
 .is-playing-runner .activity small{display:none}
 .is-playing-runner .activity:not(.active) .activity-icon{opacity:.72}
 @media(max-width:370px){.controls{padding-inline:10px}.activity strong{font-size:14px}.runner-heading strong{font-size:9px}.runner-heading>span{font-size:8px}}
+
+/* In-game documents are desk objects, with printed ink and stamped outcomes. */
+.overlay:not([data-page=menu]):not([data-page=levels]){background:#3e33275c;backdrop-filter:blur(1.5px)}
+.dialog.office-result{padding:24px 22px 26px;border:0;border-radius:2px;background:repeating-linear-gradient(0deg,#fff9ea 0,#fff9ea 3px,#fcf5e5 4px);box-shadow:5px 7px 0 #66513a55;color:#61503a;text-align:left;clip-path:polygon(0 0,100% 0,100% calc(100% - 8px),96% 100%,92% calc(100% - 8px),88% 100%,84% calc(100% - 8px),80% 100%,76% calc(100% - 8px),72% 100%,68% calc(100% - 8px),64% 100%,60% calc(100% - 8px),56% 100%,52% calc(100% - 8px),48% 100%,44% calc(100% - 8px),40% 100%,36% calc(100% - 8px),32% 100%,28% calc(100% - 8px),24% 100%,20% calc(100% - 8px),16% 100%,12% calc(100% - 8px),8% 100%,4% calc(100% - 8px),0 100%)}
+.dialog.office-result:before{width:78px;height:14px;left:calc(50% - 39px);right:auto;top:0;border-radius:0;background:#d5bd8b9e;transform:rotate(-3deg)}
+.payroll-top{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid #b8a07a;padding-bottom:8px;font:9px/1.4 "Songti SC",serif;letter-spacing:.5px;color:#8e795b}
+.payroll-heading{position:relative;display:flex;justify-content:space-between;align-items:center;min-height:80px;padding:8px 0 4px}
+.payroll-day{font-size:10px;color:#9b815d}
+.dialog.office-result .payroll-heading h2{font:900 28px/1.25 "Songti SC","STSong",serif;margin:6px 0 0;letter-spacing:3px;color:#58452f;text-align:left}
+.payroll-portrait{width:60px;height:68px;overflow:hidden;flex:0 0 60px}
+.payroll-portrait .story-portrait{width:60px;height:71px;display:block;margin:0;filter:drop-shadow(1px 2px 0 #b29b7533)}
+.payroll-stamp{position:absolute;right:1px;top:88px;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:center;width:82px;height:48px;border:2px solid currentColor;outline:1px solid currentColor;outline-offset:3px;transform:rotate(-10deg);font:bold 15px/1.3 "Songti SC",serif;letter-spacing:1px;opacity:.88}
+.payroll-stamp small{font-size:8px;font-weight:500;letter-spacing:2px;margin-top:3px}
+.payroll-stamp.rejected{color:#b15f49}.payroll-stamp.approved{color:#4d8260}
+.dialog.office-result .shift-score{margin:9px 0 0;padding:10px 0 0;border:0;border-top:1px dashed #cbb595;border-bottom:1px dashed #cbb595;border-radius:0;background:transparent}
+.dialog.office-result .shift-score>span{font-size:10px;color:#9b8260;letter-spacing:2px}
+.dialog.office-result .shift-score .payroll-total{display:flex;align-items:baseline;gap:8px;margin:4px 0 7px}
+.dialog.office-result .shift-score strong{font:900 46px/1.1 "Courier New",monospace;letter-spacing:-3px;color:#655137}
+.dialog.office-result .shift-score .payroll-total>small{font:11px "Songti SC",serif;color:#a08a68}
+.dialog.office-result .shift-score footer{display:flex;justify-content:space-between;margin:0;padding:7px 0 8px;border-top:0;color:#9c8563;font-size:10px}
+.payroll-lines{margin:13px 0 8px}
+.payroll-section{display:block;margin-bottom:5px;font-size:9px;letter-spacing:3px;color:#ad9270}
+.payroll-lines>div{display:flex;justify-content:space-between;align-items:center;min-height:25px;border-bottom:1px dotted #decdb2;color:#846c4d;font-size:11px}
+.payroll-lines>div>span{display:flex;align-items:center;gap:7px}
+.payroll-lines .activity-icon{width:16px;height:16px;opacity:.8}
+.payroll-lines b{font:600 12px "Courier New",monospace}
+.payroll-lines b small{font:9px "Songti SC",serif;color:#ad9472}
+.dialog.office-result .result-facts{justify-content:space-between;padding:5px 0;color:#a38b6a;font-size:9px}
+.dialog.office-result .result-facts b{display:inline;margin:0 0 0 3px;color:#796044;font-size:10px}
+.dialog.office-result .best-record{padding:5px 0;color:#a18c6c;font-size:9px;text-align:left;background:none;border:0}
+.dialog.office-result p{font-size:11px;line-height:1.8;color:#957a56;margin:9px 0 11px;text-align:left}
+.dialog.office-result p b{color:#a16b37;font-weight:800}
+.dialog.office-result>button.primary{min-height:42px;margin-top:11px;padding:9px 8px;border:2px solid #ab7e3d;border-radius:6px;background:#edbf65;box-shadow:0 3px 0 #966a31;color:#654b2e;font-size:15px;font-weight:850;letter-spacing:2px}
+.dialog.office-result>button.primary:before{content:"↻";margin-right:8px;font-size:19px;vertical-align:-1px}
+.dialog.office-result[data-kind=win]>button.primary:before{content:"➜"}
+.dialog.office-result>button.outlined{min-height:33px;margin-top:11px;padding:7px;border:1px dashed #b49a74;border-radius:2px;box-shadow:none;background:#fff9eb;color:#997c50;font-size:11px}
+.dialog.office-result>button.secondary{min-height:24px;padding:4px 0;margin-top:10px;background:transparent;box-shadow:none;border:0;border-radius:0;color:#a08a69;font-size:10px;text-decoration:underline;text-underline-offset:4px}
+.dialog.office-note{padding:22px 18px 17px;border:7px solid #a58257;border-top-width:13px;border-radius:5px;background:repeating-linear-gradient(#fff9e9 0,#fff9e9 28px,#ddcbb547 29px);box-shadow:4px 6px 0 #59452d40;text-align:left}
+.dialog.office-note:before{top:0;left:calc(50% - 34px);right:auto;width:68px;height:13px;border:2px solid #7d8072;border-radius:3px;background:linear-gradient(#c9ccbc,#8d9383);box-shadow:0 2px 0 #70593833}
+.memo-heading{position:relative;padding:0 30px 12px 0;margin-bottom:10px;border-bottom:1px solid #cdb694}
+.memo-label{display:block;color:#9a7850;font-size:9px;font-weight:700;letter-spacing:1px}
+.memo-mark{position:absolute;right:0;top:4px;width:25px;height:25px;color:#9c7952;transform:rotate(7deg)}
+.dialog .memo-heading h2{margin:8px 0 0;font:850 24px/1.3 "Songti SC","STSong",serif;letter-spacing:1px;color:#624e36;text-align:left}
+.dialog.office-note p{font-size:12px;color:#8f7655;line-height:1.85}
+.dialog.office-note>button{border-radius:3px;background:#fff9e9;border:1px solid #cdb48b;box-shadow:0 2px 0 #c4aa82;color:#896c45}
+.dialog.office-note>button.primary{background:#7e9b79;border:2px solid #5d7958;box-shadow:0 3px 0 #4d674a;color:#fff9e7}
+.dialog.office-note>button.secondary{background:transparent;border:0;box-shadow:none;color:#aa9272}
+.dialog.office-note .assist-budget{border-radius:2px;border:1px dashed #c6ad84;background:#f4e7ca}
+.dialog.office-note .assist-option{border-radius:3px;border-style:dashed;background:#fffaf0}
+.dialog.office-note .speech{border-radius:2px;border:0;border-left:3px solid #d5b16f;background:#f1e2bd75;text-align:left}
+.dialog[data-kind=warning]{border:2px solid #a68b66;border-radius:8px;box-shadow:4px 6px 0 #70573833}
+@media(max-height:740px){.dialog.office-result{padding:19px 18px 22px}.payroll-heading{min-height:69px}.payroll-portrait{height:62px}.payroll-stamp{top:80px;height:43px}.dialog.office-result .payroll-heading h2{font-size:26px}.dialog.office-result .shift-score{margin-top:5px;padding-top:8px}.dialog.office-result .shift-score strong{font-size:40px}.payroll-lines{margin:9px 0 6px}.payroll-lines>div{min-height:23px}.dialog.office-note{padding:18px 14px 13px}.dialog.office-note .memo-heading h2{font-size:22px}}

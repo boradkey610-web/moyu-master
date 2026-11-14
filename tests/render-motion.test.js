@@ -6,6 +6,22 @@ const manifest=JSON.parse(readFileSync(new URL('../assets/manifest.json',import.
 const supervisorArt=()=>Object.fromEntries(Object.entries(manifest).filter(([name])=>name.includes('supervisor-female')).map(([name,meta])=>[name,{meta}]));
 
 const renderer=()=>Object.assign(Object.create(Renderer.prototype),{motion:new Map(),facings:new Map()});
+test('声音提示区分传出阈值和已停止的声源，不误报有人听见',()=>{
+ const r=renderer();
+ assert.equal(r.noiseLabel({active:true,volume:39.9}),'暂未传出');
+ assert.equal(r.noiseLabel({active:true,volume:40}),'附近可听见');
+ assert.equal(r.noiseLabel({active:true,volume:75}),'远处也可听见');
+ assert.equal(r.noiseLabel({active:false,volume:90}),'余音在消散');
+ assert.equal(r.noiseLabel(null),'没有声音');
+});
+test('奖金提示显示收手可领金额，尚未赚到奖金时不显示空奖金',()=>{
+ const r=renderer(),labels=[];
+ r.box=()=>{};r.text=(c,text)=>labels.push(text);
+ const c={save(){},restore(){},measureText(){return{width:180};}};
+ const g={player:{activity:'game',x:545,y:515},comboTime:4,pendingBonus:.8};
+ r.playerStakes(c,g);assert.deepEqual(labels,['收手领 0.8 金币']);
+ labels.length=0;g.pendingBonus=0;r.playerStakes(c,g);assert.deepEqual(labels,[]);
+});
 test('图片加载不依赖内嵌浏览器可能永久等待的decode，失败可进入回退',async()=>{
  const previous=globalThis.Image;
  try{
