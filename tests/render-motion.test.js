@@ -55,12 +55,12 @@ test('闻声转头朝记录的声源，身体继续原方向，事件过后及�
  ins.clock=4.1;assert.equal(r.pose(ins,'boss').lookDirection,'right');
  ins.clock=4.3;assert.equal(r.pose(ins,'boss').lookDirection,null);
 });
-test('键盘声使用实体键盘和声波，不再画文字说明，安静段子不画声音框',()=>{
- const r=renderer(),g=new Game(3,1),boxes=[],arcs=[];g.inspectors=[];g.setActivity('game');g.step(12);
- r.box=(c,...args)=>boxes.push(args);r.ellipse=()=>{};r.text=()=>assert.fail('声音图形不能包含文字框');
- const c=new Proxy({arc:(...a)=>arcs.push(a)}, {get:(o,k)=>o[k]??(()=>{})});
- r.noiseBadge(c,g,g.player);assert.ok(boxes.some(b=>b[2]===50&&b[3]===30));assert.equal(arcs.length,2);
- boxes.length=0;g.player.activity='joke';r.noiseBadge(c,g,g.player);assert.deepEqual(boxes,[]);
+test('游戏用手柄按键图形，无键盘底框或扩散声波，段子不显示手柄',()=>{
+ const r=renderer(),g=new Game(3,1),curves=[],buttons=[];g.inspectors=[];g.setActivity('game');g.step(12);
+ r.box=()=>assert.fail('手柄不应有键盘底框');r.ellipse=(c,...args)=>buttons.push(args);r.line=()=>{};r.text=()=>assert.fail('手柄不应有文字框');
+ const c=new Proxy({bezierCurveTo:(...a)=>curves.push(a),arc:()=>assert.fail('手柄不再绘制扩散声波')}, {get:(o,k)=>o[k]??(()=>{})});
+ r.noiseBadge(c,g,g.player);assert.ok(curves.length>0);assert.equal(buttons.length,2);
+ curves.length=0;buttons.length=0;g.player.activity='joke';r.noiseBadge(c,g,g.player);assert.deepEqual(curves,[]);assert.deepEqual(buttons,[]);
 });
 test('放大的闻声感叹号在靠边过道也完整显示',()=>{
  const r=renderer(),ins={x:655,y:115,clock:3,lastHeard:{x:545,y:280,seat:3,time:3,kind:'game'}},positions=[],scales=[];
@@ -213,7 +213,7 @@ test('感叹号使用听见事件的模拟时间，已排队声音不会冒充�
  assert.equal(r.soundTarget(ins).fresh,true);assert.deepEqual(r.soundTarget(ins),r.soundTarget(ins));
  ins.clock=6;assert.equal(r.soundTarget(ins),null);
  ins.pendingSound={seat:5,time:6,kind:'game'};const labels=[];r.chip=(c,text)=>labels.push(text);
- r.inspectionLabel({},ins,{moving:false});assert.match(labels[0],/听到键盘声/);
+ r.inspectionLabel({},ins,{moving:false});assert.match(labels[0],/听到手柄按键声/);
  ins.clock=8;r.inspectionLabel({},ins,{moving:false});assert.match(labels[1],/稍后查6号/);
 });
 test('听声动画结束或有待查声源时仍保留当前检查与预告倒计时',()=>{
@@ -227,7 +227,7 @@ test('待查新声源时仍显示正在检查的旧工位，不能只标未来�
  const r=renderer(),labels=[];r.chip=(c,text)=>labels.push(text);
  const ins={name:'老板',clock:8,directed:true,evidenceKind:'sound',lastHeard:{x:545,y:515,seat:7,time:1,kind:'dance'},pendingSound:{x:255,y:515,seat:5,time:5,kind:'game'},queue:[{kind:'wait',phase:'checking',left:1.2}]};
  r.soundSignals({}, {inspectors:[ins],player:{seat:5}},8);r.inspectionLabel({},ins,{moving:false});
- assert.ok(labels.some(s=>s.includes('8号 · 正查')));assert.ok(labels.some(s=>s.includes('6号 · 待查看')));
+ assert.ok(labels.some(s=>s.includes('8号 · 正查')));assert.ok(labels.some(s=>s.includes('6号 · 待查看')));assert.ok(labels.some(s=>s.includes('🎮')&&s.includes('6号')));
  assert.ok(labels.some(s=>s.includes('8号')&&s.includes('稍后查6号')&&s.includes('1.2秒')));
 });
 

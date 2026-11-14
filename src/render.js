@@ -521,7 +521,7 @@ export class Renderer{
  soundSignals(c,g,t){
   const marked=new Set();
   for(const ins of g.inspectors){const cue=this.soundTarget(ins);if(!cue)continue;const p=cue.point;
-   if(!marked.has(p.seat)){marked.add(p.seat);this.chip(c,`${p.kind==='dance'?'♪':'⌨'} ${p.seat+1}号 · ${cue.pending?'待查看':p.seat===g.player.seat?'声源':'旧声源'}`,p.x,p.y+24,'#fff0ce','#9a6129',19);}
+   if(!marked.has(p.seat)){marked.add(p.seat);this.chip(c,`${p.kind==='dance'?'♪':'🎮'} ${p.seat+1}号 · ${cue.pending?'待查看':p.seat===g.player.seat?'声源':'旧声源'}`,p.x,p.y+24,'#fff0ce','#9a6129',19);}
    if(cue.current&&cue.current.seat!==p.seat&&!marked.has(cue.current.seat)){const old=cue.current;marked.add(old.seat);this.chip(c,`${old.seat+1}号 · ${ins.queue?.[0]?.phase==='checking'?'正查':'调查中'}`,old.x,old.y+24,'#fff0ce','#9a6129',19);}
    if(cue.fresh){
     const pop=1+Math.max(0,1-cue.age/.3)*.65,bounce=Math.sin(Math.min(1,cue.age/.5)*Math.PI)*8,margin=39*pop;
@@ -536,21 +536,21 @@ export class Renderer{
   if(a.activity==='dance'){this.danceSound(c,g,a);return;}
   if(a.activity!=='game')return;
   const source=g.soundField?.sources.find(s=>s.seat===a.seat),volume=source?.volume||0;
-  const t=g.elapsed,x=Math.min(W-73,a.x+56),y=a.y-73,ink=volume>=75?'#bd6d38':'#6d9c93';
-  c.save();c.translate(x,y);c.rotate(-.08);
-  this.ellipse(c,0,16,25,5,'#4b514329');
-  this.box(c,-25,-14,50,30,5,'#f7ecd3','#8e846c',2);
-  this.box(c,-21,-10,42,21,3,'#d2d4b9','#9a9b81',1);
-  for(let row=0;row<2;row++)for(let col=0;col<6;col++){
-   const pressed=(Math.floor(t*7)+row*6+col)%5===0;
-   this.box(c,-18+col*6.2,-7+row*7,4.5,4.5,1,pressed?'#e8b15b':'#718d87',null);
+  const t=g.elapsed,x=Math.min(W-45,a.x+52),y=a.y-110,pressed=Math.floor(t*7)%2;
+  c.save();c.translate(x,y);c.rotate(Math.sin(t*8)*.035);c.scale(.78,.78);c.translate(-26,-26);
+  c.beginPath();c.moveTo(15,13);c.bezierCurveTo(9,13,6,18,4,28);c.bezierCurveTo(2,37,4,42,9,42);
+  c.bezierCurveTo(13,42,16,36,19,35);c.lineTo(33,35);c.bezierCurveTo(37,36,40,42,44,42);
+  c.bezierCurveTo(49,42,51,37,49,28);c.bezierCurveTo(47,18,44,13,38,13);c.lineTo(31,15);c.lineTo(22,15);c.closePath();
+  c.fillStyle='#fffaf7';c.strokeStyle='#7052a4';c.lineWidth=2;c.fill();c.stroke();
+  this.line(c,[[15,21],[15,33]],pressed?'#b994db':'#9672d3',4);
+  this.line(c,[[9,27],[21,27]],pressed?'#b994db':'#9672d3',4);
+  this.ellipse(c,36,23,3,3,pressed?'#efb75f':'#9d75da');
+  this.ellipse(c,42,29,3,3,pressed?'#9d75da':'#efb75f');
+  if(source?.active&&volume>=40){
+   c.globalAlpha=volume>=75?.85:.5;
+   for(const side of [-1,1])this.line(c,[[26+side*29,21],[26+side*32,26],[26+side*29,31]],'#9678b3',2);
   }
-  this.box(c,-10,7,20,3,1,'#718d87',null);c.restore();
-  const waves=source?.active?(volume>=75?3:volume>=40?2:1):0;
-  for(let i=0;i<waves;i++){
-   const phase=(t*1.3+i/3)%1;c.save();c.globalAlpha=(.3+(1-phase)*.65)*(volume<40?.5:1);
-   c.strokeStyle=ink;c.lineWidth=3;c.beginPath();c.arc(x+20,y,11+i*7+phase*8,-.75,.75);c.stroke();c.restore();
-  }
+  c.restore();
  }
 
  danceSound(c,g,a){
@@ -594,13 +594,13 @@ export class Renderer{
   let label=actor.name,color=actor.name==='老板'?'#f6e6d8':'#e4eff0',ink='#5b5548';
   const sound=this.soundTarget(actor);
   if(actor.leaving)label+=' · 去开会';
-  else if(sound?.fresh){label+=sound.point.kind==='dance'?' · 听到音乐！':' · 听到键盘声！';color='#ffe0ad';ink='#a6532d';}
+  else if(sound?.fresh){label+=sound.point.kind==='dance'?' · 听到音乐！':' · 听到手柄按键声！';color='#ffe0ad';ink='#a6532d';}
   else if(sound?.pending){label+=`${sound.current?` · ${sound.current.seat+1}号`:''} · 稍后查${sound.point.seat+1}号`;color='#fff0ce';ink='#9a6129';}
   else if(sound){label+=phase?` · ${sound.point.seat+1}号`:` · 去查${sound.point.seat+1}号`;color=actor.threatensPlayer===false?'#edf0df':'#fff0ce';ink='#9a6129';}
   else if((phase==='warning'||phase==='checking')&&actor.threatensPlayer===false){label+=actor.evidenceKind==='sound'?' · 在查旧声源':' · 在查别处';color='#e9efe5';ink='#758b77';}
   else if(phase==='warning'){label+=` · ${left}秒后检查`;color='#fff0be';ink='#936527';}
   else if(phase==='checking'){label+=` · 检查 ${left}秒`;color='#fae0d5';ink='#a04f3c';}
-  else if(actor.directed){label+=actor.evidenceKind==='sound'?(actor.lastHeard?.kind==='dance'?' · 听见音乐，去看看':' · 听见键盘声'):' · 去确认一下';color='#fff0be';ink='#936527';}
+  else if(actor.directed){label+=actor.evidenceKind==='sound'?(actor.lastHeard?.kind==='dance'?' · 听见音乐，去看看':' · 听见手柄按键声'):' · 去确认一下';color='#fff0be';ink='#936527';}
   else if(actor.suspicion>0){label+=' · ? 有点动静';color='#fff0be';ink='#936527';}
   else if(!pose.moving&&command?.kind==='wait')label+=` · 巡视 ${left}秒`;
   if(sound&&phase)label+=phase==='warning'?` · ${sound.pending?'当前':''}${left}秒后查`:` · 检查${left}秒`;

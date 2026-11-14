@@ -173,7 +173,7 @@ function updateUI(){
  const p=g.player,boosted=g.special?.seat===p.seat&&p.seat!==null,multiplier=boosted?2:1,moving=!!p.route.length;
  const blocked=!!screen||!!g.modal,stopping=p.stopping>0,locked=p.lock>0;
  const checks=g.inspectors.filter(i=>!i.hidden).map(i=>{const q=i.queue[0];return `${i.name}${q?.phase==='warning'?(i.threatensPlayer===false?'在查别处':`预告${Math.ceil(q.left)}秒`):q?.phase==='checking'?(i.threatensPlayer===false?'在查别处':`检查${Math.ceil(q.left)}秒`):i.directed?'调查旧位置':i.suspicion>0?'发现动静':'巡逻中'}`;}).join('；');
- const source=g.soundField.sources.find(s=>s.seat===p.seat),soundChecks=g.inspectors.flatMap(i=>{const cue=renderer.soundTarget(i);return cue?[`${i.name}${cue.fresh?'听到了'+(cue.point.kind==='dance'?'音乐':'键盘声'):'正在确认声音'}，${cue.pending?'稍后查看':'目标'}${cue.point.seat+1}号工位${cue.point.seat!==p.seat?'，旧声源':''}${cue.pending&&cue.current?`，当前仍查${cue.current.seat+1}号`:''}`]:[];}).join('；');
+ const source=g.soundField.sources.find(s=>s.seat===p.seat),soundChecks=g.inspectors.flatMap(i=>{const cue=renderer.soundTarget(i);return cue?[`${i.name}${cue.fresh?'听到了'+(cue.point.kind==='dance'?'音乐':'手柄按键声'):'正在确认声音'}，${cue.pending?'稍后查看':'目标'}${cue.point.seat+1}号工位${cue.point.seat!==p.seat?'，旧声源':''}${cue.pending&&cue.current?`，当前仍查${cue.current.seat+1}号`:''}`]:[];}).join('；');
  canvas.setAttribute('aria-description',`${checks}；${renderer.noiseLabel(source)}${soundChecks?'；'+soundChecks:''}；连续摸鱼${Math.floor(g.comboTime)}秒，收手可领${coinAmount(g.pendingBonus)}金币；${g.exposure>0?'正在暴露':'安全'}${g.feedback?'；'+g.feedback.text:''}`);
  $('#money').innerHTML=`${coinAmount(g.coins)} <em>/ ${g.config.target}</em>`;
  $('#time').textContent=formatTime(g.time);$('#time').classList.toggle('low-time',g.time<30);
@@ -195,7 +195,7 @@ function updateUI(){
   b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));
   b.disabled=blocked||p.seat===null||locked||stopping;
   const threats=a==='dance'?[]:g.activityThreats(a),risk=threats.length>0;
-  b.classList.toggle('is-risky',risk);b.setAttribute('aria-description',`${a==='joke'?'无声，会让先前的声音消散':a==='game'?'键盘声逐渐变大，附近的检查者可能听见':'音乐声增长更快，远处的检查者也可能听见'}${a==='dance'?'':'；'+(risk?'当前检查范围内：'+threats.join('、'):'当前检查范围外')}`);b.title=b.getAttribute('aria-description');
+  b.classList.toggle('is-risky',risk);b.setAttribute('aria-description',`${a==='joke'?'无声，会让先前的声音消散':a==='game'?'手柄按键声逐渐变大，附近的检查者可能听见':'音乐声增长更快，远处的检查者也可能听见'}${a==='dance'?'':'；'+(risk?'当前检查范围内：'+threats.join('、'):'当前检查范围外')}`);b.title=b.getAttribute('aria-description');
 
   b.querySelector('small').textContent=a==='game'?'点按闯关':`+${activities[a].rate*multiplier} / 秒`;
  }
