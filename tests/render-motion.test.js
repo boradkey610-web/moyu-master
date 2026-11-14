@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Renderer} from '../src/render.js';
+import {Game} from '../src/engine.js';
 import {readFileSync} from 'node:fs';
 const manifest=JSON.parse(readFileSync(new URL('../assets/manifest.json',import.meta.url)));
 const supervisorArt=()=>Object.fromEntries(Object.entries(manifest).filter(([name])=>name.includes('supervisor-female')).map(([name,meta])=>[name,{meta}]));
@@ -13,6 +14,37 @@ test('声音提示区分传出阈值和已停止的声源，不误报有人听�
  assert.equal(r.noiseLabel({active:true,volume:75}),'远处也可听见');
  assert.equal(r.noiseLabel({active:false,volume:90}),'余音在消散');
  assert.equal(r.noiseLabel(null),'没有声音');
+});
+test('蹦迪用音箱代替文字，音量增强时增加声波，暂停不推进绘制状态',()=>{
+ const r=renderer(),g=new Game(3,1);g.inspectors=[];g.setActivity('dance');g.step(1);
+ const labels=[],boxes=[],arcs=[],transforms=[];
+ r.text=(c,text)=>labels.push(text);r.box=(c,...args)=>boxes.push(args);r.ellipse=()=>{};
+ const c=new Proxy({createLinearGradient:()=>({addColorStop(){}}),arc:(...a)=>arcs.push({a,alpha:c.globalAlpha}),rotate:a=>transforms.push(a)}, {get:(o,k)=>o[k]??(()=>{})});
+ r.noiseBadge(c,g,g.player);assert.deepEqual(labels,[]);assert.ok(boxes.some(b=>b[2]===36&&b[3]===48));assert.equal(arcs.length,1);
+ g.step(3);arcs.length=0;r.noiseBadge(c,g,g.player);assert.equal(arcs.length,3);
+ transforms.length=0;r.noiseBadge(c,g,g.player);const before=transforms[0],state=JSON.stringify(g);
+ g.paused=true;g.step(2);transforms.length=0;r.noiseBadge(c,g,g.player);
+ assert.equal(transforms[0],before);g.paused=false;assert.equal(JSON.stringify(g),state);
+ arcs.length=0;r.noiseBadge(c,g,g.player);const alphas=arcs.map(a=>a.alpha);
+ g.setActivity('work');g.player.stopping=.5;arcs.length=0;r.noiseBadge(c,g,g.player);
+ assert.deepEqual(arcs.map(a=>a.alpha),alphas.map(a=>a*.5),'声波和箱体必须一起按收手进度消退');
+});
+test('闻声转头朝记录的声源，身体继续原方向，事件过后及离场不再转头',()=>{
+ const r=renderer(),ins={name:'老板',x:65,y:350,angle:Math.PI/2,clock:3.3,lastHeard:{x:545,y:515,time:3},queue:[{kind:'move',x:65,y:585}]};
+ const pose=r.pose(ins,'boss');assert.equal(pose.direction,'down');assert.equal(pose.lookDirection,'right');assert.equal(pose.moving,true);
+ ins.leaving=true;assert.equal(r.pose(ins,'boss').lookDirection,null);ins.leaving=false;
+ ins.clock=4.1;assert.equal(r.pose(ins,'boss').lookDirection,null);
+});
+test('舞台头像感叹号只响应真实的新闻声，不修改角色位置与检查方向',()=>{
+ const r=renderer(),g=new Game(3,1),ins=g.inspectors[0],heads=[],labels=[];
+ g.setActivity('dance');r.paintedPerson=(c,a,pose)=>{heads.push({type:a.type,direction:pose.direction});return true;};r.text=(c,t)=>labels.push(t);r.ellipse=()=>{};r.line=()=>{};
+ const c=new Proxy({}, {get:()=>()=>{}});
+ r.heardReaction(c,g);assert.equal(heads.length,0);
+ ins.clock=3.4;ins.lastHeard={x:545,y:515,seat:7,time:3,kind:'dance'};
+ const before=JSON.stringify(g);r.heardReaction(c,g);assert.deepEqual(heads,[{type:'boss',direction:'right'}]);assert.deepEqual(labels,['!']);assert.equal(JSON.stringify(g),before);
+ ins.clock=5;r.heardReaction(c,g);assert.equal(heads.length,1);
+ ins.clock=3.4;ins.hidden=true;r.heardReaction(c,g);assert.equal(heads.length,1);
+ ins.hidden=false;g.player.activity='work';r.heardReaction(c,g);assert.equal(heads.length,1);
 });
 test('奖金提示显示收手可领金额，尚未赚到奖金时不显示空奖金',()=>{
  const r=renderer(),labels=[];

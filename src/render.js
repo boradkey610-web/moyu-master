@@ -81,6 +81,14 @@ export class Renderer{
    this.chair(c,a.x,a.y,!!a.gold,'front');return true;
   }
   if(name==='player'&&a.activity==='dance'&&this.paintedDance(c,a,t))return true;
+  if(pose.lookDirection){
+   c.save();c.beginPath();c.rect(a.x-65,y-65,130,80);c.clip();
+   const painted=this.paintedPerson(c,a,{...pose,lookDirection:null},t);c.restore();
+   if(!painted)return false;
+   c.save();c.beginPath();c.rect(a.x-65,y-105,130,40);c.clip();
+   this.paintedPerson(c,a,{...pose,lookDirection:null,direction:pose.lookDirection,moving:false},t);c.restore();
+   return true;
+  }
   if(name==='supervisor')return this.paintedSupervisor(c,a,pose,t);
   if(!this.art[characterAtlas])return false;
   this.ellipse(c,a.x,y+1,17,6,'#4d463a2b');
@@ -456,7 +464,13 @@ export class Renderer{
   if(seated)direction='up';
   const travel=(previous?.travel||0)+distance;
   this.motion.set(key,{x:actor.x,y:actor.y,travel});this.facings.set(key,direction);
-  return {direction,seated,travel,moving:!seated&&(hasMoved||travelling)};
+  const heard=actor.name?this.soundTarget(actor):null;
+  let lookDirection=null;
+  if(heard?.fresh&&heard.age>=.12&&heard.age<.9){
+   const angle=Math.atan2(heard.point.y-actor.y,heard.point.x-actor.x);
+   lookDirection=Math.abs(Math.cos(angle))>.7?(Math.cos(angle)>0?'right':'left'):(Math.sin(angle)>0?'down':'up');
+  }
+  return {direction,seated,travel,lookDirection,moving:!seated&&(hasMoved||travelling)};
  }
 
  chip(c,text,x,y,color='#fffaf0',ink='#5b5548',size=14){c.font=`bold ${size}px "PingFang SC",sans-serif`;const width=c.measureText(text).width+18,height=size+10;x=Math.max(width/2+5,Math.min(W-width/2-5,x));this.box(c,x-width/2,y-height/2,width,height,7,color,'#a69b8190',1);this.text(c,text,x,y,size,ink,'700');}
@@ -518,6 +532,7 @@ export class Renderer{
   }
  }
  noiseBadge(c,g,a){
+  if(a.activity==='dance'){this.danceSound(c,g,a);return;}
   const source=g.soundField?.sources.find(s=>s.seat===a.seat),volume=source?.volume||0;
   const loud=source?.active&&volume>=40,far=source?.active&&volume>=75;
   const sound=a.activity==='dance'?'音乐声':'键盘声';
@@ -532,6 +547,44 @@ export class Renderer{
   for(let wave=0;wave<waves;wave++){c.beginPath();c.arc(left+25,y,8+wave*5,-.7,.7);c.stroke();}
   if(!source?.active)this.line(c,[[left+12,y+13],[left+34,y-13]],ink,1.7);
   this.text(c,label,left+48+(width-56)/2,y,26,ink,'700');c.restore();
+ }
+ danceSound(c,g,a){
+  const dance=this.danceState(g);if(!dance)return;
+  const source=g.soundField?.sources.find(s=>s.seat===a.seat),volume=source?.volume||0;
+  const t=dance.time,beat=Math.sin(t*Math.PI*4),warm=Math.min(1,t/.8),waves=volume>=75?3:volume>=40?2:1;
+  const x=a.x+72,feet=a.y+36,ink=volume>=75?'#efba75':'#91c5bb';
+  c.save();c.globalAlpha=dance.strength;
+  for(let i=0;i<waves;i++){
+   const phase=(t*1.5+i/3)%1;c.save();c.globalAlpha=dance.strength*(1-phase)*.8*warm;
+   c.strokeStyle=ink;c.lineWidth=2.3;c.beginPath();c.arc(x+15,feet-22,18+i*8+phase*12,-.72,.72);c.stroke();c.restore();
+  }
+  this.ellipse(c,x,feet+2,24,6,'#07151e55');
+  c.translate(x,feet);c.rotate(beat*.025*warm);c.scale(1+beat*.025*warm,1-beat*.025*warm);
+  const cabinet=c.createLinearGradient(-18,-48,18,0);cabinet.addColorStop(0,'#45615e');cabinet.addColorStop(1,'#1b2e35');
+  this.box(c,-18,-48,36,48,5,cabinet,'#aeaa80',1.7);
+  this.box(c,-13,-44,26,40,3,'#15272b','#698279',1);
+  this.ellipse(c,0,-34,5.5,5.5,'#728d80','#a9bda1',1);
+  this.ellipse(c,0,-16,10.5+beat*.6*warm,10.5+beat*.6*warm,'#425d5c','#88aaa0',1.3);
+  this.ellipse(c,0,-16,4.5,4.5,'#122c31',ink,1);
+  this.ellipse(c,11,-43,1.5,1.5,warm>.5?'#efd18e':'#797c68');
+  c.restore();
+ }
+ heardReaction(c,g){
+  if(!this.danceState(g))return;
+  for(const ins of g.inspectors){
+   const cue=this.soundTarget(ins);if(!cue?.fresh)continue;
+   const x=ins.name==='老板'?W-92:92,y=205;
+   const fade=Math.min(1,(1.6-cue.age)/.3),pop=1+Math.max(0,1-cue.age/.25)*.2;
+   const angle=Math.atan2(cue.point.y-ins.y,cue.point.x-ins.x);
+   const direction=cue.age<.12?'down':Math.abs(Math.cos(angle))>.7?(Math.cos(angle)>0?'right':'left'):(Math.sin(angle)>0?'down':'up');
+   c.save();c.globalAlpha=fade;c.translate(x,y);c.scale(pop,pop);
+   this.ellipse(c,0,0,39,39,'#fff3cf','#dcaa60',2.5);
+   c.save();c.beginPath();c.arc(0,0,36,0,Math.PI*2);c.clip();c.scale(1.9,1.9);
+   this.paintedPerson(c,{type:ins.name==='老板'?'boss':'supervisor',x:0,y:83},{seated:false,moving:false,direction},0);c.restore();
+   this.text(c,'!',37,-30,48,'#ffc65b','900');
+   for(const [dx,dy]of [[-36,-40],[-47,-21]])this.line(c,[[dx,dy],[dx-7,dy-7]],'#f5cf80',3);
+   c.restore();
+  }
  }
  inspectionCone(c,ins,activity,t){
   const range=activities[activity]?.range||100,phase=ins.queue?.[0]?.phase;
@@ -637,6 +690,7 @@ export class Renderer{
  if(g.special)this.goldBadge(c,seats[g.special.seat],g.special.left,t);
  this.soundSignals(c,g,t);
  this.discoOverlay(c,dance);
+ this.heardReaction(c,g);
  // Keep the player's feedback and a non-positional warning above the disco.
  for(const a of actors){
   const pose=a.renderPose;
@@ -645,7 +699,10 @@ export class Renderer{
    const greeting=g.greeting?.left>0?g.greeting:null;
    if(greeting)this.chip(c,`${greeting.who}好！借过一下～`,a.x,Math.max(18,a.y-134),'#edf4e5','#65805a');
    else if(a.route.length)this.chip(c,'去新工位',a.x,Math.max(18,a.y-134));
-   else if(a.stopping>0)this.chip(c,'收手中…',a.x,a.y-134,'#fff1d0');
+   else if(a.stopping>0){
+    this.chip(c,'收手中…',a.x,a.y-134,'#fff1d0');
+    if(a.activity==='dance')this.noiseBadge(c,g,a);
+   }
    else if(a.lock>0)this.chip(c,'认真工作…',a.x,a.y-134);
    else if(a.activity!=='work'){
     this.noiseBadge(c,g,a);

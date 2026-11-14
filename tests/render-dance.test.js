@@ -65,12 +65,15 @@ test('seated work is unchanged and missing dance art keeps the existing fallback
 test('disco keeps player feedback without polling for a predictive approach warning',()=>{
  const r=renderer(),g=new Game(2,1),order=[];g.setActivity('dance');g.elapsed=.4;
  r.c=context();r.bg={};
- for(const name of ['soundSources','inspectionCone','chair','text','chip','noiseBadge','incomePop','playerStakes','momentFeedback','soundSignals','inspectionLabel'])r[name]=()=>order.push(name);
+ for(const name of ['soundSources','inspectionCone','chair','text','chip','noiseBadge','incomePop','playerStakes','momentFeedback','soundSignals','inspectionLabel','heardReaction'])r[name]=()=>order.push(name);
  r.paintedPerson=()=>{order.push('actor');return true;};r.discoOverlay=()=>order.push('light');g.activityThreats=()=>{throw new Error('dance must not predict nearby inspectors');};
  r.draw(g,200);
  const light=order.indexOf('light');assert.ok(light>order.lastIndexOf('actor'));
  for(const name of ['inspectionLabel','soundSignals'])assert.ok(order.indexOf(name)<light,name);
- for(const name of ['noiseBadge','playerStakes','momentFeedback'])assert.ok(order.indexOf(name)>light,name);
+ for(const name of ['noiseBadge','playerStakes','momentFeedback','heardReaction'])assert.ok(order.indexOf(name)>light,name);
+ order.length=0;g.setActivity('work');g.step(.2);r.draw(g,200);
+ assert.ok(r.danceState(g).strength>0&&r.danceState(g).strength<1);
+ assert.equal(order.filter(name=>name==='noiseBadge').length,1,'音箱在收手期间继续绘制并随舞蹈消退');
 });
 test('spotlight geometry is cached across frames, with no scene pixel reads',()=>{
  const old=globalThis.document;let canvases=0;
