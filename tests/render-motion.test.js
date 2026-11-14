@@ -16,7 +16,7 @@ test('图片加载不依赖内嵌浏览器可能永久等待的decode，失败�
 });
 test('收益币面与数字墨迹垂直居中，单双位数保持相同间距',()=>{
  const r=renderer();
- for(const [activity,gold,width]of [['game',false,29],['dance',true,43]]){
+ for(const [activity,gold,width]of [['joke',false,29],['dance',true,43]]){
   const coins=[],numbers=[],c={measureText(){return{width,actualBoundingBoxAscent:18,actualBoundingBoxDescent:0};},createLinearGradient(){return{addColorStop(){}};},strokeText(){},fillText(text,x,y){numbers.push({text,x,y,baseline:this.textBaseline,align:this.textAlign});}};
   for(const name of ['save','restore','beginPath','arc','stroke','fill','moveTo','lineTo','closePath'])c[name]=()=>{};
   r.ellipse=(c,x,y,rx,ry)=>coins.push({x,y,rx,ry});
@@ -151,3 +151,5 @@ test('待查新声源时仍显示正在检查的旧工位，不能只标未来�
  assert.ok(labels.some(s=>s.includes('8号 · 正查')));assert.ok(labels.some(s=>s.includes('6号 · 待查看')));
  assert.ok(labels.some(s=>s.includes('8号')&&s.includes('稍后查6号')&&s.includes('1.2秒')));
 });
+
+test('打游戏等待输入时不绘制旧版按秒收入',()=>{const c=new Proxy({}, {get(){throw new Error('runner income is shown after clearing an obstacle');}});assert.doesNotThrow(()=>renderer().incomePop(c,{activity:'game',gold:false,seat:7,x:545,y:515},.5));});

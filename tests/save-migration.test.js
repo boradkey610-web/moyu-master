@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 
-const legacyKey='moyu-master-save-v1',shortKey='moyu-master-save-v4-sound';
+const legacyKey='moyu-master-save-v1',shortKey='moyu-master-save-v5-runner';
 const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
 const start=app.indexOf('const SAVE_KEY='),end=app.indexOf('function beep(');
 assert.ok(start>=0&&end>start,'必须从生产 app.js 中提取存档加载片段');
@@ -73,6 +73,8 @@ test('禁用存储仍能开局，写入失败不丢失已读取的解锁',()=>{
  assert.equal(result.data.get(legacyKey),legacy);
  assert.deepEqual(result.writes,[]);
 });
-test('自然巡视仅继承v2短局解锁，旧目标成绩不参与新版纪录',()=>{const oldKey='moyu-master-save-v2-short',old=JSON.stringify({unlocked:4,best:{'2-clean':35,'3-clean':50}});const result=load({[oldKey]:old});assert.deepEqual(result.save,{unlocked:4,best:{}});assert.equal(result.data.get(oldKey),old);assert.equal(result.writes[0][0],'moyu-master-save-v4-sound');});
+test('自然巡视仅继承v2短局解锁，旧目标成绩不参与新版纪录',()=>{const oldKey='moyu-master-save-v2-short',old=JSON.stringify({unlocked:4,best:{'2-clean':35,'3-clean':50}});const result=load({[oldKey]:old});assert.deepEqual(result.save,{unlocked:4,best:{}});assert.equal(result.data.get(oldKey),old);assert.equal(result.writes[0][0],shortKey);});
 
 test('声源版只继承v3自然巡视的解锁而不复用旧最佳',()=>{const key='moyu-master-save-v3-patrol',raw=JSON.stringify({unlocked:4,best:{'3-clean':49}}),result=load({[key]:raw});assert.deepEqual(result.save,{unlocked:4,best:{}});assert.equal(result.data.get(key),raw);assert.equal(result.writes[0][0],shortKey);});
+
+test('跳障碍版继承声源版解锁，旧自动收益成绩单独保留',()=>{const key='moyu-master-save-v4-sound',raw=JSON.stringify({unlocked:4,best:{'0-clean':14,'3-clean':35}}),result=load({[key]:raw});assert.deepEqual(result.save,{unlocked:4,best:{}});assert.equal(result.data.get(key),raw);assert.equal(result.writes[0][0],shortKey);});

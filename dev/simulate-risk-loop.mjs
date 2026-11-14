@@ -16,6 +16,7 @@ export function simulate(level,seed,careful,target,policy='mixed'){
    }
    const choices=policy==='single'?[activity]:level<2?['game','joke']:['dance','game','joke'];g.setActivity(g.coins+g.pendingBonus>=g.config.target?'work':choices.find(safe)||'work');
   }else g.setActivity(activity);
+  if(careful&&g.player.activity==='game'&&(!g.runner.started||g.runner.obstacle.x<=135))g.jump();
   g.step(.05);
  }
  return {win:g.modal?.kind==='win',seconds:g.elapsed,catches:g.catches,closeCalls:g.stats.closeCalls,coins:g.coins,activities:g.stats.activityTime,heard:Object.keys(g.soundField.claimed).length};

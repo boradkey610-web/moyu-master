@@ -1,10 +1,11 @@
 import {Game,seats,activities,levels} from './engine.js';
 import {Renderer} from './render.js';
+import {drawRunner} from './runner.js';
 const $=s=>document.querySelector(s),canvas=$('#office'),renderer=new Renderer(canvas);
 let save={unlocked:1,best:{}},g=new Game(),screen='menu',lastModal=null,lastTime=0,visualTime=0,sound=true,audio;
-const SAVE_KEY='moyu-master-save-v4-sound';
+const SAVE_KEY='moyu-master-save-v5-runner';
 function readStoredSave(key){try{const data=JSON.parse(localStorage.getItem(key));return data&&typeof data==='object'&&!Array.isArray(data)?data:null;}catch{return null;}}
-const shortSave=readStoredSave(SAVE_KEY),savedProgress=shortSave||readStoredSave('moyu-master-save-v3-patrol')||readStoredSave('moyu-master-save-v2-short')||readStoredSave('moyu-master-save-v1');
+const shortSave=readStoredSave(SAVE_KEY),savedProgress=shortSave||readStoredSave('moyu-master-save-v4-sound')||readStoredSave('moyu-master-save-v3-patrol')||readStoredSave('moyu-master-save-v2-short')||readStoredSave('moyu-master-save-v1');
 if(savedProgress){
  save.unlocked=Math.max(1,Math.min(levels.length,Math.floor(Number(savedProgress.unlocked)||1)));
  // Preserve unlocked days; records from older patrol rules are not comparable.
@@ -82,7 +83,8 @@ function selectLevel(){
 function instructions(back=()=>hide()){
  screen=back===menu?'guide':'instructions';
  const rules=[
-  '三种摸鱼方式从第1关就能玩：段子安静、游戏适中、蹦迪更吵。',
+  '三种玩法从第1关可用。打游戏点按跳障碍，越障才赚金币；段子安静，蹦迪更吵。',
+  '游戏窗口在下方，办公室照常巡逻。↑ 跳跃，空格或绿色按钮收手。',
   '检查前有预告。可降档继续摸鱼，藏不住就一键工作；收手需要时间。',
   '连摸有额外奖金，切玩法不断连；安全工作或换座时到账，被抓就丢奖金。',
   '点空椅子换座，移动不赚钱。金椅限时×2，道具坐下拾取。',
@@ -132,8 +134,9 @@ function processModal(){if(!g.modal||screen==='reward'||g.modal===lastModal)retu
  }}
 const seatButtons=seats.map(s=>{const b=document.createElement('button');b.className='seat-hit';b.style.left=`${s.x/720*100}%`;b.style.top=`${s.y/920*100}%`;b.setAttribute('aria-label',`移动到${s.id+1}号工位`);b.onclick=()=>{if(!screen){if(g.moveTo(s.id))beep(520);else g.notify('当前不能换到这个工位');}};$('#seat-buttons').append(b);return b;});
 for(const b of document.querySelectorAll('[data-activity]'))b.onclick=()=>{if(!screen){g.setActivity(b.dataset.activity);beep(b.dataset.activity==='dance'?700:500);}};
+$('#runner-jump').onclick=()=>{if(!screen&&g.jump())beep(600);};
 $('#work').onclick=()=>{if(!screen){g.setActivity('work');beep(320);}};$('#mirror').onclick=()=>{if(!screen&&!g.useMirror())g.notify(g.inventory.mirror?'检查者暂时离场，回来后再用':'空工位拾取反光镜，或在求助中领取');};$('#meeting').onclick=meeting;$('#help').onclick=help;$('#pause').onclick=pause;
-document.addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='Escape'){if(screen==='pause')hide();else if(!screen)pause();}if(screen)return;const a={Digit1:'joke',Digit2:'game',Digit3:'dance',Space:'work'}[e.code];if(a){e.preventDefault();g.setActivity(a);}});
+document.addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='Escape'){if(screen==='pause')hide();else if(!screen)pause();}if(screen)return;if(e.code==='ArrowUp'||e.code==='KeyJ'){e.preventDefault();if(g.jump())beep(600);return;}const a={Digit1:'joke',Digit2:'game',Digit3:'dance',Space:'work'}[e.code];if(a){e.preventDefault();g.setActivity(a);}});
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&!screen&&!g.modal)pause();lastTime=0;});
 function updateUI(){
  const p=g.player,boosted=g.special?.seat===p.seat&&p.seat!==null,multiplier=boosted?2:1,moving=!!p.route.length;
@@ -152,6 +155,7 @@ function updateUI(){
  else if(moving){status=`前往 ${p.target+1} 号工位`;detail='途中暂无收益';tone='moving';}
  else if(p.seat===null){status='停在过道';detail='点一张空椅子入座';tone='caution';}
  else if(locked){status='检查还没结束';detail='先认真工作一会儿';tone='caution';}
+ else if(p.activity==='game'){status='打游戏中';detail=g.runner.started?`连过 ${g.runner.streak} 次 · 越障得金币`:'点下方窗口跳跃 · 越障才有金币';tone='game';}
  else if(p.activity!=='work'){status=`${activities[p.activity].name}中`;detail=`+${activities[p.activity].rate*multiplier} 金币 / 秒${boosted?' · 双倍中':''}`;tone=p.activity;}
  else if(boosted){detail=`双倍剩 ${Math.ceil(g.special.left)} 秒 · 选玩法开始`;tone='bonus';}
  $('.control-status').dataset.tone=tone;$('#state-label').textContent=status;$('#state-detail').textContent=detail;
@@ -162,7 +166,16 @@ function updateUI(){
   const threats=g.activityThreats(a),risk=threats.length>0;
   b.classList.toggle('is-risky',risk);b.setAttribute('aria-description',`${a==='joke'?'无声，可安静降低动静':a==='game'?'轻声，动静缓慢增加':'音乐声大，声源会留在原工位'}；${risk?'当前检查范围内：'+threats.join('、'):'当前检查范围外'}`);b.title=b.getAttribute('aria-description');
 
-  b.querySelector('small').textContent=`+${activities[a].rate*multiplier} / 秒`;
+  b.querySelector('small').textContent=a==='game'?'点按闯关':`+${activities[a].rate*multiplier} / 秒`;
+ }
+ const runnerVisible=p.activity==='game'&&p.seat!==null&&!moving;
+ $('#runner-panel').hidden=!runnerVisible;$('.controls').classList.toggle('is-playing-runner',runnerVisible);
+ if(runnerVisible){
+  $('#runner-jump').disabled=blocked||stopping||locked;
+  const nextReward=(4+Math.min(4,g.runner.streak))*multiplier;
+  $('#runner-score').textContent=stopping?'正在收手':g.runner.hitLeft>0?'失误了 · 再来一次':g.runner.started?`${g.runner.streak} 连过 · 下个 +${nextReward}`:'越障 +4 起';
+  $('#runner-jump').setAttribute('aria-label',`${g.runner.started&&g.runner.height===0&&g.runner.obstacle.x<140&&g.runner.obstacle.x>110?'现在起跳。':''}跳跃躲障碍，连过${g.runner.streak}次，下个障碍奖励${nextReward}金币。空格或一键工作收手。`);
+  drawRunner($('#runner-canvas'),g.runner,stopping,renderer);
  }
  const work=$('#work'),inAisle=p.seat===null&&!moving;work.disabled=blocked||stopping||locked||inAisle;
  work.classList.toggle('is-working',!inAisle&&!moving&&p.activity==='work'&&!stopping);

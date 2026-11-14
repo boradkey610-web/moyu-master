@@ -604,6 +604,7 @@ export class Renderer{
   c.restore();
  }
  incomePop(c,a,t){
+  if(a.activity==='game')return;
   const rate=a.warmup>0?0:activities[a.activity].rate*(a.gold?2:1);if(!rate)return;
   const side=a.seat%2===0?-1:1,phase=(t*1.05)%1,y=a.y-74-phase*18;
   c.save();c.globalAlpha=Math.min(1,phase/.12,(1-phase)/.24);

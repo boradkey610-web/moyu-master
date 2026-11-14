@@ -134,3 +134,37 @@
 .dialog[data-kind=guide]{justify-content:flex-start;overflow-y:auto}.dialog[data-kind=guide] ul{flex:none;font-size:12px;line-height:1.7;padding:12px 14px 12px 28px;margin:12px 0 14px}.dialog[data-kind=guide] li+li{margin-top:7px}.dialog[data-kind=guide] button{flex:none}
 @media(max-height:740px){.dialog[data-kind=guide] .panel-symbol{width:42px;height:42px;margin-bottom:8px;border-radius:14px}.dialog[data-kind=guide] .panel-symbol svg{width:27px;height:27px}.dialog[data-kind=guide] h2{font-size:23px;margin-bottom:4px}}
 @media(max-height:740px){.dialog:is([data-kind=win],[data-kind=timeout],[data-kind=lose]){padding:20px 20px 15px}.dialog:is([data-kind=win],[data-kind=timeout],[data-kind=lose]) .panel-symbol{width:42px;height:42px;margin-bottom:8px;border-radius:14px}.dialog:is([data-kind=win],[data-kind=timeout],[data-kind=lose]) .panel-symbol svg{width:27px;height:27px}.dialog:is([data-kind=win],[data-kind=timeout],[data-kind=lose]) .shift-score{margin:12px 0 7px;padding:12px 13px 0}.dialog:is([data-kind=win],[data-kind=timeout],[data-kind=lose]) .shift-score strong{font-size:36px}.dialog:is([data-kind=win],[data-kind=timeout],[data-kind=lose]) .shift-score footer{margin-top:10px;padding:8px 0}.dialog:is([data-kind=win],[data-kind=timeout],[data-kind=lose]) .result-facts{padding:6px 0}.dialog:is([data-kind=win],[data-kind=timeout],[data-kind=lose]) .activity-summary{margin:0 0 4px;padding-bottom:8px}.dialog:is([data-kind=win],[data-kind=timeout],[data-kind=lose]) .best-record{padding:6px 0}.dialog:is([data-kind=timeout],[data-kind=lose]) p{margin:8px 0 12px;line-height:1.65}}
+
+/* The minigame and activity cards share a fixed control area below the office. */
+.game-shell{container-type:inline-size;width:min(100vw,calc((100svh - 216px)/1.511))}
+.controls{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:calc(48px + 23.333cqw) 43px 29px;gap:8px;padding:10px 12px 9px}
+.activity-row{grid-row:1;grid-column:1;align-self:center;gap:8px}
+.activity{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:92px;height:92px;padding:7px 3px;border-width:1px;border-radius:13px;box-shadow:inset 0 1px 0 #ffffff66,0 3px 0 var(--shade)}
+.activity .activity-icon{width:28px;height:28px;flex:none}
+.activity strong{font-size:15px;line-height:1.1;letter-spacing:.5px}
+.activity small{font-size:10px;letter-spacing:0;line-height:1.2}
+.activity .activity-risk,.activity.active:after{display:none}
+.controls .work-button,.is-playing-runner .work-button{grid-row:2;grid-column:1;min-height:43px;height:43px;margin:0;padding:5px 8px}
+.tool-row{grid-row:3;grid-column:1;min-height:29px;height:29px;margin:0;padding:0;gap:8px}
+.tool-row button{padding:3px;border-radius:8px;font-size:10px}
+.tool-row button svg{width:19px;height:19px}
+.runner-panel[hidden]{display:none}
+.runner-panel{grid-row:1;grid-column:1;align-self:start;margin:0;padding:5px 6px;border:1px solid #c7b394;border-radius:12px;background:linear-gradient(#fffaf1,#f2e6d2);box-shadow:0 2px 0 #c6b18f}
+.runner-heading{display:flex;align-items:center;justify-content:space-between;gap:5px;margin:0 2px 4px;color:#76644e;line-height:1.2}
+.runner-heading strong{display:flex;align-items:center;gap:5px;font-size:10px;letter-spacing:.5px}
+.runner-heading strong>span{display:grid;place-items:center;width:15px;height:15px;border-radius:5px;background:#9c8aae;color:#fff9f1;font-size:7px}
+.runner-heading>span{padding:2px 6px;border-radius:7px;background:#f1e4c9;color:#94723d;font-size:9px;font-weight:700;font-variant-numeric:tabular-nums}
+.runner-jump{display:block;width:100%;padding:0;border:1px solid #b9a487;border-radius:7px;background:#f4e9d8;box-shadow:inset 0 1px 3px #79654d15;overflow:hidden;touch-action:manipulation;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.runner-jump canvas{width:100%;height:auto;aspect-ratio:480/112}
+.runner-jump:focus-visible{outline:3px solid #9266bc;outline-offset:2px}
+.runner-jump:active:not(:disabled){filter:brightness(1.04);transform:none}
+.runner-jump:disabled{opacity:1}
+.is-playing-runner .control-status{display:none}
+.is-playing-runner .activity-row{align-self:end}
+.is-playing-runner .activity{flex-direction:row;gap:4px;min-height:25px;height:25px;padding:2px 6px;border-color:#d4c8b6;border-radius:7px;background:#fbf6eb;color:#877663;box-shadow:none}
+.is-playing-runner .activity.active{border-color:#8c77a9;background:#9c85bd;color:#fffaf3}
+.is-playing-runner .activity .activity-icon{width:16px;height:16px;flex:0 0 16px}
+.is-playing-runner .activity strong{font-size:10px;line-height:1;font-weight:700}
+.is-playing-runner .activity small{display:none}
+.is-playing-runner .activity:not(.active) .activity-icon{opacity:.72}
+@media(max-width:370px){.controls{padding-inline:10px}.activity strong{font-size:14px}.runner-heading strong{font-size:9px}.runner-heading>span{font-size:8px}}
