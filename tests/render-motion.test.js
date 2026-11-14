@@ -19,8 +19,16 @@ test('奖金提示显示收手可领金额，尚未赚到奖金时不显示空�
  r.box=()=>{};r.text=(c,text)=>labels.push(text);
  const c={save(){},restore(){},measureText(){return{width:180};}};
  const g={player:{activity:'game',x:545,y:515},comboTime:4,pendingBonus:.8};
- r.playerStakes(c,g);assert.deepEqual(labels,['收手领 0.8 金币']);
+ r.playerStakes(c,g);assert.deepEqual(labels,[]);
+ g.pendingBonus=1.8;r.playerStakes(c,g);assert.deepEqual(labels,['收手领 1 金币']);
  labels.length=0;g.pendingBonus=0;r.playerStakes(c,g);assert.deepEqual(labels,[]);
+});
+test('安全到账金额只显示整数，不足1金币时不显示加零',()=>{
+ const r=renderer(),labels=[];r.chip=(c,text)=>labels.push(text);
+ const c={save(){},restore(){}};
+ const g={player:{x:545,y:515},feedback:{kind:'bank',text:'安全到账',amount:1.8,left:1.4}};
+ r.momentFeedback(c,g);assert.deepEqual(labels,['安全到账 +1']);
+ labels.length=0;g.feedback.amount=.8;r.momentFeedback(c,g);assert.deepEqual(labels,['安全到账']);
 });
 test('图片加载不依赖内嵌浏览器可能永久等待的decode，失败可进入回退',async()=>{
  const previous=globalThis.Image;

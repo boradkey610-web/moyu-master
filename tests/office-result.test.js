@@ -14,7 +14,7 @@ test('工资条使用实际收入和目标，通关与失败盖不同结果印�
   const g={modal:{kind},config:{name:'周五抢座大战',target:440},coins:135.8,level:3,ads:0};
   const context=vm.createContext({g,portrait:()=>'<canvas></canvas>'});
   const html=vm.runInContext(statementCode+';statement()',context);
-  assert.match(html,/摸鱼工资条/);assert.match(html,/<strong>135\.8<\/strong>/);
+  assert.match(html,/摸鱼工资条/);assert.match(html,/<strong>135<\/strong>/);
   assert.match(html,/目标 440 金币/);assert.ok(html.includes(stamp));
   assert.match(html,/员工联 \/ 04/);assert.doesNotMatch(html,/score-track/);
  }
@@ -25,9 +25,9 @@ test('超时差一点达标时，工资条不会把收入提前显示为目标�
  assert.equal(g.modal.kind,'timeout');assert.ok(Math.abs(g.coins-89.96)<1e-8);
  const context=vm.createContext({g,portrait:()=>'<canvas></canvas>'});
  const html=vm.runInContext(statementCode+';statement()',context);
- assert.match(html,/<strong>89\.9<\/strong>/);assert.match(html,/未达标/);
+ assert.match(html,/<strong>89<\/strong>/);assert.match(html,/未达标/);
  let rendered='';
  const modalContext=vm.createContext({g,screen:null,lastModal:null,portrait:()=>'<canvas></canvas>',activitySummary:()=>'',show:html=>{rendered=html;},button:()=>({}),selectLevel(){},$:()=>({append(){}})});
  vm.runInContext(statementCode+modalCode+';processModal()',modalContext);
- assert.match(rendered,/还差 <b>0\.1 金币<\/b>/);
+ assert.match(rendered,/还差 <b>1 金币<\/b>/);
 });

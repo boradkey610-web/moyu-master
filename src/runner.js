@@ -5,18 +5,16 @@ const PLAYER_WIDTH = 26;
 const GROUND = 87;
 
 export function createRunner() {
- return {started:false,clock:0,height:0,velocity:0,obstacle:{x:420,width:22,height:24,variant:0},passedObstacle:null,streak:0,cleared:0,hitLeft:0,feedback:'',feedbackLeft:0};
+ return {clock:0,height:0,velocity:0,obstacle:{x:420,width:22,height:24,variant:0},passedObstacle:null,streak:0,cleared:0,hitLeft:0,feedback:'',feedbackLeft:0};
 }
 
 export function jumpRunner(runner) {
  if(runner.hitLeft>0||runner.height>0||runner.velocity>0)return false;
- runner.started=true;
  runner.velocity=180;
  return true;
 }
 
 export function stepRunner(runner,dt) {
- if(!runner.started)return 0;
  runner.clock+=dt;
  runner.feedbackLeft=Math.max(0,runner.feedbackLeft-dt);
  if(runner.hitLeft>0){runner.hitLeft=Math.max(0,runner.hitLeft-dt);return 0;}
@@ -87,16 +85,11 @@ export function drawRunner(canvas,runner,stopping,renderer) {
  c.save();
  if(runner.hitLeft>0&&Math.floor(runner.hitLeft*14)%2)c.globalAlpha=.45;
  const phase=Math.floor(runner.clock*7)%4;
- if(!runner.started)renderer.sprite(c,'idle',0,0,PLAYER_X+13,feet,40);
- else if(runner.height>0||phase%2===0)renderer.sprite(c,'side_steps',phase<2?0:1,0,PLAYER_X+13,feet,40);
+ if(runner.height>0||phase%2===0)renderer.sprite(c,'side_steps',phase<2?0:1,0,PLAYER_X+13,feet,40);
  else renderer.sprite(c,'idle',0,0,PLAYER_X+13,feet,40);
  c.restore();
  c.textAlign='center';c.textBaseline='middle';
- if(!runner.started){
-  c.fillStyle='#fffaf0e8';c.strokeStyle='#cbb89a';c.lineWidth=1;
-  c.beginPath();c.roundRect(174,25,174,37,18);c.fill();c.stroke();
-  c.fillStyle='#76614c';c.font='bold 16px "PingFang SC",sans-serif';c.fillText('点按起跳，越障加薪',261,44);
- }else if(runner.feedbackLeft>0){
+ if(runner.feedbackLeft>0){
   c.font='bold 18px "PingFang SC",sans-serif';c.lineWidth=4;c.strokeStyle='#fff9eb';c.strokeText(runner.feedback,258,29);
   c.fillStyle=runner.hitLeft>0?'#b5735c':'#a87735';c.fillText(runner.feedback,258,29);
  }else if(runner.height===0&&obstacle.x<140&&obstacle.x>110){

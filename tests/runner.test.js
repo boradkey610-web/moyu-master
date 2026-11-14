@@ -5,15 +5,17 @@ import {createRunner,jumpRunner,stepRunner} from '../src/runner.js';
 
 function play(game,seconds){
  for(let t=0;t<seconds;t+=.02){
-  if(!game.runner.started||game.runner.obstacle.x<=135)game.jump();
+  if(game.runner.obstacle.x<=135)game.jump();
   game.step(.02);
  }
 }
 function quiet(){const g=new Game(2,123);g.inspectors=[];g.npcs=[];g.setActivity('game');return g;}
 
-test('game waits for first input, earns nothing idle, and office time keeps running',()=>{
- const g=quiet();g.step(5);
- assert.equal(g.runner.started,false);assert.equal(g.coins,0);assert.equal(g.pendingBonus,0);
+test('selecting game starts running immediately without jumping or earning idle coins',()=>{
+ const g=quiet(),x=g.runner.obstacle.x;g.step(1);
+ assert.ok(g.runner.clock>.99);assert.ok(g.runner.obstacle.x<x);assert.equal(g.runner.height,0);
+ assert.equal(g.coins,0);assert.equal(g.pendingBonus,0);
+ g.step(4);assert.equal(g.runner.cleared,0);assert.equal(g.coins,0);
  assert.ok(g.elapsed>4.99);assert.ok(g.time<86);
 });
 test('tap starts a jump, prevents airborne and repeated same-frame jumps, then lands',()=>{
@@ -27,7 +29,7 @@ test('actual timed jumps clear obstacles, increase rewards and earn pending bonu
  assert.ok(g.runner.cleared>=4);assert.ok(g.runner.streak>=4);assert.ok(g.coins>=22);assert.ok(g.pendingBonus>0);
 });
 test('cleared obstacle keeps its appearance and scrolls left without scoring twice',()=>{
- const r=createRunner();r.started=true;r.height=35;r.obstacle.x=43;
+ const r=createRunner();r.height=35;r.obstacle.x=43;
  assert.equal(stepRunner(r,.02),4);
  assert.ok(r.passedObstacle);assert.ok(r.passedObstacle.x>0);
  assert.equal(r.passedObstacle.variant,0);assert.equal(r.obstacle.variant,1);
@@ -36,7 +38,7 @@ test('cleared obstacle keeps its appearance and scrolls left without scoring twi
  assert.equal(r.cleared,1);assert.equal(r.streak,1);
 });
 test('passed obstacle is removed only when its full artwork has left the screen',()=>{
- const r=createRunner();r.started=true;r.height=35;r.obstacle.x=43;stepRunner(r,.02);
+ const r=createRunner();r.height=35;r.obstacle.x=43;stepRunner(r,.02);
  assert.ok(r.passedObstacle);
  r.passedObstacle.x=-r.passedObstacle.width+1;
  stepRunner(r,.002);assert.ok(r.passedObstacle,'partly visible obstacle must remain');
@@ -44,7 +46,7 @@ test('passed obstacle is removed only when its full artwork has left the screen'
  assert.equal(r.cleared,1);
 });
 test('missing a jump clears the streak and gives no reward, recovery allows another attempt',()=>{
- const r=createRunner();r.started=true;r.streak=3;r.obstacle.x=90;
+ const r=createRunner();r.streak=3;r.obstacle.x=90;
  assert.equal(stepRunner(r,.02),0);assert.equal(r.streak,0);assert.ok(r.hitLeft>0);
  assert.equal(jumpRunner(r),false);
  for(let i=0;i<35;i++)stepRunner(r,.02);

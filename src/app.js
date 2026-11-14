@@ -16,7 +16,7 @@ if(savedProgress){
 if(!shortSave){try{localStorage.setItem(SAVE_KEY,JSON.stringify(save));}catch{}}
 function beep(freq=440){if(!sound)return;try{audio??=new (window.AudioContext||window.webkitAudioContext)();const o=audio.createOscillator(),v=audio.createGain();o.connect(v);v.connect(audio.destination);o.frequency.value=freq;v.gain.setValueAtTime(.025,audio.currentTime);v.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.09);o.start();o.stop(audio.currentTime+.1);}catch{}}
 function formatTime(t){return `${String(Math.floor(Math.max(0,t)/60)).padStart(2,'0')}:${String(Math.floor(Math.max(0,t)%60)).padStart(2,'0')}`;}
-function coinAmount(value){return Math.floor((value+1e-8)*10)/10;}
+function coinAmount(value){return Math.floor(value+1e-8);}
 function button(text,fn,kind=''){const el=document.createElement('button');el.textContent=text;el.className=kind;el.addEventListener('click',()=>{beep();fn();});return el;}
 const dialogIcons={
  clock:'<circle cx="24" cy="25" r="15"/><path d="M24 15v11l7 4M9 9l5-4m20 0 5 4M12 39l-3 4m27-4 3 4"/>',
@@ -146,7 +146,7 @@ function processModal(){if(!g.modal||screen==='reward'||g.modal===lastModal)retu
   show(`${statement()}${activitySummary()}<div class="result-facts"><span>用时 <b>${formatTime(used)}</b></span><span>抓包 <b>${g.catches} 次</b></span><span>换位 <b>${g.stats.moves} 次</b></span></div><div class="best-record">${g.ads?'助力':'无助力'}最佳用时 <b>${formatTime(save.best[`${g.level}-${g.ads?'assisted':'clean'}`])}</b></div>`,[[g.level<3?'下一天，继续 →':'再摸一局',()=>start(Math.min(3,g.level+1)),'primary'],['选择关卡',selectLevel,'secondary']]);beep(880);
  }else{
   const timeout=m.kind==='timeout';
-  show(`${statement()}${activitySummary()}<p>${m.reason||`还差 <b>${Math.ceil((g.config.target-g.coins-1e-8)*10)/10} 金币</b>。下回趁老板转身，再摸一把。`}${g.catches?`<br>本局抓包 ${g.catches} 次，提前收手能保住奖金。`:""}</p>`,[['再摸一局',()=>start(g.level),'primary']]);
+  show(`${statement()}${activitySummary()}<p>${m.reason||`还差 <b>${Math.ceil(g.config.target-g.coins-1e-8)} 金币</b>。下回趁老板转身，再摸一把。`}${g.catches?`<br>本局抓包 ${g.catches} 次，提前收手能保住奖金。`:""}</p>`,[['再摸一局',()=>start(g.level),'primary']]);
   if(timeout&&g.level>0&&g.ads<2&&!g.extended)$('#dialog').append(button('借我 15 秒 · 测试助力',()=>rewardConfirm('extend'),'outlined'));
   $('#dialog').append(button('选择关卡',selectLevel,'secondary'));
  }}
@@ -161,7 +161,7 @@ function updateUI(){
  const blocked=!!screen||!!g.modal,stopping=p.stopping>0,locked=p.lock>0;
  const checks=g.inspectors.filter(i=>!i.hidden).map(i=>{const q=i.queue[0];return `${i.name}${q?.phase==='warning'?(i.threatensPlayer===false?'在查别处':`预告${Math.ceil(q.left)}秒`):q?.phase==='checking'?(i.threatensPlayer===false?'在查别处':`检查${Math.ceil(q.left)}秒`):i.directed?'调查旧位置':i.suspicion>0?'发现动静':'巡逻中'}`;}).join('；');
  const source=g.soundField.sources.find(s=>s.seat===p.seat),soundChecks=g.inspectors.flatMap(i=>{const cue=renderer.soundTarget(i);return cue?[`${i.name}${cue.fresh?'听到了'+(cue.point.kind==='dance'?'音乐':'键盘声'):'正在确认声音'}，${cue.pending?'稍后查看':'目标'}${cue.point.seat+1}号工位${cue.point.seat!==p.seat?'，旧声源':''}${cue.pending&&cue.current?`，当前仍查${cue.current.seat+1}号`:''}`]:[];}).join('；');
- canvas.setAttribute('aria-description',`${checks}；${renderer.noiseLabel(source)}${soundChecks?'；'+soundChecks:''}；连续摸鱼${Math.floor(g.comboTime)}秒，收手可领${g.pendingBonus.toFixed(1)}金币；${g.exposure>0?'正在暴露':'安全'}${g.feedback?'；'+g.feedback.text:''}`);
+ canvas.setAttribute('aria-description',`${checks}；${renderer.noiseLabel(source)}${soundChecks?'；'+soundChecks:''}；连续摸鱼${Math.floor(g.comboTime)}秒，收手可领${coinAmount(g.pendingBonus)}金币；${g.exposure>0?'正在暴露':'安全'}${g.feedback?'；'+g.feedback.text:''}`);
  $('#money').innerHTML=`${coinAmount(g.coins)} <em>/ ${g.config.target}</em>`;
  $('#time').textContent=formatTime(g.time);$('#time').classList.toggle('low-time',g.time<30);
  $('#progress').style.width=`${Math.max(0,Math.min(100,g.coins/g.config.target*100))}%`;
@@ -173,7 +173,7 @@ function updateUI(){
  else if(moving){status=`前往 ${p.target+1} 号工位`;detail='途中暂无收益';tone='moving';}
  else if(p.seat===null){status='停在过道';detail='点一张空椅子入座';tone='caution';}
  else if(locked){status='检查还没结束';detail='先认真工作一会儿';tone='caution';}
- else if(p.activity==='game'){status='打游戏中';detail=g.runner.started?`连过 ${g.runner.streak} 次 · 越障得金币`:'点下方窗口跳跃 · 越障才有金币';tone='game';}
+ else if(p.activity==='game'){status='打游戏中';detail=`连过 ${g.runner.streak} 次 · 点按跳跃得金币`;tone='game';}
  else if(p.activity!=='work'){status=`${activities[p.activity].name}中`;detail=`+${activities[p.activity].rate*multiplier} 金币 / 秒${boosted?' · 双倍中':''}`;tone=p.activity;}
  else if(boosted){detail=`双倍剩 ${Math.ceil(g.special.left)} 秒 · 选玩法开始`;tone='bonus';}
  $('.control-status').dataset.tone=tone;$('#state-label').textContent=status;$('#state-detail').textContent=detail;
@@ -191,8 +191,8 @@ function updateUI(){
  if(runnerVisible){
   $('#runner-jump').disabled=blocked||stopping||locked;
   const nextReward=(4+Math.min(4,g.runner.streak))*multiplier;
-  $('#runner-score').textContent=stopping?'正在收手':g.runner.hitLeft>0?'失误了 · 再来一次':g.runner.started?`${g.runner.streak} 连过 · 下个 +${nextReward}`:'越障 +4 起';
-  $('#runner-jump').setAttribute('aria-label',`${g.runner.started&&g.runner.height===0&&g.runner.obstacle.x<140&&g.runner.obstacle.x>110?'现在起跳。':''}跳跃躲障碍，连过${g.runner.streak}次，下个障碍奖励${nextReward}金币。空格或一键工作收手。`);
+  $('#runner-score').textContent=stopping?'正在收手':g.runner.hitLeft>0?'失误了 · 再来一次':`${g.runner.streak} 连过 · 下个 +${nextReward}`;
+  $('#runner-jump').setAttribute('aria-label',`${g.runner.height===0&&g.runner.obstacle.x<140&&g.runner.obstacle.x>110?'现在起跳。':''}跳跃躲障碍，连过${g.runner.streak}次，下个障碍奖励${nextReward}金币。空格或一键工作收手。`);
   drawRunner($('#runner-canvas'),g.runner,stopping,renderer);
  }
  const work=$('#work'),inAisle=p.seat===null&&!moving;work.disabled=blocked||stopping||locked||inAisle;

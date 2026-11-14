@@ -573,9 +573,9 @@ export class Renderer{
   this.chip(c,label,actor.x,Math.max(17,actor.y-110),color,ink,21);
  }
  playerStakes(c,g){
-  const p=g.player,pending=Math.max(0,g.pendingBonus||0);
+  const p=g.player,pending=Math.floor(Math.max(0,g.pendingBonus||0)+1e-8);
   if(pending>0&&p.activity!=='work'&&!(g.feedback?.left>0)){
-   const label=`收手领 ${pending.toFixed(1)} 金币`;
+   const label=`收手领 ${pending} 金币`;
    c.save();c.font='750 29px "PingFang SC",sans-serif';
    const width=Math.max(222,c.measureText(label).width+28),x=Math.max(width/2+5,Math.min(W-width/2-5,p.x)),y=Math.max(44,p.y-190);
    this.box(c,x-width/2,y-23,width,46,6,'#fff0c8','#b68b45',1.5);
@@ -593,9 +593,9 @@ export class Renderer{
   const f=g.feedback;if(!f||!(f.left>0))return;
   const p=g.player,x=Number.isFinite(f.x)?f.x:p.x,y=Number.isFinite(f.y)?f.y:p.y;
   const progress=Math.max(0,Math.min(1,1-f.left/1.4)),bank=f.kind==='bank',amount=Math.max(0,Number(f.amount)||0);
-  const message=f.text||(bank?'稳稳收好！':'极限收手！');
+  const whole=Math.floor(amount+1e-8),message=f.text||(bank?'稳稳收好！':'极限收手！');
   c.save();c.globalAlpha=Math.min(1,f.left/.3);
-  this.chip(c,amount>0?`${message} +${amount.toFixed(1)}`:message,x,Math.max(19,y-181-progress*15),bank?'#fff0bf':'#e6f2df',bank?'#946324':'#527c4c',21);
+  this.chip(c,whole>0?`${message} +${whole}`:message,x,Math.max(19,y-181-progress*15),bank?'#fff0bf':'#e6f2df',bank?'#946324':'#527c4c',21);
   if(amount>0){
    for(let i=0;i<3;i++){
     const u=Math.max(0,Math.min(1,(progress-i*.09)/.75));if(u<=0||u>=1)continue;
