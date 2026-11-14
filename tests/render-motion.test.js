@@ -7,22 +7,21 @@ const manifest=JSON.parse(readFileSync(new URL('../assets/manifest.json',import.
 const supervisorArt=()=>Object.fromEntries(Object.entries(manifest).filter(([name])=>name.includes('supervisor-female')).map(([name,meta])=>[name,{meta}]));
 
 const renderer=()=>Object.assign(Object.create(Renderer.prototype),{motion:new Map(),facings:new Map()});
-test('换座仅画近身脚印和终点圈，不画整条线或改变寻路点',()=>{
- const r=renderer(),p={x:545,y:515,route:[{x:545,y:585},{x:255,y:585},{x:255,y:515}]},marks=[],positions=[];
- const before=JSON.stringify(p);r.ellipse=(c,...args)=>marks.push(args);
- const c=new Proxy({translate:(...a)=>positions.push(a),lineTo:()=>assert.fail('不得绘制整条路线或箭头'),quadraticCurveTo:()=>assert.fail('不得绘制整条路线或箭头')}, {get:(o,k)=>o[k]??(()=>{})});
+test('圆点引导覆盖全部转角和终点，不改变寻路点',()=>{
+ const r=renderer(),p={x:545,y:515,route:[{x:545,y:585},{x:255,y:585},{x:255,y:515}]},curves=[],lines=[],rings=[],strokes=[];
+ const before=JSON.stringify(p);r.ellipse=(c,...args)=>rings.push(args);let dash=[];
+ const c=new Proxy({setLineDash:a=>{dash=a;},quadraticCurveTo:(...a)=>curves.push(a),lineTo:(...a)=>lines.push(a),stroke:()=>strokes.push([...dash])}, {get:(o,k)=>o[k]??(()=>{})});
  r.movePath(c,p,1);
- assert.equal(positions.length,3);assert.ok(positions.every(([x,y])=>Math.hypot(x-p.x,y-p.y)<=72));
- assert.deepEqual(marks.at(-1).slice(0,4),[255,555,28,10]);assert.equal(JSON.stringify(p),before);
+ assert.deepEqual(curves,[[545,585,525,585],[255,585,255,565]]);assert.deepEqual(lines.at(-1),[255,515]);
+ assert.deepEqual(strokes,[[1,14],[1,14]]);assert.deepEqual(rings[0].slice(0,4),[255,555,28,10]);assert.equal(JSON.stringify(p),before);
 });
-test('脚印沿折点取近身位置，暂停时间一致，到达后不绘制',()=>{
+test('短段圆角有限，暂停时间一致时圆点不漂移，抵达后不画',()=>{
  const r=renderer(),p={x:10,y:10,route:[{x:10,y:16},{x:13,y:16},{x:13,y:160}]},draw=()=>{
-  const positions=[];r.ellipse=()=>{};
-  const c=new Proxy({translate:(...a)=>positions.push(a)}, {get:(o,k)=>o[k]??(()=>{})});
-  r.movePath(c,p,2);return positions;
+  const curves=[];r.ellipse=()=>{};
+  const c=new Proxy({quadraticCurveTo:(...a)=>curves.push(a)}, {get:(o,k)=>o[k]??(()=>{})});
+  r.movePath(c,p,2);return{curves,phase:c.lineDashOffset};
  };
- assert.deepEqual(draw(),draw());const positions=draw(),expected=[[13,27],[13,49],[13,71]];
- assert.equal(positions.length,3);positions.forEach(([x,y],i)=>assert.ok(Math.hypot(x-expected[i][0],y-expected[i][1])<1e-9));
+ assert.deepEqual(draw(),draw());assert.deepEqual(draw().curves[0],[10,16,11,16]);assert.ok(draw().curves.flat().every(Number.isFinite));
  assert.doesNotThrow(()=>r.movePath(new Proxy({}, {get(){throw new Error('arrived route must not draw');}}),{route:[]},2));
 });
 test('声音提示区分传出阈值和已停止的声源，不误报有人听见',()=>{

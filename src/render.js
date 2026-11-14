@@ -663,21 +663,16 @@ export class Renderer{
  movePath(c,p,t){
   if(!p.route.length)return;
   const points=[p,...p.route],end=points.at(-1);
-  c.save();let travelled=0,nextStep=20,step=0;
-  for(let i=1;i<points.length&&nextStep<=72;i++){
-   const start=points[i-1],finish=points[i],length=Math.hypot(finish.x-start.x,finish.y-start.y),angle=Math.atan2(finish.y-start.y,finish.x-start.x);
-   while(nextStep<=travelled+length&&nextStep<=72){
-    const offset=nextStep-travelled;
-    if(i!==points.length-1||length-offset>=26){
-     c.save();c.translate(start.x+Math.cos(angle)*offset,start.y+Math.sin(angle)*offset);c.rotate(angle);
-     c.globalAlpha=(.6-nextStep/160)*(.88+.12*Math.sin(t*3-step));
-     const side=step%2?4.3:-4.3;
-     this.ellipse(c,2.4,side,5.5,3.3,'#768879');this.ellipse(c,-5,side,2.1,2.8,'#768879');c.restore();
-    }
-    nextStep+=22;step++;
-   }
-   travelled+=length;
+  c.save();c.lineCap='round';c.lineJoin='round';c.setLineDash([1,14]);c.lineDashOffset=-(t*9%15);
+  c.beginPath();c.moveTo(p.x,p.y);
+  for(let i=1;i<points.length-1;i++){
+   const before=points[i-1],corner=points[i],after=points[i+1];
+   const incoming=Math.hypot(corner.x-before.x,corner.y-before.y),outgoing=Math.hypot(after.x-corner.x,after.y-corner.y),radius=Math.min(20,incoming/3,outgoing/3);
+   c.lineTo(corner.x-(corner.x-before.x)*radius/incoming,corner.y-(corner.y-before.y)*radius/incoming);
+   c.quadraticCurveTo(corner.x,corner.y,corner.x+(after.x-corner.x)*radius/outgoing,corner.y+(after.y-corner.y)*radius/outgoing);
   }
+  c.lineTo(end.x,end.y);c.strokeStyle='#fffaf1ca';c.lineWidth=6.6;c.stroke();
+  c.strokeStyle='#64887c';c.lineWidth=4.4;c.stroke();c.setLineDash([]);
   this.ellipse(c,end.x,end.y+40,28,10,'#8cc0b50d','#91aaa080',1.5);
   c.restore();
  }
