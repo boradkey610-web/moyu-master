@@ -1,5 +1,5 @@
 workflow: tweak
-phase: build
+phase: archive
 context_compression: off
 build_mode: direct
 build_pause: null
@@ -11,9 +11,9 @@ auto_transition: true
 base_ref: 22f329e489b1abee37a2baef9b88133667d201c8
 design_doc: null
 plan: null
-verify_result: pending
-verification_report: null
-branch_status: pending
+verify_result: pass
+verification_report: docs/superpowers/reports/2026-11-14-restore-card-size-verify.md
+branch_status: handled
 created_at: 2026-11-14
-verified_at: null
+verified_at: 2026-11-14
 archived: false
