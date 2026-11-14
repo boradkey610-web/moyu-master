@@ -122,8 +122,18 @@ export function forecastAll(inspectors,seconds=10){
 export function forecast(ins,seconds=10){return forecastAll([ins],seconds)[0];}
 export class Game{
  runner=createRunner();
+ joke={post:0,liked:false,likes:0,reward:0,heartLeft:0};
  constructor(level=0,seed=Date.now()){this.level=level;this.config=levels[level];this.seed=seed>>>0;this.time=this.config.time;this.elapsed=0;this.coins=0;this.warned=false;this.catches=0;this.ads=0;this.extended=false;this.mirror=0;this.inventory={mirror:0,meeting:0};this.special=null;this.specialAt=10;this.dropAt=14;this.drops=[];this.modal=null;this.paused=false;this.toast='选一种摸鱼方式，留意老板的朝向';this.toastLeft=5;this.player={...seats[7],seat:7,activity:'work',riskActivity:'game',route:[],target:null,stopping:0,pending:null,hold:0,lock:0};this.comboTime=0;this.pendingBonus=0;this.exposure=0;this.exposureLimit=.7;this.feedback=null;this.greeting=null;this.tutorialSeen=false;this.stats={moves:0,moveTime:0,greetings:0,picked:0,closeCalls:0,banked:0,activityTime:{joke:0,game:0,dance:0,work:0}};this.soundField={clock:0,tickRemainder:0,nextId:1,emitter:null,sources:[],claimed:{},respondedZones:{}};this.inspectors=Array.from({length:this.config.bosses},(_,i)=>({x:i?708:12,y:i?350:585,name:i?'主管':'老板',seed:(seed+i*91)>>>0,speed:62,angle:i?-Math.PI/2:0,last:i?5:6,previous:-1,queue:[{kind:'wait',left:3+i*2,angle:i?Math.PI:0},{kind:'move',x:i?655:65,y:i?350:585}],hold:0,hidden:false,leaving:false,greeted:false,clock:0,tickRemainder:0,patrolOrder:i?((seed+i*91)%2?[3,1,0,2,4,5]:[3,5,4,2,0,1]):(level===0?[3,1,0,2,4,5]:(seed%2?[2,4,5,3,1,0]:[2,0,1,3,5,4])),patrolIndex:0,zone:null,checkedZones:{},avoidZones:[],lastSeen:null,suspicion:0,observation:null,lastHeard:null,pendingSound:null,hearingTime:0,hearingId:null,evidenceKind:'routine',soundField:this.soundField,directed:false,closeClaimed:false}));this.npcs=[0,3,8,10,4,1,11].slice(0,this.config.npcs).map((seat,i)=>({...seats[seat],seat,target:null,route:[],next:35+i*6,color:i%3}));}
  jump(){const p=this.player;if(this.modal||this.paused||p.activity!=='game'||p.seat===null||p.route.length||p.stopping>0||p.lock>0)return false;return jumpRunner(this.runner);}
+ jokeAction(action){
+  const p=this.player;if(this.modal||this.paused||p.activity!=='joke'||p.seat===null||p.route.length||p.stopping>0||p.lock>0)return false;
+  if(action==='next'){this.joke.post++;this.joke.liked=false;this.joke.reward=0;this.joke.heartLeft=0;return true;}
+  if(action!=='like'||this.joke.liked)return false;
+  const reward=this.special?.seat===p.seat&&this.special.left>0?2:1;
+  this.joke.liked=true;this.joke.likes++;this.joke.reward=reward;this.joke.heartLeft=.8;
+  this.coins+=reward;this.pendingBonus+=reward*Math.min(3,Math.floor((this.comboTime+1e-8)/3))*.2;
+  return true;
+ }
  notify(text){this.toast=text;this.toastLeft=3.5;}
  occupied(id,except){return(this.player!==except&&this.player.seat===id)||this.npcs.some(n=>n!==except&&n.seat===id);}
  empty(){return seats.filter(s=>!this.occupied(s.id));}
@@ -152,7 +162,7 @@ export class Game{
  dismiss(){if(!this.modal)return;const kind=this.modal.kind;if(kind==='fine'&&this.coins<0){this.modal={kind:'lose',reason:'破产了，下次早点收手'};return;}if(kind==='warning'||kind==='fine'||kind==='greeting'||kind==='tutorial')this.modal=null;}
  reward(type){if(this.level===0||this.ads>=2)return false;if(type==='explain'){if(this.modal?.kind!=='fine')return false;this.coins=this.modal.before;this.modal=null;this.player.lock=2.5;}else if(type==='extend'){if(this.extended||this.time>30||this.coins>=this.config.target||this.coins<0||this.modal&&this.modal.kind!=='timeout')return false;this.time+=15;this.extended=true;this.modal=null;}else{if(this.modal||!['mirror','meeting'].includes(type)||this.inventory[type])return false;this.inventory[type]=1;}this.ads++;this.notify('测试奖励已领取 · 本局记为助力成绩');return true;}
  step(dt){let left=dt;while(left>1e-8&&!this.modal&&!this.paused){const h=Math.min(left,.02,this.time);if(h<=0){this.modal={kind:'timeout'};break;}this.tick(h);left-=h;}}
- tick(dt){this.elapsed+=dt;this.time=Math.max(0,this.time-dt);this.toastLeft=Math.max(0,this.toastLeft-dt);this.mirror=Math.max(0,this.mirror-dt);const p=this.player;const boosted=this.special&&p.seat===this.special.seat;const boostTime=boosted?Math.min(dt,this.special.left):0;if(this.special){this.special.left-=dt;if(this.special.left<=1e-8)this.special=null;}if(this.elapsed>=this.specialAt){this.spawnSpecial();this.specialAt+=25;}if(this.elapsed>=this.dropAt){this.spawnDrop();this.dropAt+=22;}
+ tick(dt){this.joke.heartLeft=Math.max(0,this.joke.heartLeft-dt);this.elapsed+=dt;this.time=Math.max(0,this.time-dt);this.toastLeft=Math.max(0,this.toastLeft-dt);this.mirror=Math.max(0,this.mirror-dt);const p=this.player;const boosted=this.special&&p.seat===this.special.seat;const boostTime=boosted?Math.min(dt,this.special.left):0;if(this.special){this.special.left-=dt;if(this.special.left<=1e-8)this.special=null;}if(this.elapsed>=this.specialAt){this.spawnSpecial();this.specialAt+=25;}if(this.elapsed>=this.dropAt){this.spawnDrop();this.dropAt+=22;}
  if(this.feedback){this.feedback.left-=dt;if(this.feedback.left<=0)this.feedback=null;}if(this.greeting){this.greeting.left-=dt;if(this.greeting.left<=0)this.greeting=null;}
  for(const ins of this.inspectors)ins.observation={x:p.x,y:p.y,seat:p.seat,activity:p.activity,seated:p.seat!==null&&!p.route.length};
  this.soundField.emitter={x:p.x,y:p.y,seat:p.seat,activity:p.activity,seated:p.seat!==null&&!p.route.length};
