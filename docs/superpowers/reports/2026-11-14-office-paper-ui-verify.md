@@ -7,4 +7,4 @@
 - 浏览器：375×667，正常点按越障、安全收手、一次教学、真实首关43秒通关且0抓包；第二关自然超时、重试、测试助力取消、暂停恢复均可用。
 - 本地画面：outputs/office-reward-noise.jpg、office-payroll-win.jpg、office-payroll-timeout.jpg、office-pause-note.jpg、office-assist-note.jpg（本地验收图，不纳入发布）。
 - 发布：运行提交79adf03；服务端29个文件HTTP SHA256全部一致，保留上一版本可回退，其他三个游戏服务内容一致。线上375×667实际教学、收入、安全收手及自然超时工资条已验收，89.1收入/90目标显示差0.9。控制台warning/error为空，临时视口已恢复。线上实景保存在outputs/office-payroll-deployed.jpg。
-- 分支：运行实现已提交；等待用户选择分支处理方式，尚未推送和合并。
+- 分支：用户选择保持当前分支、稍后处理。保留feature/20261114/office-paper-ui及工作目录，尚未推送和合并。
