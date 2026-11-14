@@ -663,30 +663,22 @@ export class Renderer{
  movePath(c,p,t){
   if(!p.route.length)return;
   const points=[p,...p.route],end=points.at(-1);
-  c.save();c.lineCap='round';c.lineJoin='round';c.beginPath();c.moveTo(p.x,p.y);
-  for(let i=1;i<points.length-1;i++){
-   const before=points[i-1],corner=points[i],after=points[i+1];
-   const incoming=Math.hypot(corner.x-before.x,corner.y-before.y),outgoing=Math.hypot(after.x-corner.x,after.y-corner.y),radius=Math.min(22,incoming/3,outgoing/3);
-   c.lineTo(corner.x-(corner.x-before.x)*radius/incoming,corner.y-(corner.y-before.y)*radius/incoming);
-   c.quadraticCurveTo(corner.x,corner.y,corner.x+(after.x-corner.x)*radius/outgoing,corner.y+(after.y-corner.y)*radius/outgoing);
-  }
-  c.lineTo(end.x,end.y);c.strokeStyle='#fffaf1db';c.lineWidth=8.5;c.stroke();
-  c.strokeStyle='#73aaa1';c.lineWidth=4.8;c.stroke();
-  let travelled=0;
-  for(let i=1;i<points.length;i++){
+  c.save();let travelled=0,nextStep=20,step=0;
+  for(let i=1;i<points.length&&nextStep<=72;i++){
    const start=points[i-1],finish=points[i],length=Math.hypot(finish.x-start.x,finish.y-start.y),angle=Math.atan2(finish.y-start.y,finish.x-start.x);
-   for(let offset=((t*30-travelled)%112+112)%112;offset<length;offset+=112){
-    if(offset<(i===1?48:30)||length-offset<(i===points.length-1?60:30))continue;
-    c.save();c.translate(start.x+Math.cos(angle)*offset,start.y+Math.sin(angle)*offset);c.rotate(angle);
-    c.beginPath();c.moveTo(-7,-3);c.lineTo(0,-3);c.lineTo(0,-6);
-    c.quadraticCurveTo(0,-8,2,-6.5);c.lineTo(9,-1.5);c.quadraticCurveTo(11,0,9,1.5);
-    c.lineTo(2,6.5);c.quadraticCurveTo(0,8,0,6);c.lineTo(0,3);c.lineTo(-7,3);
-    c.quadraticCurveTo(-9,3,-9,1);c.lineTo(-9,-1);c.quadraticCurveTo(-9,-3,-7,-3);c.closePath();
-    c.fillStyle='#4e8c83';c.strokeStyle='#fff7e7';c.lineWidth=1.8;c.stroke();c.fill();c.restore();
+   while(nextStep<=travelled+length&&nextStep<=72){
+    const offset=nextStep-travelled;
+    if(i!==points.length-1||length-offset>=26){
+     c.save();c.translate(start.x+Math.cos(angle)*offset,start.y+Math.sin(angle)*offset);c.rotate(angle);
+     c.globalAlpha=(.6-nextStep/160)*(.88+.12*Math.sin(t*3-step));
+     const side=step%2?4.3:-4.3;
+     this.ellipse(c,2.4,side,5.5,3.3,'#768879');this.ellipse(c,-5,side,2.1,2.8,'#768879');c.restore();
+    }
+    nextStep+=22;step++;
    }
    travelled+=length;
   }
-  this.ellipse(c,end.x,end.y+40,28,10,'#8cc0b51c','#6a9f98',2);
+  this.ellipse(c,end.x,end.y+40,28,10,'#8cc0b50d','#91aaa080',1.5);
   c.restore();
  }
  draw(g,t){if(this.lastGame!==g){this.lastGame=g;this.facings=new Map();this.motion.clear();this.predictionTime=-1;this.predictions=[];}const c=this.c;c.clearRect(0,0,W,H);c.drawImage(this.bg,0,0);this.soundSources(c,g,t);
