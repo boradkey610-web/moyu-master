@@ -180,7 +180,7 @@ function updateUI(){
  $('#progress').style.width=`${Math.max(0,Math.min(100,g.coins/g.config.target*100))}%`;
  $('#level-label').textContent=`0${g.level+1} · ${g.config.name}`;
  $('#mirror-status').textContent=g.mirror>0?`全员路线 · ${Math.ceil(g.mirror)} 秒`:'';
- $('#toast').textContent=g.toast;$('#toast').style.opacity=g.toastLeft>0?1:0;
+ $('#toast').textContent=g.toast;$('#toast').hidden=p.activity==='dance';$('#toast').style.opacity=g.toastLeft>0?1:0;
  let status='认真工作中',detail='选一种摸鱼方式',tone='work';
  if(stopping){status='正在收手…';detail=`还需 ${p.stopping.toFixed(1)} 秒 · 仍会被发现`;tone='caution';}
  else if(moving){status=`前往 ${p.target+1} 号工位`;detail='途中暂无收益';tone='moving';}

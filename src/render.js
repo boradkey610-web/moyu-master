@@ -466,7 +466,7 @@ export class Renderer{
   this.motion.set(key,{x:actor.x,y:actor.y,travel});this.facings.set(key,direction);
   const heard=actor.name?this.soundTarget(actor):null;
   let lookDirection=null;
-  if(heard?.fresh&&heard.age>=.12&&heard.age<.9){
+  if(heard?.fresh&&heard.age>=.12&&heard.age<1.25){
    const angle=Math.atan2(heard.point.y-actor.y,heard.point.x-actor.x);
    lookDirection=Math.abs(Math.cos(angle))>.7?(Math.cos(angle)>0?'right':'left'):(Math.sin(angle)>0?'down':'up');
   }
@@ -524,67 +524,55 @@ export class Renderer{
    if(!marked.has(p.seat)){marked.add(p.seat);this.chip(c,`${p.kind==='dance'?'♪':'⌨'} ${p.seat+1}号 · ${cue.pending?'待查看':p.seat===g.player.seat?'声源':'旧声源'}`,p.x,p.y+24,'#fff0ce','#9a6129',19);}
    if(cue.current&&cue.current.seat!==p.seat&&!marked.has(cue.current.seat)){const old=cue.current;marked.add(old.seat);this.chip(c,`${old.seat+1}号 · ${ins.queue?.[0]?.phase==='checking'?'正查':'调查中'}`,old.x,old.y+24,'#fff0ce','#9a6129',19);}
    if(cue.fresh){
-    const x=Math.max(32,Math.min(W-32,ins.x+32)),y=Math.max(36,ins.y-154),pop=1+Math.max(0,1-cue.age/.3)*.65,bounce=Math.sin(Math.min(1,cue.age/.5)*Math.PI)*8;
-    c.save();c.translate(x,y-bounce);c.scale(pop,pop);
+    const pop=1+Math.max(0,1-cue.age/.3)*.65,bounce=Math.sin(Math.min(1,cue.age/.5)*Math.PI)*8,margin=39*pop;
+    const x=Math.max(margin,Math.min(W-margin,ins.x+36)),y=Math.max(margin,Math.min(H-margin,ins.y-172-bounce));
+    c.save();c.translate(x,y);c.scale(pop,pop);
     for(let k=0;k<6;k++){const a=k*Math.PI/3+t*.5;this.line(c,[[Math.cos(a)*29,Math.sin(a)*29],[Math.cos(a)*35,Math.sin(a)*35]],'#e4a445',3);}
-    this.ellipse(c,0,0,23,25,'#d87344','#fff2c8',3);this.text(c,'!',0,1,33,'#fff9dc','900');c.restore();
+    this.ellipse(c,0,0,30,32,'#d87344','#fff2c8',3);this.text(c,'!',0,1,45,'#fff9dc','900');c.restore();
    }
   }
  }
  noiseBadge(c,g,a){
   if(a.activity==='dance'){this.danceSound(c,g,a);return;}
+  if(a.activity!=='game')return;
   const source=g.soundField?.sources.find(s=>s.seat===a.seat),volume=source?.volume||0;
-  const loud=source?.active&&volume>=40,far=source?.active&&volume>=75;
-  const sound=a.activity==='dance'?'音乐声':'键盘声';
-  const label=a.warmup>0?'音箱启动中':source?.active?`${sound} · ${this.noiseLabel(source)}`:this.noiseLabel(source);
-  c.save();c.font='700 26px "PingFang SC",sans-serif';
-  const width=Math.max(220,c.measureText(label).width+60),x=Math.max(width/2+6,Math.min(W-width/2-6,a.x)),y=a.y-140,left=x-width/2;
-  const ink=far?'#9d493a':loud?'#8d642b':'#607253';
-  this.box(c,left,y-22,width,44,6,far?'#f9e8df':loud?'#fff0d4':'#f1f3e7',far?'#cc9a86':loud?'#cba66b':'#afbea3',1.5);
-  c.fillStyle=ink;c.beginPath();c.moveTo(left+12,y-5);c.lineTo(left+18,y-5);c.lineTo(left+26,y-12);c.lineTo(left+26,y+12);c.lineTo(left+18,y+5);c.lineTo(left+12,y+5);c.closePath();c.fill();
-  c.strokeStyle=ink;c.lineWidth=1.7;
-  const waves=far?3:loud?2:source?.active?1:0;
-  for(let wave=0;wave<waves;wave++){c.beginPath();c.arc(left+25,y,8+wave*5,-.7,.7);c.stroke();}
-  if(!source?.active)this.line(c,[[left+12,y+13],[left+34,y-13]],ink,1.7);
-  this.text(c,label,left+48+(width-56)/2,y,26,ink,'700');c.restore();
+  const t=g.elapsed,x=Math.min(W-73,a.x+56),y=a.y-73,ink=volume>=75?'#bd6d38':'#6d9c93';
+  c.save();c.translate(x,y);c.rotate(-.08);
+  this.ellipse(c,0,16,25,5,'#4b514329');
+  this.box(c,-25,-14,50,30,5,'#f7ecd3','#8e846c',2);
+  this.box(c,-21,-10,42,21,3,'#d2d4b9','#9a9b81',1);
+  for(let row=0;row<2;row++)for(let col=0;col<6;col++){
+   const pressed=(Math.floor(t*7)+row*6+col)%5===0;
+   this.box(c,-18+col*6.2,-7+row*7,4.5,4.5,1,pressed?'#e8b15b':'#718d87',null);
+  }
+  this.box(c,-10,7,20,3,1,'#718d87',null);c.restore();
+  const waves=source?.active?(volume>=75?3:volume>=40?2:1):0;
+  for(let i=0;i<waves;i++){
+   const phase=(t*1.3+i/3)%1;c.save();c.globalAlpha=(.3+(1-phase)*.65)*(volume<40?.5:1);
+   c.strokeStyle=ink;c.lineWidth=3;c.beginPath();c.arc(x+20,y,11+i*7+phase*8,-.75,.75);c.stroke();c.restore();
+  }
  }
+
  danceSound(c,g,a){
   const dance=this.danceState(g);if(!dance)return;
   const source=g.soundField?.sources.find(s=>s.seat===a.seat),volume=source?.volume||0;
   const t=dance.time,beat=Math.sin(t*Math.PI*4),warm=Math.min(1,t/.8),waves=volume>=75?3:volume>=40?2:1;
-  const x=a.x+72,feet=a.y+36,ink=volume>=75?'#efba75':'#91c5bb';
-  c.save();c.globalAlpha=dance.strength;
+  const x=a.x+64,feet=a.y+36,ink=volume>=75?'#ffd391':'#b5e1cf';
+  c.save();c.globalAlpha=dance.strength;c.translate(x,feet);c.scale(1.65,1.65);
   for(let i=0;i<waves;i++){
-   const phase=(t*1.5+i/3)%1;c.save();c.globalAlpha=dance.strength*(1-phase)*.8*warm;
-   c.strokeStyle=ink;c.lineWidth=2.3;c.beginPath();c.arc(x+15,feet-22,18+i*8+phase*12,-.72,.72);c.stroke();c.restore();
+   const phase=(t*1.5+i/3)%1;c.save();c.globalAlpha=dance.strength*(.25+(1-phase)*.65)*warm;
+   c.strokeStyle=ink;c.lineWidth=3;c.beginPath();c.arc(15,-22,18+i*8+phase*12,-.72,.72);c.stroke();c.restore();
   }
-  this.ellipse(c,x,feet+2,24,6,'#07151e55');
-  c.translate(x,feet);c.rotate(beat*.025*warm);c.scale(1+beat*.025*warm,1-beat*.025*warm);
+  this.ellipse(c,0,2,24,6,'#07151e55');
+  c.rotate(beat*.025*warm);c.scale(1+beat*.025*warm,1-beat*.025*warm);
   const cabinet=c.createLinearGradient(-18,-48,18,0);cabinet.addColorStop(0,'#45615e');cabinet.addColorStop(1,'#1b2e35');
-  this.box(c,-18,-48,36,48,5,cabinet,'#aeaa80',1.7);
+  this.box(c,-18,-48,36,48,5,cabinet,'#e3cc97',2.2);
   this.box(c,-13,-44,26,40,3,'#15272b','#698279',1);
   this.ellipse(c,0,-34,5.5,5.5,'#728d80','#a9bda1',1);
   this.ellipse(c,0,-16,10.5+beat*.6*warm,10.5+beat*.6*warm,'#425d5c','#88aaa0',1.3);
   this.ellipse(c,0,-16,4.5,4.5,'#122c31',ink,1);
   this.ellipse(c,11,-43,1.5,1.5,warm>.5?'#efd18e':'#797c68');
   c.restore();
- }
- heardReaction(c,g){
-  if(!this.danceState(g))return;
-  for(const ins of g.inspectors){
-   const cue=this.soundTarget(ins);if(!cue?.fresh)continue;
-   const x=ins.name==='老板'?W-92:92,y=205;
-   const fade=Math.min(1,(1.6-cue.age)/.3),pop=1+Math.max(0,1-cue.age/.25)*.2;
-   const angle=Math.atan2(cue.point.y-ins.y,cue.point.x-ins.x);
-   const direction=cue.age<.12?'down':Math.abs(Math.cos(angle))>.7?(Math.cos(angle)>0?'right':'left'):(Math.sin(angle)>0?'down':'up');
-   c.save();c.globalAlpha=fade;c.translate(x,y);c.scale(pop,pop);
-   this.ellipse(c,0,0,39,39,'#fff3cf','#dcaa60',2.5);
-   c.save();c.beginPath();c.arc(0,0,36,0,Math.PI*2);c.clip();c.scale(1.9,1.9);
-   this.paintedPerson(c,{type:ins.name==='老板'?'boss':'supervisor',x:0,y:83},{seated:false,moving:false,direction},0);c.restore();
-   this.text(c,'!',37,-30,48,'#ffc65b','900');
-   for(const [dx,dy]of [[-36,-40],[-47,-21]])this.line(c,[[dx,dy],[dx-7,dy-7]],'#f5cf80',3);
-   c.restore();
-  }
  }
  inspectionCone(c,ins,activity,t){
   const range=activities[activity]?.range||100,phase=ins.queue?.[0]?.phase;
@@ -621,11 +609,17 @@ export class Renderer{
  playerStakes(c,g){
   const p=g.player,pending=Math.floor(Math.max(0,g.pendingBonus||0)+1e-8);
   if(pending>0&&p.activity!=='work'&&!(g.feedback?.left>0)){
-   const label=`收手领 ${pending} 金币`;
-   c.save();c.font='750 29px "PingFang SC",sans-serif';
-   const width=Math.max(222,c.measureText(label).width+28),x=Math.max(width/2+5,Math.min(W-width/2-5,p.x)),y=Math.max(44,p.y-190);
-   this.box(c,x-width/2,y-23,width,46,6,'#fff0c8','#b68b45',1.5);
-   this.text(c,label,x,y,29,'#906126','750');c.restore();
+   const x=Math.max(26,Math.min(W-110,p.x-90)),y=Math.max(40,p.y-126);
+   c.save();c.translate(x,y);
+   const cloth=c.createLinearGradient(-16,-18,16,18);cloth.addColorStop(0,'#ffe4a0');cloth.addColorStop(1,'#d9a54c');
+   c.fillStyle=cloth;c.strokeStyle='#a97b34';c.lineWidth=2;
+   c.beginPath();c.moveTo(-6,-10);c.lineTo(-11,-19);c.quadraticCurveTo(0,-16,11,-19);c.lineTo(6,-10);
+   c.bezierCurveTo(9,-5,21,5,16,15);c.quadraticCurveTo(0,24,-16,15);c.bezierCurveTo(-21,5,-9,-5,-6,-10);c.closePath();c.fill();c.stroke();
+   this.line(c,[[-8,-9],[8,-9]],'#668b73',3);
+   this.ellipse(c,0,7,7,7,'#ffdc78','#bf8f37',1.5);
+   c.font='900 31px "PingFang SC",sans-serif';c.textBaseline='alphabetic';c.textAlign='left';
+   const label=String(pending),metrics=c.measureText(label),textY=3+((metrics.actualBoundingBoxAscent??23)-(metrics.actualBoundingBoxDescent??0))/2;
+   c.strokeStyle='#fff4d6';c.lineWidth=3.5;c.lineJoin='round';c.strokeText(label,25,textY);c.fillStyle='#85551f';c.fillText(label,25,textY);c.restore();
   }
   const exposure=Math.max(0,g.exposure||0),limit=Number(g.exposureLimit)||1;
   if(exposure>0){
@@ -690,8 +684,7 @@ export class Renderer{
  if(g.special)this.goldBadge(c,seats[g.special.seat],g.special.left,t);
  this.soundSignals(c,g,t);
  this.discoOverlay(c,dance);
- this.heardReaction(c,g);
- // Keep the player's feedback and a non-positional warning above the disco.
+ // Player-only feedback stays above the disco; office reactions stay underneath.
  for(const a of actors){
   const pose=a.renderPose;
   if(a.type==='player'){

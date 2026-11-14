@@ -17,10 +17,10 @@ test('声音提示区分传出阈值和已停止的声源，不误报有人听�
 });
 test('蹦迪用音箱代替文字，音量增强时增加声波，暂停不推进绘制状态',()=>{
  const r=renderer(),g=new Game(3,1);g.inspectors=[];g.setActivity('dance');g.step(1);
- const labels=[],boxes=[],arcs=[],transforms=[];
+ const labels=[],boxes=[],arcs=[],transforms=[],scales=[];
  r.text=(c,text)=>labels.push(text);r.box=(c,...args)=>boxes.push(args);r.ellipse=()=>{};
- const c=new Proxy({createLinearGradient:()=>({addColorStop(){}}),arc:(...a)=>arcs.push({a,alpha:c.globalAlpha}),rotate:a=>transforms.push(a)}, {get:(o,k)=>o[k]??(()=>{})});
- r.noiseBadge(c,g,g.player);assert.deepEqual(labels,[]);assert.ok(boxes.some(b=>b[2]===36&&b[3]===48));assert.equal(arcs.length,1);
+ const c=new Proxy({createLinearGradient:()=>({addColorStop(){}}),arc:(...a)=>arcs.push({a,alpha:c.globalAlpha}),rotate:a=>transforms.push(a),scale:(...a)=>scales.push(a)}, {get:(o,k)=>o[k]??(()=>{})});
+ r.noiseBadge(c,g,g.player);assert.deepEqual(labels,[]);assert.ok(boxes.some(b=>b[2]===36&&b[3]===48));assert.equal(arcs.length,1);assert.deepEqual(scales[0],[1.65,1.65]);
  g.step(3);arcs.length=0;r.noiseBadge(c,g,g.player);assert.equal(arcs.length,3);
  transforms.length=0;r.noiseBadge(c,g,g.player);const before=transforms[0],state=JSON.stringify(g);
  g.paused=true;g.step(2);transforms.length=0;r.noiseBadge(c,g,g.player);
@@ -33,26 +33,30 @@ test('闻声转头朝记录的声源，身体继续原方向，事件过后及�
  const r=renderer(),ins={name:'老板',x:65,y:350,angle:Math.PI/2,clock:3.3,lastHeard:{x:545,y:515,time:3},queue:[{kind:'move',x:65,y:585}]};
  const pose=r.pose(ins,'boss');assert.equal(pose.direction,'down');assert.equal(pose.lookDirection,'right');assert.equal(pose.moving,true);
  ins.leaving=true;assert.equal(r.pose(ins,'boss').lookDirection,null);ins.leaving=false;
- ins.clock=4.1;assert.equal(r.pose(ins,'boss').lookDirection,null);
+ ins.clock=4.1;assert.equal(r.pose(ins,'boss').lookDirection,'right');
+ ins.clock=4.3;assert.equal(r.pose(ins,'boss').lookDirection,null);
 });
-test('舞台头像感叹号只响应真实的新闻声，不修改角色位置与检查方向',()=>{
- const r=renderer(),g=new Game(3,1),ins=g.inspectors[0],heads=[],labels=[];
- g.setActivity('dance');r.paintedPerson=(c,a,pose)=>{heads.push({type:a.type,direction:pose.direction});return true;};r.text=(c,t)=>labels.push(t);r.ellipse=()=>{};r.line=()=>{};
- const c=new Proxy({}, {get:()=>()=>{}});
- r.heardReaction(c,g);assert.equal(heads.length,0);
- ins.clock=3.4;ins.lastHeard={x:545,y:515,seat:7,time:3,kind:'dance'};
- const before=JSON.stringify(g);r.heardReaction(c,g);assert.deepEqual(heads,[{type:'boss',direction:'right'}]);assert.deepEqual(labels,['!']);assert.equal(JSON.stringify(g),before);
- ins.clock=5;r.heardReaction(c,g);assert.equal(heads.length,1);
- ins.clock=3.4;ins.hidden=true;r.heardReaction(c,g);assert.equal(heads.length,1);
- ins.hidden=false;g.player.activity='work';r.heardReaction(c,g);assert.equal(heads.length,1);
+test('键盘声使用实体键盘和声波，不再画文字说明，安静段子不画声音框',()=>{
+ const r=renderer(),g=new Game(3,1),boxes=[],arcs=[];g.inspectors=[];g.setActivity('game');g.step(12);
+ r.box=(c,...args)=>boxes.push(args);r.ellipse=()=>{};r.text=()=>assert.fail('声音图形不能包含文字框');
+ const c=new Proxy({arc:(...a)=>arcs.push(a)}, {get:(o,k)=>o[k]??(()=>{})});
+ r.noiseBadge(c,g,g.player);assert.ok(boxes.some(b=>b[2]===50&&b[3]===30));assert.equal(arcs.length,2);
+ boxes.length=0;g.player.activity='joke';r.noiseBadge(c,g,g.player);assert.deepEqual(boxes,[]);
 });
-test('奖金提示显示收手可领金额，尚未赚到奖金时不显示空奖金',()=>{
- const r=renderer(),labels=[];
- r.box=()=>{};r.text=(c,text)=>labels.push(text);
- const c={save(){},restore(){},measureText(){return{width:180};}};
+test('放大的闻声感叹号在靠边过道也完整显示',()=>{
+ const r=renderer(),ins={x:655,y:115,clock:3,lastHeard:{x:545,y:280,seat:3,time:3,kind:'game'}},positions=[],scales=[];
+ for(const name of ['chip','line','ellipse','text'])r[name]=()=>{};
+ const c=new Proxy({translate:(...a)=>positions.push(a),scale:(...a)=>scales.push(a)}, {get:(o,k)=>o[k]??(()=>{})});
+ r.soundSignals(c,{inspectors:[ins],player:{seat:3}},3);
+ const [x,y]=positions[0],pop=scales[0][0];
+ assert.ok(x-38*pop>=0&&x+38*pop<=720);assert.ok(y-38*pop>=0&&y+38*pop<=920);
+});
+test('待收奖金为钱袋和对齐整数，无底框，不足1金币不绘制',()=>{
+ const r=renderer(),labels=[];r.box=()=>assert.fail('奖金不应有底框');r.text=()=>assert.fail('奖金不应有说明文字');
+ const c=new Proxy({createLinearGradient:()=>({addColorStop(){}}),measureText:()=>({actualBoundingBoxAscent:22,actualBoundingBoxDescent:2}),fillText:(text,x,y)=>labels.push({text,x,y})}, {get:(o,k)=>o[k]??(()=>{})});
  const g={player:{activity:'game',x:545,y:515},comboTime:4,pendingBonus:.8};
  r.playerStakes(c,g);assert.deepEqual(labels,[]);
- g.pendingBonus=1.8;r.playerStakes(c,g);assert.deepEqual(labels,['收手领 1 金币']);
+ g.pendingBonus=14.8;r.playerStakes(c,g);assert.deepEqual(labels,[{text:'14',x:25,y:13}]);
  labels.length=0;g.pendingBonus=0;r.playerStakes(c,g);assert.deepEqual(labels,[]);
 });
 test('安全到账金额只显示整数，不足1金币时不显示加零',()=>{
