@@ -1,5 +1,5 @@
 workflow: hotfix
-phase: build
+phase: archive
 context_compression: off
 build_mode: direct
 build_pause: null
@@ -11,9 +11,9 @@ auto_transition: true
 base_ref: bbf84aa72e5713bb2339c69f5096ff99bac26c53
 design_doc: null
 plan: null
-verify_result: pending
-verification_report: null
-branch_status: pending
+verify_result: pass
+verification_report: docs/superpowers/reports/2026-11-14-runner-obstacle-exit-verify.md
+branch_status: handled
 created_at: 2026-11-14
-verified_at: null
+verified_at: 2026-11-14
 archived: false
