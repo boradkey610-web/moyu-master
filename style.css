@@ -58,16 +58,6 @@
 .scene-top{font-size:10px;top:8px}.scene-top span{padding:4px 6px}
 @media(max-width:370px){.hud{padding-inline:6px}.hud b{font-size:15px}.hud-caption{font-size:10px}.coin-icon{width:25px;height:25px}.hud-clock>svg{width:24px;height:24px}.controls{padding-inline:10px}.activity-row{gap:8px}.activity{grid-template-columns:27px 1fr;gap:2px;padding-inline:7px}.activity-icon{width:28px}.activity strong{font-size:15px}.activity small{font-size:11px}.work-button.has-context small{font-size:10px}}
 @media(max-height:740px){.game-shell{width:min(100vw,max(300px,calc((100svh - 252px)*.7826)));border-radius:0}.hud{height:48px;padding-inline:6px}.hud b{font-size:15px}.hud em{font-size:12px}.hud-caption{font-size:10px}.coin-icon{width:25px;height:25px}.hud-clock>svg{width:24px;height:24px}.controls{padding:12px 10px 9px}.activity{min-height:67px;grid-template-columns:26px 1fr;grid-template-rows:23px 18px;gap:3px;padding:10px 7px 7px}.activity-icon{width:27px;height:33px}.activity strong{font-size:15px}.activity small{font-size:11px}.work-button,.work-button.is-working{height:48px;margin-top:11px}.work-button strong{font-size:20px}.tool-row{margin-top:12px;padding:0;gap:8px}.tool-row button{height:40px}}
-.dialog .assist-budget{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:10px 11px;border-radius:9px;background:#f1f4eb;font-size:10px;color:#839074;margin-bottom:16px}
-.assist-budget b{font-size:12px;color:#607c5a}
-.dialog .assist-option{display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;min-height:69px;padding:12px;background:#fffaf0;border:1px solid #dcd2bf}
-.assist-copy{display:flex;flex-direction:column;gap:5px}.assist-copy strong{font-size:14px;color:#655a46}.assist-copy small{font-size:11px;line-height:1.5;font-weight:400;color:#877a66}
-.assist-action{font-size:11px;color:#5d826a;flex-shrink:0;max-width:80px;text-align:right}
-.dialog .assist-option:disabled{opacity:1;filter:none;background:#f3f1eb;border-color:#e5dfd4}.assist-option:disabled .assist-action{color:#988a76}.assist-option:disabled .assist-copy{opacity:.65}
-.dialog .assist-note{font-size:10px;color:#a39784;margin:14px 0 0}
-
-@media(max-height:740px){.dialog[data-kind=help]{padding:18px 15px 12px}.dialog[data-kind=help] .panel-symbol{width:40px;height:40px;margin-bottom:9px}.dialog[data-kind=help] .panel-symbol svg{width:27px;height:27px}.dialog[data-kind=help] h2{font-size:22px}.dialog[data-kind=help] p{margin:9px 0 12px;font-size:11px}.dialog .assist-option{min-height:64px;padding:10px}.dialog .assist-budget{margin-bottom:10px}.dialog[data-kind=help] .assist-note{font-size:9px;margin-bottom:0}}
-
 /* Entry screens: a proper cover and a separate level selection page. */
 .overlay[data-page=menu],.overlay[data-page=levels],.overlay[data-page=guide]{padding:0;background:#f7efdf;backdrop-filter:none}
 .dialog[data-kind=menu],.dialog[data-kind=levels],.dialog[data-kind=guide]{width:100%;height:100%;max-height:100%;border:0;border-radius:0;box-shadow:none;background:radial-gradient(ellipse at 70% 22%,#fffbef,transparent 65%),#f7efdf;padding:28px 25px 24px;display:flex;flex-direction:column;text-align:left}
@@ -209,8 +199,6 @@
 .dialog.office-note>button{border-radius:7px;background:#fffaf0;border:1px solid #ddceb5;box-shadow:none;color:#806a4c}
 .dialog.office-note>button.primary{background:#729878;border:1px solid #5c7e61;box-shadow:0 2px 0 #4f6f54;color:#fffdf0}
 .dialog.office-note>button.secondary{background:transparent;border:0;box-shadow:none;color:#9a8566}
-.dialog.office-note .assist-budget{border-radius:5px;border:1px solid #e4d3b4;background:#f8efd9}
-.dialog.office-note .assist-option{border-radius:7px;border-style:solid;background:#fffaf0}
 .dialog.office-note .speech{border-radius:2px;border:0;border-left:3px solid #d5b16f;background:#f1e2bd50;text-align:left}
 .dialog.office-note[data-kind=pause]{max-width:320px;padding:26px 20px 15px}
 .pause-heading{position:relative;padding:2px 0 19px}
@@ -231,3 +219,29 @@
 .pause-audio[aria-checked=true] .pause-sound-control i:after{left:14px}
 .dialog[data-kind=warning]{border:2px solid #a68b66;border-radius:8px;box-shadow:4px 6px 0 #70573833}
 @media(max-height:740px){.dialog.office-result{padding:19px 18px 22px}.payroll-heading{min-height:69px}.payroll-portrait{height:62px}.payroll-stamp{top:80px;height:43px}.dialog.office-result .payroll-heading h2{font-size:26px}.dialog.office-result .shift-score{margin-top:5px;padding-top:8px}.dialog.office-result .shift-score strong{font-size:40px}.payroll-lines{margin:9px 0 6px}.payroll-lines>div{min-height:23px}.dialog.office-note{padding:24px 17px 16px}.dialog.office-note .memo-heading h2{font-size:20px}}
+
+/* A small requisition slip, using the same item drawings as the toolbar. */
+.dialog.office-note[data-kind=help]{max-width:330px;padding:26px 18px 18px}
+.assist-heading{position:relative;padding:0 55px 14px 0;border-bottom:1px solid #cbb58c}
+.assist-eyebrow{display:block;font-size:9px;letter-spacing:1px;color:#a18b68}
+.dialog .assist-heading h2{margin:8px 0 0;font-size:23px;line-height:1.35;letter-spacing:.5px;color:#655034;text-align:left}
+.assist-stamp{position:absolute;right:3px;top:12px;padding:4px 5px;border:1px solid #8caa85;outline:1px solid #8caa85;outline-offset:2px;transform:rotate(-8deg);font:700 11px "Songti SC",serif;letter-spacing:2px;color:#7b9972}
+.dialog[data-kind=help] .assist-budget{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 0 9px;border-bottom:1px dashed #ddceb1;font-size:10px;color:#a18b69}
+.assist-budget b{font:700 21px/1 "Courier New",monospace;color:#658564}
+.assist-budget b small{font:500 10px "PingFang SC",sans-serif;color:#a18b69}
+.dialog.office-note[data-kind=help] .assist-option{display:grid;grid-template-columns:29px minmax(0,1fr) auto;align-items:center;column-gap:8px;width:100%;min-height:73px;margin:0;padding:12px 0;border:0;border-bottom:1px dashed #ddceb1;border-radius:0;background:transparent;box-shadow:none;text-align:left}
+.assist-icon{display:grid;place-items:center;width:29px;height:34px}
+.assist-icon svg{display:block;width:28px;height:28px}
+.assist-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
+.assist-copy strong{font-size:13px;font-weight:750;line-height:1.4;color:#6c5637}
+.assist-copy small{font-size:10px;font-weight:400;line-height:1.5;color:#9b8768}
+.assist-action{max-width:56px;min-width:39px;padding:5px;border:1px solid #8eab86;border-radius:3px;background:#edf0df;font-size:10px;line-height:1.45;color:#63815d;text-align:center;font-weight:750}
+.dialog.office-note[data-kind=help] .assist-option:disabled{opacity:1;filter:none;background:transparent}
+.assist-option:disabled .assist-icon{opacity:.45;filter:saturate(.3)}
+.assist-option:disabled .assist-copy{opacity:.55}
+.assist-option:disabled .assist-action{border-color:#ded1b9;background:transparent;color:#ae9c7e;font-size:9px;font-weight:500}
+.dialog.office-note[data-kind=help] .assist-note{margin:12px 0 14px;font-size:9px;line-height:1.7;color:#9b8766;text-align:center}
+.assist-note>span{color:#b3a18a;font-size:8px}
+.dialog.office-note[data-kind=help] .assist-return{min-height:42px;margin:0;font-size:13px;letter-spacing:1px}
+.dialog.office-note[data-kind=help] .assist-tutorial{margin-top:15px;min-height:52px;font-size:12px}
+.dialog.office-note[data-kind=help] .assist-intro{font-size:11px;margin:16px 0;color:#9b8768;line-height:1.9}

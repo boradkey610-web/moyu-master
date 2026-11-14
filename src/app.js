@@ -69,17 +69,17 @@ function menu(){
 }
 function selectLevel(){
  screen='levels';
- show(`<div class="level-topline"><span>打工人闯关记</span><span>★ ${save.unlocked} / ${levels.length}</span></div><div class="level-heading"><span class="map-kicker">OFFICE ADVENTURE</span><h2 id="dialog-title">今天也要<span>快乐摸鱼</span></h2><p>选个工位，开始你的带薪冒险！</p></div>`);
+ show(`<div class="level-topline"><span>打工人闯关记</span><span>全关卡开放</span></div><div class="level-heading"><span class="map-kicker">OFFICE ADVENTURE</span><h2 id="dialog-title">今天也要<span>快乐摸鱼</span></h2><p>选个工位，开始你的带薪冒险！</p></div>`);
  const list=document.createElement('div');list.className='level-list adventure-map';
  const descriptions=['熟悉老板的巡逻，抓住摸鱼时机','换个工位，抢一把双倍金椅','老板和主管，一起突击检查','同事也来抢座，考验手速和时机'];
  levels.forEach((l,i)=>{
-  const unlocked=i<save.unlocked,clean=save.best[`${i}-clean`],assisted=save.best[`${i}-assisted`];
+  const clean=save.best[`${i}-clean`],assisted=save.best[`${i}-assisted`];
   const hasClean=Number.isFinite(clean)&&clean>=0,hasAssisted=Number.isFinite(assisted)&&assisted>=0;
   const completed=hasClean||hasAssisted;
   const record=hasClean?`最佳 ${formatTime(clean)}`:hasAssisted?`助力最佳 ${formatTime(assisted)}`:'';
-  const b=button('',()=>start(i),'level-card');b.disabled=!unlocked;
-  b.dataset.state=!unlocked?'locked':completed?'complete':'available';
-  b.innerHTML=`<span class="level-art"><canvas width="100" height="100" data-level-art="${i}" aria-hidden="true"></canvas></span><span class="level-number">${String(i+1).padStart(2,'0')}</span><span class="level-copy"><strong>${l.name}</strong><small>${unlocked?descriptions[i]:`通关第 ${i} 关后解锁`}</small><span class="level-meta"><span><i class="mini-coin">¥</i>${l.target}</span><span>◷ ${formatTime(l.time)}</span>${record?`<span class="level-record">${record}</span>`:''}</span></span><span class="level-state">${unlocked?(completed?'再玩一次':'开始挑战')+' ▶':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>'}</span>`;
+  const b=button('',()=>start(i),'level-card');
+  b.dataset.state=completed?'complete':'available';
+  b.innerHTML=`<span class="level-art"><canvas width="100" height="100" data-level-art="${i}" aria-hidden="true"></canvas></span><span class="level-number">${String(i+1).padStart(2,'0')}</span><span class="level-copy"><strong>${l.name}</strong><small>${descriptions[i]}</small><span class="level-meta"><span><i class="mini-coin">¥</i>${l.target}</span><span>◷ ${formatTime(l.time)}</span>${record?`<span class="level-record">${record}</span>`:''}</span></span><span class="level-state">${(completed?'再玩一次':'开始挑战')+' ▶'}</span>`;
   list.append(b);
  });
  $('#dialog').append(list,button('‹  返回首页',menu,'secondary home-back'));
@@ -115,19 +115,20 @@ function pause(){
 function help(){
  if(g.modal||screen)return;
  screen='help';
- show(`${panelHead('help','同事支援 · 时间已暂停','给自己留个后手')}<p>空工位也能捡到道具，坐下即可领取。</p><div class="assist-budget"><b>剩余 ${Math.max(0,2-g.ads)} 次助力</b><span>使用后记录为助力成绩</span></div>`);
- if(g.level===0){$('#dialog').append(button('第一天先熟悉玩法',()=>instructions(hide),'primary'));}
+ show(`<div class="assist-heading"><span class="assist-eyebrow">办公室互助站 · 已暂停</span><h2 id="dialog-title">同事，搭把手</h2><span class="assist-stamp" aria-hidden="true">支援单</span></div>${g.level===0?'<p class="assist-intro">入职第一天先熟悉巡逻。<br>其余关卡可借用道具，每局 2 次。</p>':`<div class="assist-budget"><span>本局还可借用</span><b>${Math.max(0,2-g.ads)}<small> / 2 次</small></b></div>`}`);
+ if(g.level===0){$('#dialog').append(button('第一天先熟悉玩法',()=>instructions(hide),'assist-tutorial'));}
  else for(const [type,title,description] of [
-  ['mirror','反光镜','显示所有检查者未来 10 秒路线'],
-  ['meeting','开会通知','指定一位检查者离场 10 秒'],
-  ['extend','多争取 15 秒','仅剩余时间不超过 30 秒时可领取']
+  ['mirror','反光镜','查看全员未来 10 秒路线'],
+  ['meeting','开会通知','请一位检查者离场 10 秒'],
+  ['extend','加时 15 秒','下班前，再争取一点时间']
  ]){
-  const reason=g.ads>=2?'本局次数已用完':type==='extend'?(g.extended?'本局已延时':g.time>30?'最后 30 秒可领':''):g.inventory[type]?'已持有，先使用':'';
+  const reason=g.ads>=2?'次数用完':type==='extend'?(g.extended?'已加过时':g.time>30?'最后 30 秒可借':''):g.inventory[type]?'已持有':'';
   const b=button('',()=>{hide();if(!g.reward(type))g.notify('当前无法领取这个奖励');},'assist-option');
-  b.innerHTML=`<span class="assist-copy"><strong>${title}</strong><small>${description}</small></span><span class="assist-action">${reason||'领取 →'}</span>`;
+  const icon=$(type==='extend'?'.hud-clock svg':'#'+type+' svg').outerHTML;
+  b.innerHTML=`<span class="assist-icon" aria-hidden="true">${icon}</span><span class="assist-copy"><strong>${title}</strong><small>${description}</small></span><span class="assist-action">${reason||'借用'}</span>`;
   b.disabled=!!reason;$('#dialog').append(b);
  }
- const note=document.createElement('p');note.className='assist-note';note.textContent='试玩奖励模拟 · 不播放广告';$('#dialog').append(note,button('返回办公室',hide,'secondary'));
+ const note=document.createElement('p');note.className='assist-note';note.innerHTML=g.level===0?'查看玩法不会消耗支援次数':'使用后记为助力成绩<br><span>试玩支援 · 无需看广告</span>';$('#dialog').append(note,button('返回办公室',hide,'primary assist-return'));
 }
 function meeting(){if(g.modal||screen)return;if(!g.inventory.meeting){g.notify('空工位拾取开会通知，或在求助中领取');return;}screen='meeting';show(panelHead('briefcase','会议邀请','请谁去开会？')+'<p>对方会步行离场，离场后 10 秒再返回。<br>先收手，再发通知更稳妥。</p>');for(const [i,ins]of g.inspectors.entries()){const b=button(`请${ins.name}去开会`,()=>{hide();g.useMeeting(i);});b.disabled=ins.hidden||ins.leaving;$('#dialog').append(b);}$('#dialog').append(button('先不发了',hide,'secondary'));}
 function record(){const key=`${g.level}-${g.ads?'assisted':'clean'}`,used=g.config.time+(g.extended?15:0)-g.time;save.unlocked=Math.max(save.unlocked,Math.min(levels.length,g.level+2));save.best[key]=Math.min(save.best[key]??Infinity,used);try{localStorage.setItem(SAVE_KEY,JSON.stringify(save));}catch{}}
