@@ -753,15 +753,15 @@ export class Renderer{
   this.text(c,away?'老板开会中':'会议室',633,70,14,away?'#ba8253':'#8d9c87');
  }
  if(g.mirror>0){if(g.elapsed-this.predictionTime>.1||this.predictionTime<0){this.predictions=forecastAll(g.inspectors,g.mirror);this.predictionTime=g.elapsed;}this.predictions.forEach((points,i)=>{c.setLineDash([10,8]);this.line(c,points.filter(p=>!p.hidden).map(p=>[p.x,p.y]),i?'#d77c77':'#499dbb',4);c.setLineDash([]);const end=points.filter(p=>!p.hidden).at(-1);if(end){this.ellipse(c,end.x,end.y,8,8,i?'#d77c77':'#499dbb');this.text(c,'•',end.x,end.y,18,'#fff');}let last;for(const p of points)if(p.waiting&&(!last||Math.hypot(p.x-last.x,p.y-last.y)>5)){this.chip(c,'停',p.x,p.y-18,'#fff8e9');last=p;}});}
- const p=g.player,dance=this.danceState(g),{seats,scale}=g.layout;this.movePath(c,p,g.elapsed);
+ const p=g.player,dance=this.danceState(g),{seats,scale}=g.layout,goldSeats=new Set(g.specials.map(s=>s.seat));this.movePath(c,p,g.elapsed);
  for(const ins of g.inspectors)if(!ins.hidden)this.inspectionCone(c,ins,p.activity==='work'?(p.riskActivity||'game'):p.activity,t);
- if(g.special)this.goldGlow(c,seats[g.special.seat],t);
- for(const s of seats){c.save();c.translate(s.x,s.y);c.scale(scale,scale);c.translate(-s.x,-s.y);if(dance&&p.seat===s.id)this.tuckedChair(c,s,g.special?.seat===s.id,dance.chairTuck);else{const occupant=[p,...g.npcs].find(a=>a.seat===s.id&&a.activity!=='dance');this.chair(c,s.x,s.y,g.special?.seat===s.id,occupant?'base':'all');}c.restore();}
+ for(const gold of g.specials)this.goldGlow(c,seats[gold.seat],t);
+ for(const s of seats){c.save();c.translate(s.x,s.y);c.scale(scale,scale);c.translate(-s.x,-s.y);if(dance&&p.seat===s.id)this.tuckedChair(c,s,goldSeats.has(s.id),dance.chairTuck);else{const occupant=[p,...g.npcs].find(a=>a.seat===s.id&&a.activity!=='dance');this.chair(c,s.x,s.y,goldSeats.has(s.id),occupant?'base':'all');}c.restore();}
  for(const d of g.drops){const s=seats[d.seat],y=s.y-70*scale+Math.sin(t*3)*3;this.ellipse(c,s.x,y+24,19,6,'#5c6d6c20');this.box(c,s.x-18,y-18,36,36,9,d.type==='mirror'?'#e1f2f1':'#fff0c9',d.type==='mirror'?'#73a6ab':'#bf9d52',2);const icon=this.toolIcons?.[d.type];if(icon)c.drawImage(icon,s.x-14,y-14,28,28);if(d.type==='meeting')this.text(c,'开会',s.x,y+29,11,'#7c806e');}
  const actors=[...g.npcs.map((n,i)=>({...n,type:`npc${n.color}`,visualKey:`npc-${i}`})),...g.inspectors.filter(i=>!i.hidden).map((i,k)=>({...i,type:i.name==='老板'?'boss':'supervisor'})),{...p,type:'player'}].sort((a,b)=>a.y-b.y);
  for(const a of actors){
   a.scale=scale;
-  a.gold=a.seat!=null&&g.special?.seat===a.seat;
+  a.gold=a.seat!=null&&goldSeats.has(a.seat);
   const pose=this.pose(a,a.visualKey||a.type),actorY=a.y+(a.activity==='dance'?35:0);
   a.renderPose=pose;
   c.save();c.translate(a.x,a.y);c.scale(scale,scale);c.translate(-a.x,-a.y);
@@ -775,7 +775,7 @@ export class Renderer{
  }
  // Inspector positions and map-only cues belong to the office layer.
  for(const a of actors)if(a.name)this.inspectionLabel(c,a,a.renderPose);
- if(g.special)this.goldBadge(c,seats[g.special.seat],g.special.left,t);
+ for(const gold of g.specials)this.goldBadge(c,seats[gold.seat],gold.left,t);
  this.soundSignals(c,g,t);
  this.discoOverlay(c,dance);
  if(dance)this.noiseRange(c,g.soundField.sources.find(s=>s.seat===p.seat),g.elapsed);

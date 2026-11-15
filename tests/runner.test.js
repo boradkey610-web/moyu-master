@@ -83,7 +83,7 @@ test('missing a jump clears the streak and gives no reward, recovery allows anot
  assert.equal(jumpRunner(r),true);
 });
 test('gold chair doubles obstacle income and pending bonus',()=>{
- const a=quiet(),b=quiet();b.special={seat:b.player.seat,left:18};
+ const a=quiet(),b=quiet();b.specials=[{seat:b.player.seat,left:18}];
  play(a,10);play(b,10);
  assert.ok(a.coins>0);assert.equal(b.coins,2*a.coins);assert.equal(b.pendingBonus,2*a.pendingBonus);assert.equal(Number(b.runner.feedback.slice(1)),2*Number(a.runner.feedback.slice(1)));
 });

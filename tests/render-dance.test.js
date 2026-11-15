@@ -140,7 +140,7 @@ test('music notes float outside the spotlight and disappear with the light',()=>
 });
 test('dance rolls the player chair under the desk and restores it before seated work',()=>{
  const r=renderer(),g=new Game(2,1),chairs=[],tucks=[];
- r.c=context();r.bg={};r.layout=g.layout;g.inspectors=[];g.special={seat:g.player.seat,left:10};
+ r.c=context();r.bg={};r.layout=g.layout;g.inspectors=[];g.specials=[{seat:g.player.seat,left:10}];
  for(const name of ['soundSources','goldGlow','goldBadge','text','chip','noiseBadge','incomePop','playerStakes','momentFeedback','soundSignals','discoOverlay'])r[name]=()=>{};
  r.chair=(c,x,y,gold,layer)=>chairs.push({x,y,gold,layer});
  r.tuckedChair=(c,seat,gold,progress)=>tucks.push({seat:seat.id,gold,progress});

@@ -8,7 +8,7 @@ test('一次点击只换一条，不发换条奖励',()=>{
  assert.equal(g.nextJoke(),true);assert.equal(g.joke.post,2);assert.equal(g.coins,0);
 });
 test('保留原段子基础收入、金椅和连摸奖金，连续换条不额外加钱',()=>{
- const a=quiet(),b=quiet();b.special={seat:b.player.seat,left:18};a.step(6);b.step(6);
+ const a=quiet(),b=quiet();b.specials=[{seat:b.player.seat,left:18}];a.step(6);b.step(6);
  const ac=a.coins,bc=b.coins,ap=a.pendingBonus,bp=b.pendingBonus;
  for(let i=0;i<10;i++){a.nextJoke();b.nextJoke();}
  assert.ok(Math.abs(ac-12)<1e-7);assert.ok(Math.abs(bc-24)<1e-7);
