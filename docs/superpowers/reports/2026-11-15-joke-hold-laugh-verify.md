@@ -1,5 +1,7 @@
 # 憋笑挑战验证
 
+PASS。运行源码0cc22b082d8ff3da471953a7555b11bab11a824e，完整验证模式，3项任务完成。
+
 ## 实现与范围
 
 段子由点击换条改为模拟时钟推进的憋笑轮次；按住降低笑意但耗气，松手恢复气息但涨笑意。1.2秒铺梗、6秒挑战、1.2秒结果。成功3金币，金椅6金币且按现有连续比例计入待收；失败笑声在当时座位保留约1秒有效听觉窗口并衰减，不直接扣款或抓包。
@@ -21,7 +23,11 @@
 
 第四关不输入，笑意100失败；再次失败后主管实际听见笑声，页面显示目标8号工位。随后移动到6号金椅，页面仍显示主管目标8号、旧声源。普通/段子一键工作顶部同为563.6015625；控制台warn/error为空。按住时暂停及失焦释放另外有输入和模型回归覆盖，不将单测称作原生多点触摸测试。
 
-截图：outputs/laugh-success-local.jpg、laugh-burst-local.jpg、laugh-heard-local.jpg、laugh-old-seat-local.jpg。开发机发布后补充校验记录。
+截图：outputs/laugh-success-local.jpg、laugh-burst-local.jpg、laugh-heard-local.jpg、laugh-old-seat-local.jpg。
+
+## 开发机复验
+
+29运行文件磁盘及HTTP SHA256全部一致，其他既有服务摘要不变，前版保留。线上375×667第三关真实按住/松手成功+3并收手；重开后不操作笑意100、爆笑失败，按住已释放，收手恢复原按钮。两种状态一键工作顶部都为563.6015625，warn/error为空。截图outputs/laugh-success-live.jpg和laugh-burst-live.jpg。临时视口恢复，最终页面暂停留供试玩。具体主机和回退路径仅写在私有项目副本部署记录中。
 
 ## Spec映射
 
