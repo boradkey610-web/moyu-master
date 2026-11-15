@@ -1,0 +1,14 @@
+{
+  "change": "interactive-office-comics",
+  "phase": "design",
+  "mode": "compact",
+  "canonical_spec": "openspec",
+  "generated_by": "omw-handoff.sh",
+  "context_hash": "4a3e951ac7f22a6374717e4492044a1b77872d24a9f871fbb40f6137d282d298",
+  "files": [
+    { "path": "openspec/changes/interactive-office-comics/proposal.md", "sha256": "50889e48c5291608f08324ce4ecc016dbda00981ac469430900a1835acd200fc" },
+    { "path": "openspec/changes/interactive-office-comics/design.md", "sha256": "180a66a0a698cf9b5704607864c7f61a0266c40002af95ca1f6db724a9b30710" },
+    { "path": "openspec/changes/interactive-office-comics/tasks.md", "sha256": "ec73f07121bcc528767e5aa07beb9a4424683d6db6fdbd40a8464c87e0809efb" },
+    { "path": "openspec/changes/interactive-office-comics/specs/interactive-office-comics/spec.md", "sha256": "6ba8d3b411c1b633e4b7eb09f4ca15694cbb9adc2ef6f05e2494015612fc319c" }
+  ]
+}

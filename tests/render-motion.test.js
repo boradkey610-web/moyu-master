@@ -68,12 +68,6 @@ test('放大的闻声感叹号在靠边过道也完整显示',()=>{
  const [x,y]=positions[0],pop=scales[0][0];
  assert.ok(x-38*pop>=0&&x+38*pop<=720);assert.ok(y-38*pop>=0&&y+38*pop<=920);
 });
-test('笑声调查的工位标记和检查者文案不误显示手柄',()=>{
- const r=renderer(),ins={name:'老板',x:655,y:585,clock:3,lastHeard:{x:545,y:515,seat:7,time:3,kind:'joke'},queue:[{kind:'wait'}]},labels=[];
- r.chip=(c,text)=>labels.push(text);r.line=()=>{};r.ellipse=()=>{};r.text=()=>{};
- const c=new Proxy({}, {get:()=>()=>{}});r.soundSignals(c,{inspectors:[ins],player:{seat:7}},3);
- assert.ok(labels.some(t=>t.startsWith('哈 ')));assert.ok(labels.every(t=>!t.includes('🎮')));
-});
 test('待收奖金为钱袋和对齐整数，无底框，不足1金币不绘制',()=>{
  const r=renderer(),labels=[];r.box=()=>assert.fail('奖金不应有底框');r.text=()=>assert.fail('奖金不应有说明文字');
  const c=new Proxy({createLinearGradient:()=>({addColorStop(){}}),measureText:()=>({actualBoundingBoxAscent:22,actualBoundingBoxDescent:2}),fillText:(text,x,y)=>labels.push({text,x,y})}, {get:(o,k)=>o[k]??(()=>{})});
