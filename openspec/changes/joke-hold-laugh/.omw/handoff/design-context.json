@@ -1,0 +1,14 @@
+{
+  "change": "joke-hold-laugh",
+  "phase": "design",
+  "mode": "compact",
+  "canonical_spec": "openspec",
+  "generated_by": "omw-handoff.sh",
+  "context_hash": "e891f90c4fe310433448c2c424e53a8ce3148d75f3532f5a931025cb2db0e26c",
+  "files": [
+    { "path": "openspec/changes/joke-hold-laugh/proposal.md", "sha256": "2dd21ae9de34fd8348653f8bd43b754cbd33c22208c0803707185ae98f3962ae" },
+    { "path": "openspec/changes/joke-hold-laugh/design.md", "sha256": "05e705900b820e46c5a845253618c0e2fc98783dc80dc917c5afb6a1d69c7b10" },
+    { "path": "openspec/changes/joke-hold-laugh/tasks.md", "sha256": "2aab8c8ecd215ecb82e284e89468c27093734785e50ed49a0153029b4348fe61" },
+    { "path": "openspec/changes/joke-hold-laugh/specs/joke-hold-laugh/spec.md", "sha256": "6478fecf44dc38d83b162ccc60981df2087725b7ae4dc2b40a56411ac740d47e" }
+  ]
+}

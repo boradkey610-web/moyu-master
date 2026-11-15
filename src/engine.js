@@ -37,8 +37,8 @@ function advanceSound(field,dt){
  field.respondedZones??={};field.clock+=dt;const emitter=field.emitter,rate=emitter?.seated?({game:4,dance:22}[emitter.activity]||0):0;
  if(rate&&!field.sources.some(s=>s.seat===emitter.seat))field.sources.push({seat:emitter.seat,x:emitter.x,y:emitter.y,zone:zoneFor(emitter),volume:0,kind:emitter.activity,pulseId:null,lastPulse:-Infinity});
  for(const source of field.sources){
-  source.active=!!rate&&source.seat===emitter.seat;
-  if(source.active){source.volume=Math.min(100,source.volume+rate*dt);source.kind=emitter.activity;}
+  const growing=!!rate&&source.seat===emitter.seat;source.active=growing||source.burstUntil>field.clock;
+  if(growing){source.volume=Math.min(100,source.volume+rate*dt);source.kind=emitter.activity;}
   else source.volume=Math.max(0,source.volume-12*dt);
   source.radius=source.volume>=40-1e-8?180+(source.volume-40)/60*140:0;
   if(source.volume>=40-1e-8&&(source.pulseId===null||field.clock-source.lastPulse>=8-1e-8)){source.pulseId=field.nextId++;source.lastPulse=field.clock;}
@@ -122,20 +122,21 @@ export function forecastAll(inspectors,seconds=10){
 export function forecast(ins,seconds=10){return forecastAll([ins],seconds)[0];}
 export class Game{
  runner=createRunner();
- joke={post:0};
+ joke={post:0,time:0,phase:'reading',held:false,laugh:18,air:100,reward:0};
  constructor(level=0,seed=Date.now()){this.level=level;this.config=levels[level];this.seed=seed>>>0;this.time=this.config.time;this.elapsed=0;this.coins=0;this.warned=false;this.catches=0;this.ads=0;this.extended=false;this.mirror=0;this.inventory={mirror:0,meeting:0};this.special=null;this.specialAt=10;this.dropAt=14;this.drops=[];this.modal=null;this.paused=false;this.toast='选一种摸鱼方式，留意老板的朝向';this.toastLeft=5;this.player={...seats[7],seat:7,activity:'work',riskActivity:'game',route:[],target:null,stopping:0,pending:null,hold:0,lock:0};this.comboTime=0;this.pendingBonus=0;this.exposure=0;this.exposureLimit=.7;this.feedback=null;this.greeting=null;this.tutorialSeen=false;this.stats={moves:0,moveTime:0,greetings:0,picked:0,closeCalls:0,banked:0,activityTime:{joke:0,game:0,dance:0,work:0}};this.soundField={clock:0,tickRemainder:0,nextId:1,emitter:null,sources:[],claimed:{},respondedZones:{}};this.inspectors=Array.from({length:this.config.bosses},(_,i)=>({x:i?708:12,y:i?350:585,name:i?'主管':'老板',seed:(seed+i*91)>>>0,speed:62,angle:i?-Math.PI/2:0,last:i?5:6,previous:-1,queue:[{kind:'wait',left:3+i*2,angle:i?Math.PI:0},{kind:'move',x:i?655:65,y:i?350:585}],hold:0,hidden:false,leaving:false,greeted:false,clock:0,tickRemainder:0,patrolOrder:i?((seed+i*91)%2?[3,1,0,2,4,5]:[3,5,4,2,0,1]):(level===0?[3,1,0,2,4,5]:(seed%2?[2,4,5,3,1,0]:[2,0,1,3,5,4])),patrolIndex:0,zone:null,checkedZones:{},avoidZones:[],lastSeen:null,suspicion:0,observation:null,lastHeard:null,pendingSound:null,hearingTime:0,hearingId:null,evidenceKind:'routine',soundField:this.soundField,directed:false,closeClaimed:false}));this.npcs=[0,3,8,10,4,1,11].slice(0,this.config.npcs).map((seat,i)=>({...seats[seat],seat,target:null,route:[],next:level===3?35+i*6:Infinity,color:i%3}));}
  jump(){const p=this.player;if(this.modal||this.paused||p.activity!=='game'||p.seat===null||p.route.length||p.stopping>0||p.lock>0)return false;return jumpRunner(this.runner);}
- nextJoke(){
-  const p=this.player;if(this.modal||this.paused||p.activity!=='joke'||p.seat===null||p.route.length||p.stopping>0||p.lock>0)return false;
-  this.joke.post++;return true;
+ holdLaugh(held){
+  if(!held){this.joke.held=false;return true;}
+  const p=this.player;if(this.modal||this.paused||p.activity!=='joke'||p.seat===null||p.route.length||p.stopping>0||p.lock>0||!['reading','playing'].includes(this.joke.phase))return false;
+  this.joke.held=true;return true;
  }
  notify(text){this.toast=text;this.toastLeft=3.5;}
  occupied(id,except){return(this.player!==except&&this.player.seat===id)||this.npcs.some(n=>n!==except&&n.seat===id);}
  empty(){return seats.filter(s=>!this.occupied(s.id));}
  activityThreats(a){return this.inspectors.filter(i=>!i.hidden&&['warning','checking'].includes(i.queue[0]?.phase)&&visible(i,this.player,activities[a]?.range||0)).map(i=>i.name);}
  setActivity(a){const p=this.player;if(this.modal||this.paused||!activities[a]||p.lock>0)return false;if(p.route.length){if(a==='work'){p.route=[];p.target=null;p.activity='work';this.notify('停在过道 · 点击空座继续');}return false;}if(p.seat===null&&a!=='work')return false;if(p.stopping>0)return false;if(p.activity===a)return true;this.transition({type:'activity',activity:a});return true;}
- transition(action){const p=this.player;if(p.stopping>0)return false;const stop=activities[p.activity].stop;if(stop>0){p.stopping=stop;p.pending=action;}else this.perform(action);return true;}
- perform(action){const p=this.player;if(action.type==='activity'&&action.activity!=='work')p.riskActivity=action.activity;if(action.type==='move'||action.activity==='work')this.bankBonus();p.activity='work';if(action.type==='activity'){p.activity=action.activity;if(action.activity==='game')this.runner=createRunner();if(action.activity==='dance'){p.warmup=.8;p.danceStartedAt=this.elapsed;}else p.warmup=0;}else{if(this.occupied(action.seat)){this.notify('这个工位被同事占了，换一个吧');return;}p.route=pathBetween(p,seats[action.seat]);p.target=action.seat;p.seat=null;this.stats.moves++;}}
+ transition(action){const p=this.player;if(p.stopping>0)return false;this.joke.held=false;const stop=activities[p.activity].stop;if(stop>0){p.stopping=stop;p.pending=action;}else this.perform(action);return true;}
+ perform(action){const p=this.player;if(action.type==='activity'&&action.activity!=='work')p.riskActivity=action.activity;if(action.type==='move'||action.activity==='work')this.bankBonus();p.activity='work';if(action.type==='activity'){p.activity=action.activity;if(action.activity==='joke')this.joke={post:this.joke.post,time:0,phase:'reading',held:false,laugh:18,air:100,reward:0};if(action.activity==='game')this.runner=createRunner();if(action.activity==='dance'){p.warmup=.8;p.danceStartedAt=this.elapsed;}else p.warmup=0;}else{if(this.occupied(action.seat)){this.notify('这个工位被同事占了，换一个吧');return;}p.route=pathBetween(p,seats[action.seat]);p.target=action.seat;p.seat=null;this.stats.moves++;}}
  bankBonus(){
   let amount=this.pendingBonus,close=false;
   if(this.comboTime>=3-1e-8)for(const ins of this.inspectors){const q=ins.queue[0];if(q?.phase==='warning'&&q.left<=1+1e-8&&!q.closeClaimed&&visible(ins,this.player,activities[this.player.activity].range)){q.closeClaimed=true;ins.closeClaimed=true;amount+=5;this.stats.closeCalls++;close=true;}}
@@ -153,7 +154,7 @@ export class Game{
  pickup(){const p=this.player;const d=this.drops.find(d=>d.seat===p.seat);if(d&&!this.inventory[d.type]){this.inventory[d.type]=1;this.drops=this.drops.filter(x=>x!==d);this.stats.picked++;this.notify(d.type==='mirror'?'拿到反光镜 · 可看全部检查者十秒路线':'拿到开会通知 · 可支走一名检查者');}}
  useMirror(){if(this.modal||this.paused||!this.inventory.mirror||!this.inspectors.some(i=>!i.hidden))return false;this.inventory.mirror=0;this.mirror=10;this.notify('情报生效 · 全员未来十秒路线');return true;}
  useMeeting(index){const ins=this.inspectors[index];if(!ins||ins.hidden||ins.leaving||!this.inventory.meeting||this.modal||this.paused)return false;const exits=nodes.filter(n=>n.x===65||n.x===655||n.y===115||n.y===820);let best;for(const e of exits){const door=exitFor(e);const path=pathBetween(ins,door);let prev=ins;const len=path.reduce((s,p)=>{const v=s+dist(prev,p);prev=p;return v;},0);if(!best||len<best.len)best={len,path,e};}ins.directed=false;ins.closeClaimed=true;ins.zone=null;ins.suspicion=0;ins.pendingSound=null;ins.queue=best.path.map(p=>({kind:'move',...p}));ins.queue.push({kind:'wait',left:10,hidden:true},{kind:'move',x:best.e.x,y:best.e.y});ins.last=best.e.id;ins.previous=-1;ins.leaving=true;this.inventory.meeting=0;this.notify(`${ins.name}去开会了，正在步行离场`);return true;}
- catchPlayer(who){if(this.modal)return;const activity=this.player.activity,lostBonus=Math.floor(this.pendingBonus+1e-8);this.pendingBonus=0;this.comboTime=0;this.exposure=0;const checker=this.inspectors.find(i=>i.name===who);this.player.checker=checker;this.player.checkCommand=checker?.queue[0];this.catches++;this.player.activity='work';this.player.stopping=0;this.player.pending=null;this.player.route=[];this.player.lock=2.5;const lines={joke:['什么这么好笑？也给我讲讲？','好的老板，我马上工作。'],game:['手柄按得挺起劲，打到第几关了？','老板，我这就退。'],dance:['要不要把我的办公室腾出来，给你当舞池？','不用了老板，我坐下。'],work:['上班时间，专心一点。','好的老板。']};if(!this.warned){this.warned=true;this.modal={kind:'warning',who,activity,lines:lines[activity],lostBonus};}else{const before=this.coins;this.coins-=50;this.modal={kind:'fine',who,before,lostBonus};}}
+ catchPlayer(who){if(this.modal)return;this.joke.held=false;const activity=this.player.activity,lostBonus=Math.floor(this.pendingBonus+1e-8);this.pendingBonus=0;this.comboTime=0;this.exposure=0;const checker=this.inspectors.find(i=>i.name===who);this.player.checker=checker;this.player.checkCommand=checker?.queue[0];this.catches++;this.player.activity='work';this.player.stopping=0;this.player.pending=null;this.player.route=[];this.player.lock=2.5;const lines={joke:['什么这么好笑？也给我讲讲？','好的老板，我马上工作。'],game:['手柄按得挺起劲，打到第几关了？','老板，我这就退。'],dance:['要不要把我的办公室腾出来，给你当舞池？','不用了老板，我坐下。'],work:['上班时间，专心一点。','好的老板。']};if(!this.warned){this.warned=true;this.modal={kind:'warning',who,activity,lines:lines[activity],lostBonus};}else{const before=this.coins;this.coins-=50;this.modal={kind:'fine',who,before,lostBonus};}}
  dismiss(){if(!this.modal)return;const kind=this.modal.kind;if(kind==='fine'&&this.coins<0){this.modal={kind:'lose',reason:'破产了，下次早点收手'};return;}if(kind==='warning'||kind==='fine'||kind==='greeting'||kind==='tutorial')this.modal=null;}
  reward(type){if(this.level===0||this.ads>=2)return false;if(type==='explain'){if(this.modal?.kind!=='fine')return false;this.coins=this.modal.before;this.modal=null;this.player.lock=2.5;}else if(type==='extend'){if(this.extended||this.time>30||this.coins>=this.config.target||this.coins<0||this.modal&&this.modal.kind!=='timeout')return false;this.time+=15;this.extended=true;this.modal=null;}else{if(this.modal||!['mirror','meeting'].includes(type)||this.inventory[type])return false;this.inventory[type]=1;}this.ads++;this.notify('测试奖励已领取 · 本局记为助力成绩');return true;}
  step(dt){let left=dt;while(left>1e-8&&!this.modal&&!this.paused){const h=Math.min(left,.02,this.time);if(h<=0){this.modal={kind:'timeout'};break;}this.tick(h);left-=h;}}
@@ -163,7 +164,7 @@ export class Game{
  this.soundField.emitter={x:p.x,y:p.y,seat:p.seat,activity:p.activity,seated:p.seat!==null&&!p.route.length};
  const heardBefore=this.inspectors.map(i=>Math.max(i.lastHeard?.soundId||0,i.pendingSound?.soundId||0));
  advanceInspectors(this.inspectors,dt,this.soundField);
- this.inspectors.forEach((ins,k)=>{const heard=ins.pendingSound||ins.lastHeard;if((heard?.soundId||0)>heardBefore[k])this.notify(`${ins.name}听见了${heard.kind==='dance'?'音乐':'手柄按键声'}，${ins.pendingSound?'稍后':'会'}查看${heard.seat+1}号工位`);});
+ this.inspectors.forEach((ins,k)=>{const heard=ins.pendingSound||ins.lastHeard;if((heard?.soundId||0)>heardBefore[k])this.notify(`${ins.name}听见了${heard.kind==='dance'?'音乐':heard.kind==='joke'?'笑声':'手柄按键声'}，${ins.pendingSound?'稍后':'会'}查看${heard.seat+1}号工位`);});
  if(this.level===0&&!this.tutorialSeen&&this.inspectors.some(i=>i.queue[0]?.phase==='warning')){this.tutorialSeen=true;this.modal={kind:'tutorial'};return;}
 
  for(const n of this.npcs){if(n.route.length){if(this.protectedSeat(n.target)){n.route=[];n.target=null;n.next=this.elapsed+1;}else this.walk(n,dt,62);}else if(this.elapsed>=n.next){const empty=this.empty().filter(s=>!this.npcs.some(o=>o.target===s.id)&&!this.protectedSeat(s.id));if(empty.length){n.target=empty[Math.floor(rand(this)*empty.length)].id;n.route=pathBetween(n,seats[n.target]);n.seat=null;}n.next=this.elapsed+40+rand(this)*20;}}
@@ -176,6 +177,23 @@ export class Game{
    // Integrate tier boundaries exactly, including double-income expiry.
    for(let tier=1;p.activity!=='game'&&tier<=3;tier++){const start=Math.max(before,tier*3),end=Math.min(this.comboTime,tier===3?Infinity:(tier+1)*3);if(end>start){const base=activities[p.activity].rate*(end-start);const boostedPart=boosted?Math.max(0,Math.min(end-before,boostTime)-Math.max(start-before,0)):0;this.pendingBonus+=(base+activities[p.activity].rate*boostedPart)*tier*.2;}}
   }
+ }
+ if(p.activity==='joke'&&p.seat!==null&&!p.route.length&&p.lock===0&&p.stopping===0){
+  const j=this.joke;j.time+=dt;
+  if(j.phase==='reading'&&j.time>=1.2-1e-8){j.phase='playing';j.time=0;}
+  else if(j.phase==='playing'){
+   j.laugh=Math.max(0,Math.min(100,j.laugh+(j.held?-30:24)*dt));
+   j.air=Math.max(0,Math.min(100,j.air+(j.held?-32:50)*dt));
+   if(j.laugh>=100-1e-8||j.air<=1e-8){
+    j.phase='burst';j.time=0;j.held=false;
+    let source=this.soundField.sources.find(s=>s.seat===p.seat);
+    if(!source){source={seat:p.seat,x:p.x,y:p.y,zone:zoneFor(p),volume:0};this.soundField.sources.push(source);}
+    Object.assign(source,{kind:'joke',volume:Math.max(60,source.volume),burstUntil:this.soundField.clock+1,pulseId:null,lastPulse:-Infinity});
+   }else if(j.time>=6-1e-8){
+    j.phase='success';j.time=0;j.held=false;j.reward=3*(boostTime>0?2:1);
+    this.coins+=j.reward;this.pendingBonus+=j.reward*Math.min(3,Math.floor(this.comboTime/3))*.2;
+   }
+  }else if(['success','burst'].includes(j.phase)&&j.time>=1.2-1e-8){this.joke={post:j.post+1,time:0,phase:'reading',held:false,laugh:18,air:100,reward:0};}
  }
  if(p.activity==='game'&&p.seat!==null&&!p.route.length&&p.lock===0&&p.stopping===0){
   const score=stepRunner(this.runner,dt);
