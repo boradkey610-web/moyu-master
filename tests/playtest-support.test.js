@@ -20,8 +20,8 @@ test('新玩家与旧进度都能选择全部关卡，成绩不被清空',()=>{
   const save={unlocked,best:{'1-clean':26}},before=JSON.stringify(save),h=harness({levels,save});
   vm.runInContext(selectCode+';selectLevel()',h.context);
   const buttons=h.dialog.children[0].children;
-  assert.equal(buttons.length,4);assert.ok(buttons.every(b=>!b.disabled));
-  for(const b of buttons)b.fn();assert.deepEqual(h.calls,[0,1,2,3]);
+  assert.equal(buttons.length,levels.length);assert.ok(buttons.every(b=>!b.disabled));
+  for(const b of buttons)b.fn();assert.deepEqual(h.calls,levels.map((_,i)=>i));
   assert.match(h.html(),/全关卡开放/);assert.match(buttons[1].innerHTML,/最佳/);
   assert.equal(JSON.stringify(save),before);
  }

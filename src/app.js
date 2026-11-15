@@ -79,6 +79,8 @@ function paintHomeArt(){
   const c=tile.getContext('2d'),i=Number(tile.dataset.levelArt);c.clearRect(0,0,100,100);
   if(i===1){renderer.asset(c,'chair-gold',15,12,72,82);}
   else if(i===3){renderer.sprite(c,'seated',0,2,50,97,91);}
+  else if(i===5){renderer.printer(c,50,59,74,false,0);}
+  else if(i===4){renderer.portrait(c,'boss',43,98,92);renderer.box(c,68,18,24,24,3,'#fff8d6','#b88a4e',1.5);renderer.text(c,'会',80,35,13,'#94764e');}
   else{renderer.portrait(c,i===2?'supervisor':'boss',50,98,92);}
  }
 }
@@ -95,9 +97,9 @@ function menu(){
 }
 function selectLevel(){
  screen='levels';
- show(`<div class="level-topline"><span>摸鱼办 · 内部安排</span><span>全关卡开放</span></div><div class="level-heading"><span class="map-kicker">不许转发给老板</span><h2 id="dialog-title">今日摸鱼<span>任务板</span></h2><p>领个差事，争取准点下班。</p></div>`);
- const list=document.createElement('div');list.className='level-list adventure-map';
- const descriptions=['老板一转身，机会就来了','金椅限时双倍，先到先赚','两个人巡逻，眼观六路','同事也抢金椅，手慢就没了'];
+ show(`<div class="level-topline"><span>摸鱼办 · 内部安排</span><span>全关卡开放</span></div><div class="level-heading"><span class="map-kicker">不许转发给老板</span><h2 id="dialog-title">今日摸鱼<span>任务板</span></h2><p>${levels.length} 份差事，挑一份准点下班。</p></div>`);
+ const list=document.createElement('div');list.className='level-list adventure-map';list.dataset.count=levels.length;
+ const descriptions=['老板一转身，机会就来了','金椅限时双倍，先到先赚','两个人巡逻，眼观六路','同事也抢金椅，手慢就没了','老板被叫去开会，主管还在','机器响时，按键声被盖住'];
  levels.forEach((l,i)=>{
   const clean=save.best[`${i}-clean`],assisted=save.best[`${i}-assisted`];
   const hasClean=Number.isFinite(clean)&&clean>=0,hasAssisted=Number.isFinite(assisted)&&assisted>=0;
@@ -170,7 +172,7 @@ function processModal(){if(!g.modal||screen==='reward'||g.modal===lastModal)retu
   if(g.level>0&&g.ads<2)$('#dialog').append(button('请同事帮忙解释 · 测试助力',()=>rewardConfirm('explain'),'outlined'));$('#dialog').append(button('返回关卡',selectLevel,'secondary'));
  }else if(m.kind==='win'){
   record();const used=g.config.time+(g.extended?15:0)-g.time;
-  show(`${statement()}${activitySummary()}<div class="result-facts"><span>用时 <b>${formatTime(used)}</b></span><span>抓包 <b>${g.catches} 次</b></span><span>换位 <b>${g.stats.moves} 次</b></span></div><div class="best-record">${g.ads?'助力':'无助力'}最佳用时 <b>${formatTime(save.best[`${g.level}-${g.ads?'assisted':'clean'}`])}</b></div>`,[[g.level<3?'下一天，继续 →':'再摸一局',()=>start(Math.min(3,g.level+1)),'primary'],['选择关卡',selectLevel,'secondary']]);beep(880);
+  show(`${statement()}${activitySummary()}<div class="result-facts"><span>用时 <b>${formatTime(used)}</b></span><span>抓包 <b>${g.catches} 次</b></span><span>换位 <b>${g.stats.moves} 次</b></span></div><div class="best-record">${g.ads?'助力':'无助力'}最佳用时 <b>${formatTime(save.best[`${g.level}-${g.ads?'assisted':'clean'}`])}</b></div>`,[[g.level<levels.length-1?'下一天，继续 →':'再摸一局',()=>start(Math.min(levels.length-1,g.level+1)),'primary'],['选择关卡',selectLevel,'secondary']]);beep(880);
  }else{
   const timeout=m.kind==='timeout';
   show(`${statement()}${activitySummary()}<p>${m.reason||`还差 <b>${Math.ceil(g.config.target-g.coins-1e-8)} 金币</b>。下回趁老板转身，再摸一把。`}${g.catches?`<br>本局抓包 ${g.catches} 次，提前收手能保住奖金。`:""}</p>`,[['再摸一局',()=>start(g.level),'primary']]);
@@ -190,7 +192,8 @@ function updateUI(){
  const blocked=!!screen||!!g.modal,stopping=p.stopping>0,locked=p.lock>0;
  const checks=g.inspectors.filter(i=>!i.hidden).map(i=>{const q=i.queue[0];return `${i.name}${q?.phase==='warning'?(i.threatensPlayer===false?'在查别处':`预告${Math.ceil(q.left)}秒`):q?.phase==='checking'?(i.threatensPlayer===false?'在查别处':`检查${Math.ceil(q.left)}秒`):i.directed?'调查旧位置':i.suspicion>0?'发现动静':'巡逻中'}`;}).join('；');
  const source=g.soundField.sources.find(s=>s.seat===p.seat),soundChecks=g.inspectors.flatMap(i=>{const cue=renderer.soundTarget(i);return cue?[`${i.name}${cue.fresh?'听到了'+(cue.point.kind==='dance'?'音乐':'手柄按键声'):'正在确认声音'}，${cue.pending?'稍后查看':'目标'}${cue.point.seat+1}号工位${cue.point.seat!==p.seat?'，旧声源':''}${cue.pending&&cue.current?`，当前仍查${cue.current.seat+1}号`:''}`]:[];}).join('；');
- canvas.setAttribute('aria-description',`${checks}；${renderer.noiseLabel(source)}${soundChecks?'；'+soundChecks:''}；连续摸鱼${Math.floor(g.comboTime)}秒，收手可领${coinAmount(g.pendingBonus)}金币；${g.exposure>0?'正在暴露':'安全'}${g.feedback?'；'+g.feedback.text:''}`);
+ const office=g.soundField.office,event=office?.kind==='printer'?(g.soundField.clock<office.activeUntil?'打印机正在运转，按键声暂被盖住，视线检查照常':'打印机停止，按键声正常传播'):office?.kind==='meeting'?(g.inspectors[0].leaving||g.inspectors[0].hidden?'老板正在开会，主管继续巡视':'办公室例会，老板当前在场'):'';
+ canvas.setAttribute('aria-description',`${event?event+'；':''}${checks}；${renderer.noiseLabel(source)}${soundChecks?'；'+soundChecks:''}；连续摸鱼${Math.floor(g.comboTime)}秒，收手可领${coinAmount(g.pendingBonus)}金币；${g.exposure>0?'正在暴露':'安全'}${g.feedback?'；'+g.feedback.text:''}`);
  $('#money').innerHTML=`${coinAmount(g.coins)} <em>/ ${g.config.target}</em>`;
  $('#time').textContent=formatTime(g.time);$('#time').classList.toggle('low-time',g.time<30);
  $('#progress').style.width=`${Math.max(0,Math.min(100,g.coins/g.config.target*100))}%`;

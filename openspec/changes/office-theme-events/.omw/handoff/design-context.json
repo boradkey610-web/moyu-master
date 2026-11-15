@@ -1,0 +1,14 @@
+{
+  "change": "office-theme-events",
+  "phase": "design",
+  "mode": "compact",
+  "canonical_spec": "openspec",
+  "generated_by": "omw-handoff.sh",
+  "context_hash": "612f3e354f66f70c0aa964a88d0f83122f5259356eaf4b7a8a114ad8af65a6b2",
+  "files": [
+    { "path": "openspec/changes/office-theme-events/proposal.md", "sha256": "458b679a8ef9c8a63918492ab530275248fff5a44ef8124661bc11f9407cfd48" },
+    { "path": "openspec/changes/office-theme-events/design.md", "sha256": "9083636415c0ae2f8457d035d28f1a8f80ba9c4befb1bdc48ff572a6df3bab4c" },
+    { "path": "openspec/changes/office-theme-events/tasks.md", "sha256": "23f16bf5c2f1d0269199d6773934c4958648ce317fa62d9a6107e636042da4b6" },
+    { "path": "openspec/changes/office-theme-events/specs/office-events/spec.md", "sha256": "474fec5ba815b90c63cefbb8de6a7598bc04f62162bd3a47ce6b8cf0ebd51285" }
+  ]
+}

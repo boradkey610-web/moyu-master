@@ -1,13 +1,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
-import {Game} from '../src/engine.js';
+import {Game,levels} from '../src/engine.js';
 import {readFileSync} from 'node:fs';
 
 const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
 const coinCode=app.slice(app.indexOf('function coinAmount('),app.indexOf('function button('));
 const statementCode=coinCode+app.slice(app.indexOf('function statement('),app.indexOf('function modalBackground('));
 const modalCode=app.slice(app.indexOf('function processModal('),app.indexOf('const seatButtons='));
+
+test('第四关与第五关继续新关，末关重玩自身而非跳回第四关',()=>{
+ for(const [level,next]of [[3,4],[4,5],[5,5]]){
+  const g=new Game(level,100);g.modal={kind:'win'};const calls=[];let choices;
+  const context=vm.createContext({g,levels,screen:null,lastModal:null,record(){},statement:()=>'',activitySummary:()=>'',formatTime:String,save:{best:{}},show:(html,buttons)=>{choices=buttons;},start:i=>calls.push(i),selectLevel(){},beep(){}});
+  vm.runInContext(modalCode+';processModal()',context);
+  assert.equal(choices[0][0],level===5?'再摸一局':'下一天，继续 →');
+  choices[0][1]();assert.deepEqual(calls,[next]);
+ }
+});
 
 test('警告和罚款分别说明未收手奖金损失，不额外扣除工资',()=>{
  const g=new Game(2,1);g.inspectors=[];g.player.activity='game';g.coins=100;g.pendingBonus=11.9;g.catchPlayer('老板');

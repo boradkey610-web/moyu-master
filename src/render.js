@@ -676,7 +676,31 @@ export class Renderer{
   this.ellipse(c,end.x,end.y+40,28,10,'#8cc0b50d','#91aaa080',1.5);
   c.restore();
  }
+ printer(c,x,y,size,active,t){
+  c.save();c.translate(x,y);c.scale(size/80,size/80);
+  if(active)c.translate(Math.sin(t*24)*.8,0);
+  this.ellipse(c,0,29,39,7,'#4d594528');
+  this.box(c,-25,-48,50,38,2,'#fffdf1','#a6aa92',1.5);
+  this.line(c,[[-16,-37],[15,-37]],'#b2b59f',2);this.line(c,[[-16,-30],[9,-30]],'#b2b59f',2);
+  this.box(c,-39,-23,78,48,6,'#c4cebf','#697f70',2);
+  this.box(c,-33,-17,66,14,3,'#e8eadb','#a1ad96',1);
+  this.box(c,-26,6,52,8,2,'#5b6d61');
+  this.box(c,-21,10+(active?Math.sin(t*6)*3:0),42,25,1,'#fffdf1','#bcc1a8',1);
+  this.line(c,[[-13,18],[13,18]],'#b6b79f',1.5);this.line(c,[[-13,23],[7,23]],'#b6b79f',1.5);
+  this.ellipse(c,25,-10,3,3,active?'#79b76d':'#9aab91');
+  if(active){c.strokeStyle='#b98d45';c.lineWidth=2.5;c.globalAlpha=.55+Math.sin(t*7)*.25;for(let r=12;r<=28;r+=8){c.beginPath();c.arc(39,-7,r,-.7,.7);c.stroke();}}
+  c.restore();
+ }
  draw(g,t){if(this.lastGame!==g){this.lastGame=g;this.facings=new Map();this.motion.clear();this.predictionTime=-1;this.predictions=[];}const c=this.c;c.clearRect(0,0,W,H);c.drawImage(this.bg,0,0);this.soundSources(c,g,t);
+ const office=g.soundField?.office;
+ if(office?.kind==='printer')this.printer(c,355,64,92,g.soundField.clock<office.activeUntil,t);
+ if(office?.kind==='meeting'){
+  const away=g.inspectors[0]?.leaving||g.inspectors[0]?.hidden;
+  this.box(c,580,28,106,55,3,'#fff8e5','#bba77c',1.5);
+  this.box(c,608,23,46,10,1,'#d7bd8a99');
+  this.text(c,'办公室例会',633,51,15,'#837255','700');
+  this.text(c,away?'老板开会中':'会议室',633,70,14,away?'#ba8253':'#8d9c87');
+ }
  if(g.mirror>0){if(g.elapsed-this.predictionTime>.1||this.predictionTime<0){this.predictions=forecastAll(g.inspectors,g.mirror);this.predictionTime=g.elapsed;}this.predictions.forEach((points,i)=>{c.setLineDash([10,8]);this.line(c,points.filter(p=>!p.hidden).map(p=>[p.x,p.y]),i?'#d77c77':'#499dbb',4);c.setLineDash([]);const end=points.filter(p=>!p.hidden).at(-1);if(end){this.ellipse(c,end.x,end.y,8,8,i?'#d77c77':'#499dbb');this.text(c,'•',end.x,end.y,18,'#fff');}let last;for(const p of points)if(p.waiting&&(!last||Math.hypot(p.x-last.x,p.y-last.y)>5)){this.chip(c,'停',p.x,p.y-18,'#fff8e9');last=p;}});}
  const p=g.player,dance=this.danceState(g);this.movePath(c,p,g.elapsed);
  for(const ins of g.inspectors)if(!ins.hidden)this.inspectionCone(c,ins,p.activity==='work'?(p.riskActivity||'game'):p.activity,t);
@@ -704,7 +728,6 @@ export class Renderer{
  for(const a of actors){
   const pose=a.renderPose;
   if(a.type==='player'){
-   this.text(c,'★',a.x,a.y-108,25,'#e9ad32','900');
    const greeting=g.greeting?.left>0?g.greeting:null;
    if(greeting)this.chip(c,`${greeting.who}好！借过一下～`,a.x,Math.max(18,a.y-134),'#edf4e5','#65805a');
    else if(a.route.length)this.chip(c,'去新工位',a.x,Math.max(18,a.y-134));
