@@ -1,0 +1,14 @@
+{
+  "change": "office-soundscape",
+  "phase": "design",
+  "mode": "compact",
+  "canonical_spec": "openspec",
+  "generated_by": "omw-handoff.sh",
+  "context_hash": "589f6e34c74cc025fcaf919526f5aef50090e0fa1a055562bd7904096c9c0035",
+  "files": [
+    { "path": "openspec/changes/office-soundscape/proposal.md", "sha256": "797198980bb8b015461972c58ef2d199ef6f8398140969e0379672f92c234bdc" },
+    { "path": "openspec/changes/office-soundscape/design.md", "sha256": "7b1e25bf81aa3c87d13f64e20d0ad7d3b15945f0457cfd4cd4e98cdd4dd58450" },
+    { "path": "openspec/changes/office-soundscape/tasks.md", "sha256": "48a1c9f6491c5513d7f36cb8fb06847c62ef0180fa262420c270899c3ef7b10d" },
+    { "path": "openspec/changes/office-soundscape/specs/office-soundscape/spec.md", "sha256": "0ca20775ea0208fa02984b23de4dc7501d07f6ad5bdd71565c64c38d2d6175bf" }
+  ]
+}
