@@ -12,8 +12,8 @@ base_ref: 3b2d0120c5ee29000ff68240376f28bceaa4c066
 design_doc: docs/superpowers/specs/2026-11-16-ripple-office-progression-design.md
 plan: docs/superpowers/plans/2026-11-16-ripple-office-progression.md
 verify_result: pending
-verification_report: null
-branch_status: pending
+verification_report: docs/superpowers/reports/2026-11-16-ripple-office-progression-verify.md
+branch_status: handled
 created_at: 2026-11-15
 verified_at: null
 archived: false
