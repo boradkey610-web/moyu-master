@@ -3,6 +3,18 @@ import assert from 'node:assert/strict';
 import {Game,levels,seats,advanceInspectors,forecastAll} from '../src/engine.js';
 import {Renderer} from '../src/render.js';
 
+test('打印机全程显示掩护倒计时，暂停冻结，结束回待机',()=>{
+ const g=new Game(5,100),r=Object.create(Renderer.prototype),labels=[],states=[];
+ const c=new Proxy({}, {get:(o,k)=>o[k]??(()=>{})});
+ r.printer=(c,x,y,size,active,t)=>states.push({active,t});r.chip=(c,text)=>labels.push(text);r.line=()=>{};
+ r.printerStatus(c,g);assert.equal(labels.at(-1),'打印机待机');
+ advanceInspectors(g.inspectors,g.soundField.office.nextAt+.5);
+ r.printerStatus(c,g);assert.equal(labels.at(-1),'按键声掩护 · 10s');
+ advanceInspectors(g.inspectors,4);r.printerStatus(c,g);assert.equal(labels.at(-1),'按键声掩护 · 6s');
+ const before=states.at(-1);g.paused=true;g.step(3);r.printerStatus(c,g);assert.deepEqual(states.at(-1),before);
+ advanceInspectors(g.inspectors,6);r.printerStatus(c,g);assert.equal(labels.at(-1),'打印机待机');assert.equal(states.at(-1).active,false);
+});
+
 test('打印机每次开始和停止短暂提示，位置居中且随暂停冻结',()=>{
  const g=new Game(5,100),r=Object.create(Renderer.prototype),labels=[],icons=[],positions=[];
  const c=new Proxy({}, {get:(o,k)=>o[k]??(()=>{}),set:(o,k,v)=>(o[k]=v,true)});

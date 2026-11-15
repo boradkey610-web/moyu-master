@@ -691,6 +691,13 @@ export class Renderer{
   if(active){c.strokeStyle='#b98d45';c.lineWidth=2.5;c.globalAlpha*=.55+Math.sin(t*7)*.25;for(let r=12;r<=28;r+=8){c.beginPath();c.arc(39,-7,r,-.7,.7);c.stroke();}}
   c.restore();
  }
+ printerStatus(c,g){
+  const field=g.soundField,office=field?.office;if(office?.kind!=='printer')return;
+  const left=Math.max(0,office.activeUntil-field.clock),active=left>1e-8;
+  this.printer(c,355,61,92,active,field.clock);
+  this.chip(c,active?`按键声掩护 · ${Math.ceil(left-1e-8)}s`:'打印机待机',355,114,active?'#e5efd8':'#f1efe4',active?'#4c7754':'#929583');
+  if(active){this.line(c,[[285,136],[425,136]],'#d0d9bf',4);this.line(c,[[285,136],[285+140*left/10,136]],'#73a260',4);}
+ }
  officeEventCue(c,g){
   const field=g.soundField,office=field?.office;
   if(office?.kind!=='printer'||!office.count)return;
@@ -709,7 +716,7 @@ export class Renderer{
  }
  draw(g,t){if(this.lastGame!==g){this.lastGame=g;this.facings=new Map();this.motion.clear();this.predictionTime=-1;this.predictions=[];}const c=this.c;c.clearRect(0,0,W,H);c.drawImage(this.bg,0,0);this.soundSources(c,g,t);
  const office=g.soundField?.office;
- if(office?.kind==='printer')this.printer(c,355,64,92,g.soundField.clock<office.activeUntil,t);
+ this.printerStatus(c,g);
  if(office?.kind==='meeting'){
   const away=g.inspectors[0]?.leaving||g.inspectors[0]?.hidden;
   this.box(c,580,28,106,55,3,'#fff8e5','#bba77c',1.5);
