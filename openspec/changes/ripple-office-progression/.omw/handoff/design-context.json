@@ -1,0 +1,14 @@
+{
+  "change": "ripple-office-progression",
+  "phase": "design",
+  "mode": "compact",
+  "canonical_spec": "openspec",
+  "generated_by": "omw-handoff.sh",
+  "context_hash": "000e15871e3a5eb12a4b722fe8c87b2bdbccd774d9bcb269f93e421ed02c3a3c",
+  "files": [
+    { "path": "openspec/changes/ripple-office-progression/proposal.md", "sha256": "bde5b9d84a8ebe06931fff829e70cf6f682bd1d3554feb883a7914c5c7c19f67" },
+    { "path": "openspec/changes/ripple-office-progression/design.md", "sha256": "de8d8cd2327c46d97121552b51475e95b01f25450cb7fadd5a05734b013c68a3" },
+    { "path": "openspec/changes/ripple-office-progression/tasks.md", "sha256": "6c867558fb5fe2296b9f0b24f76b7a9feeaaf095eb3a7e2563e950d5316e67e4" },
+    { "path": "openspec/changes/ripple-office-progression/specs/progressive-office/spec.md", "sha256": "47d99a8bfbd718c5fb2dfff35a34eb747b6683f3bff28e9f561a562b337f7878" }
+  ]
+}
