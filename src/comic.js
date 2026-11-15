@@ -36,7 +36,10 @@ export function drawComic(canvas,comic,stopping,r){
   const fall=comic.step===3?ease(t/1.2):0,x=233-99*fall,y=61+22*fall;
   r.ellipse(c,x,y+9,size,size*.38,'#b47a35','#8c6239');r.ellipse(c,x,y,size,size*.38,'#ebbd67','#a67535');r.ellipse(c,x-3,y-2,size*.78,size*.25,'#f4cf85','#d6a24f');
   for(let n=-1;n<=1;n++)r.line(c,[[x+n*size*.36-5,y-5],[x+n*size*.36+6,y+4]],'#bf8a44',2.5);
-  if(impact>.5){r.text(c,'咚！',261,96,27,'#bc7840','900');for(let n=0;n<4;n++)r.line(c,[[73+n*38,122],[70+n*38,114]],'#e8b35b',3);}
+  if(impact>.5){
+   c.save();c.translate(267,111);c.rotate(-Math.PI/2+Math.sin(comic.clock*14)*.09);c.beginPath();c.rect(-28,-48,56,49);c.clip();r.portrait(c,'boss',0,0,113);c.restore();
+   r.text(c,'咚！',290,75,25,'#bc7840','900');for(let n=0;n<4;n++)r.line(c,[[73+n*38,122],[70+n*38,114]],'#e8b35b',3);
+  }
  }else if(scene===1){
   const motion=t+(comic.phase==='done'?comic.clock-comic.doneAt:0);
   for(let n=0;n<3;n++){

@@ -26,3 +26,6 @@ test('同事已离场后的结果阶段椅子仍转动，使用模拟时钟',()=
 test('会议投影画在角色后方，不盖住睡倒的脸',()=>{
  const state=comic.createComic(2);comic.tapComic(state);comic.stepComic(state,2.6);const calls=draw(state),screen=calls.findIndex(c=>c[0]==='box'&&c[1]===235),person=calls.findIndex(c=>c[0]==='portrait');assert.ok(screen>=0&&screen<person);
 });
+test('巨饼下用原老板腿部表现挣扎，结果阶段仍有动作',()=>{
+ const state=comic.createComic();for(let n=0;n<3;n++){comic.tapComic(state);comic.stepComic(state,n<2?.36:2);}const calls=draw(state);assert.ok(calls.some(c=>c[0]==='clip'));assert.equal(calls.filter(c=>c[0]==='portrait'&&c[1]==='boss').length,2);comic.stepComic(state,.1);assert.notDeepEqual(draw(state),calls);
+});
