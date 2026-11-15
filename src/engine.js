@@ -1,21 +1,20 @@
 import {createRunner,jumpRunner,stepRunner} from './runner.js';
+import {createOfficeLayout} from './office-layout.js';
 export const activities={work:{name:'工作',rate:0,range:0,stop:0},joke:{name:'看段子',rate:2,range:70,stop:.1},game:{name:'打游戏',rate:3,range:140,stop:.5},dance:{name:'蹦迪',rate:6,range:230,stop:1}};
-export const levels=[{name:'入职第一天',target:90,time:60,npcs:2,bosses:1},{name:'找个好工位',target:170,time:75,npcs:3,bosses:1},{name:'主管也来了',target:400,time:90,npcs:5,bosses:2},{name:'周五抢座大战',target:440,time:90,npcs:7,bosses:2},{name:'老板开会',target:360,time:90,npcs:4,bosses:2,event:'meeting'},{name:'打印机故障',target:360,time:90,npcs:4,bosses:2,event:'printer'}];
-export const seats=Array.from({length:12},(_,id)=>{const row=Math.floor(id/4),col=Math.floor(id%4/2);return{id,x:(col?455:165)+(id%2)*90,y:280+row*235,row,col};});
+export const levels=[{name:'入职第一天',target:90,time:60,npcs:2,bosses:1,seatCount:8},{name:'找个好工位',target:170,time:75,npcs:3,bosses:1,seatCount:8},{name:'主管也来了',target:400,time:90,npcs:5,bosses:2,seatCount:12},{name:'周五抢座大战',target:440,time:90,npcs:7,bosses:2,seatCount:12},{name:'老板开会',target:360,time:90,npcs:4,bosses:2,seatCount:16,event:'meeting'},{name:'打印机故障',target:360,time:90,npcs:4,bosses:2,seatCount:16,event:'printer'}];
+const defaultLayout=createOfficeLayout(12);
+export const {seats,nodes}=defaultLayout;
 const PLAYER_SPEED=110;
-const xs=[65,355,655],ys=[115,350,585,820];
-export const nodes=ys.flatMap((y,r)=>xs.map((x,c)=>({x,y,id:r*3+c})));
-const neighbors=id=>[id%3? id-1:-1,id%3<2?id+1:-1,id>=3?id-3:-1,id<9?id+3:-1].filter(i=>i>=0);
+const neighbors=(id,count)=>[id%3? id-1:-1,id%3<2?id+1:-1,id>=3?id-3:-1,id<count-3?id+3:-1].filter(i=>i>=0);
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const same=(a,b)=>dist(a,b)<.001;
-function gridPath(a,b){const costs=nodes.map(()=>Infinity),prev={},todo=new Set(nodes.map(n=>n.id));costs[a]=0;while(todo.size){let u=[...todo].sort((i,j)=>costs[i]-costs[j])[0];todo.delete(u);if(u===b)break;for(const v of neighbors(u)){const d=costs[u]+dist(nodes[u],nodes[v]);if(d<costs[v]){costs[v]=d;prev[v]=u;}}}const result=[nodes[b]];while(result[0].id!==a)result.unshift(nodes[prev[result[0].id]]);return result;}
-function anchors(p){if(p.seat!==undefined&&p.seat!==null)p=seats[p.seat];const row=ys.indexOf(p.y),col=xs.indexOf(p.x);if(row>=0)return xs.map((x,c)=>({node:row*3+c,point:{x:p.x,y:p.y},cost:Math.abs(p.x-x)}));if(col>=0)return ys.map((y,r)=>({node:r*3+col,point:{x:p.x,y:p.y},cost:Math.abs(p.y-y)}));const s=seats.find(s=>Math.abs(s.x-p.x)<.01&&p.y>=s.y&&p.y<=ys[s.row+1]);if(s)return xs.map((x,c)=>({node:(s.row+1)*3+c,point:{x:p.x,y:ys[s.row+1]},cost:ys[s.row+1]-p.y+Math.abs(x-p.x)}));return[{node:4,point:{x:355,y:p.y},cost:Math.abs(p.x-355)+Math.abs(p.y-350)}];}
-export function pathBetween(a,b){let best=null;for(const aa of anchors(a))for(const bb of anchors(b)){if((aa.point.y===bb.point.y&&ys.includes(aa.point.y))||(aa.point.x===bb.point.x&&xs.includes(aa.point.x))){const direct=dist(a,aa.point)+dist(aa.point,bb.point)+dist(bb.point,b);if(!best||direct<best.len)best={len:direct,path:[aa.point,bb.point,{x:b.x,y:b.y}]};}const grid=gridPath(aa.node,bb.node);const len=aa.cost+bb.cost+grid.slice(1).reduce((sum,n,i)=>sum+dist(grid[i],n),0);if(!best||len<best.len)best={len,path:[aa.point,...grid,bb.point,{x:b.x,y:b.y}]};}let prev=a;return best.path.filter(p=>{if(same(p,prev))return false;prev=p;return true;}).map(p=>({x:p.x,y:p.y})).concat(best.path.length&&same(a,b)?[{x:b.x,y:b.y}]:[]);}
+function gridPath(a,b,nodes){const costs=nodes.map(()=>Infinity),prev={},todo=new Set(nodes.map(n=>n.id));costs[a]=0;while(todo.size){let u=[...todo].sort((i,j)=>costs[i]-costs[j])[0];todo.delete(u);if(u===b)break;for(const v of neighbors(u,nodes.length)){const d=costs[u]+dist(nodes[u],nodes[v]);if(d<costs[v]){costs[v]=d;prev[v]=u;}}}const result=[nodes[b]];while(result[0].id!==a)result.unshift(nodes[prev[result[0].id]]);return result;}
+function anchors(p,layout){const {seats,xs,ys}=layout;if(p.seat!==undefined&&p.seat!==null)p=seats[p.seat];const row=ys.indexOf(p.y),col=xs.indexOf(p.x);if(row>=0)return xs.map((x,c)=>({node:row*3+c,point:{x:p.x,y:p.y},cost:Math.abs(p.x-x)}));if(col>=0)return ys.map((y,r)=>({node:r*3+col,point:{x:p.x,y:p.y},cost:Math.abs(p.y-y)}));const s=seats.find(s=>Math.abs(s.x-p.x)<.01&&p.y>=s.y&&p.y<=ys[s.row+1]);if(s)return xs.map((x,c)=>({node:(s.row+1)*3+c,point:{x:p.x,y:ys[s.row+1]},cost:ys[s.row+1]-p.y+Math.abs(x-p.x)}));return[{node:4,point:{x:355,y:p.y},cost:Math.abs(p.x-355)+Math.abs(p.y-ys[1])}];}
+export function pathBetween(a,b,layout=defaultLayout){const {xs,ys,nodes}=layout;let best=null;for(const aa of anchors(a,layout))for(const bb of anchors(b,layout)){if((aa.point.y===bb.point.y&&ys.includes(aa.point.y))||(aa.point.x===bb.point.x&&xs.includes(aa.point.x))){const direct=dist(a,aa.point)+dist(aa.point,bb.point)+dist(bb.point,b);if(!best||direct<best.len)best={len:direct,path:[aa.point,bb.point,{x:b.x,y:b.y}]};}const grid=gridPath(aa.node,bb.node,nodes);const len=aa.cost+bb.cost+grid.slice(1).reduce((sum,n,i)=>sum+dist(grid[i],n),0);if(!best||len<best.len)best={len,path:[aa.point,...grid,bb.point,{x:b.x,y:b.y}]};}let prev=a;return best.path.filter(p=>{if(same(p,prev))return false;prev=p;return true;}).map(p=>({x:p.x,y:p.y})).concat(best.path.length&&same(a,b)?[{x:b.x,y:b.y}]:[]);}
 function rand(o){o.seed=(Math.imul(o.seed,1664525)+1013904223)>>>0;return o.seed/4294967296;}
-const exitFor=n=>n.x===65?{x:12,y:n.y}:n.x===655?{x:708,y:n.y}:n.y===115?{x:n.x,y:55}:{x:n.x,y:885};
 function sendToMeeting(ins,duration){
- const exits=nodes.filter(n=>n.x===65||n.x===655||n.y===115||n.y===820);let best;
- for(const e of exits){const door=exitFor(e),path=pathBetween(ins,door);let prev=ins;const len=path.reduce((s,p)=>{const v=s+dist(prev,p);prev=p;return v;},0);if(!best||len<best.len)best={len,path,e};}
+ const layout=ins.layout||defaultLayout;let best;
+ for(const {node:e,point:door} of layout.exits){const path=pathBetween(ins,door,layout);let prev=ins;const len=path.reduce((s,p)=>{const v=s+dist(prev,p);prev=p;return v;},0);if(!best||len<best.len)best={len,path,e};}
  ins.directed=false;ins.closeClaimed=true;ins.zone=null;ins.suspicion=0;ins.pendingSound=null;
  ins.queue=best.path.map(p=>({kind:'move',...p}));
  ins.queue.push({kind:'wait',left:duration,hidden:true},{kind:'move',x:best.e.x,y:best.e.y,meetingReturn:true});
@@ -32,16 +31,15 @@ function advanceOffice(field,list){
   office.activeUntil=field.clock+10;office.count++;office.nextAt+=24;
  }
 }
-const patrolStops=Array.from({length:6},(_,zone)=>({x:zone%2?500:210,y:350+Math.floor(zone/2)*235,zone}));
 const patrolOrder=[0,1,3,5,4,2];
 const zoneFor=p=>p.seat!=null?Math.floor(p.seat/4)*2+Math.floor(p.seat%4/2):null;
-function nearestAisle(p){return [...xs.map(x=>({x,y:p.y})),...ys.map(y=>({x:p.x,y}))].sort((a,b)=>dist(p,a)-dist(p,b))[0];}
+function nearestAisle(p,layout){const {xs,ys}=layout;return [...xs.map(x=>({x,y:p.y})),...ys.map(y=>({x:p.x,y}))].sort((a,b)=>dist(p,a)-dist(p,b))[0];}
 function zoneAvailable(ins,zone,delay=0){return !(ins.avoidZones||[]).includes(zone)&&(ins.checkedZones[zone]==null||ins.clock+delay-ins.checkedZones[zone]>=20-1e-8);}
 function schedulePatrol(ins){
- const order=ins.patrolOrder||patrolOrder;
+ const layout=ins.layout||defaultLayout,{nodes,patrolStops}=layout,order=ins.patrolOrder||patrolOrder;
  for(let n=0;n<order.length;n++){
   const zone=order[(ins.patrolIndex||0)%order.length];ins.patrolIndex=(ins.patrolIndex||0)+1;
-  const point=patrolStops[zone];let previous=ins;const route=pathBetween(ins,point),travel=route.reduce((sum,p)=>{const d=dist(previous,p);previous=p;return sum+d;},0)/ins.speed;
+  const point=patrolStops[zone];let previous=ins;const route=pathBetween(ins,point,layout),travel=route.reduce((sum,p)=>{const d=dist(previous,p);previous=p;return sum+d;},0)/ins.speed;
   if(!zoneAvailable(ins,zone,travel))continue;
  ins.zone=zone;ins.directed=false;ins.evidenceKind='routine';
   ins.queue=route.map(p=>({kind:'move',...p}));
@@ -49,7 +47,7 @@ function schedulePatrol(ins){
  }
  // No eligible island: keep walking, rather than guard the player's old chair.
  const node=[...nodes].sort((a,b)=>dist(ins,b)-dist(ins,a))[0];ins.zone=null;
- ins.queue=pathBetween(ins,node).map(p=>({kind:'move',...p}));
+ ins.queue=pathBetween(ins,node,layout).map(p=>({kind:'move',...p}));
  if(!ins.queue.length)ins.queue=[{kind:'wait',left:1,angle:ins.angle}];
 }
 function advanceSound(field,dt){
@@ -79,15 +77,16 @@ function hearSource(ins){
  investigate(ins,heard,'sound');
 }
 function soundVantage(ins,p){
+ const layout=ins.layout||defaultLayout,{xs,ys,seats,desks}=layout;
  if(dist(ins,p)<=220)return{x:ins.x,y:ins.y};
- const candidates=ys.flatMap(y=>[65,165,210,255,355,455,500,545,655].map(x=>({x,y}))).concat(xs.flatMap(x=>[115,280,350,515,585,750,820].map(y=>({x,y}))));
- const choices=candidates.filter(c=>dist(c,p)>=150&&dist(c,p)<=210).map(point=>{let prev=ins;const cost=pathBetween(ins,point).reduce((sum,next)=>{const d=dist(prev,next);prev=next;return sum+d;},0);return{point,cost};});
- return choices.sort((a,b)=>a.cost-b.cost)[0]?.point||nearestAisle(p);
+ const candidates=[...new Set([...xs,...seats.map(s=>s.x),...desks.map(d=>d.center)])].flatMap(x=>ys.map(y=>({x,y}))).concat(xs.flatMap(x=>[...new Set([...ys,...seats.map(s=>s.y)])].map(y=>({x,y}))));
+ const choices=candidates.filter(c=>dist(c,p)>=150&&dist(c,p)<=210).map(point=>{let prev=ins;const cost=pathBetween(ins,point,layout).reduce((sum,next)=>{const d=dist(prev,next);prev=next;return sum+d;},0);return{point,cost};});
+ return choices.sort((a,b)=>a.cost-b.cost)[0]?.point||nearestAisle(p,layout);
 }
 function investigate(ins,p,kind='vision'){
- const point=kind==='sound'?soundVantage(ins,p):nearestAisle(p);ins.evidenceKind=kind;if(kind==='sound')ins.lastHeard={...p};else ins.lastSeen={x:p.x,y:p.y,seat:p.seat,zone:zoneFor(p),time:ins.clock};
+ const layout=ins.layout||defaultLayout,point=kind==='sound'?soundVantage(ins,p):nearestAisle(p,layout);ins.evidenceKind=kind;if(kind==='sound')ins.lastHeard={...p};else ins.lastSeen={x:p.x,y:p.y,seat:p.seat,zone:zoneFor(p),time:ins.clock};
  ins.zone=zoneFor(p);ins.directed=true;ins.suspicion=0;
- ins.queue=pathBetween(ins,point).map(p=>({kind:'move',...p}));
+ ins.queue=pathBetween(ins,point,layout).map(p=>({kind:'move',...p}));
  const angle=Math.atan2(p.y-point.y,p.x-point.x);
  ins.queue.push({kind:'wait',left:2,phase:'warning',angle},{kind:'wait',left:3,phase:'checking',angle});
 }
@@ -143,7 +142,7 @@ export function forecast(ins,seconds=10){return forecastAll([ins],seconds)[0];}
 export class Game{
  runner=createRunner();
  joke={post:0};
- constructor(level=0,seed=Date.now()){this.level=level;this.config=levels[level];this.seed=seed>>>0;this.time=this.config.time;this.elapsed=0;this.coins=0;this.warned=false;this.catches=0;this.ads=0;this.extended=false;this.mirror=0;this.inventory={mirror:0,meeting:0};this.special=null;this.specialAt=10;this.dropAt=14;this.drops=[];this.modal=null;this.paused=false;this.toast='选一种摸鱼方式，留意老板的朝向';this.toastLeft=5;this.player={...seats[7],seat:7,activity:'work',riskActivity:'game',route:[],target:null,stopping:0,pending:null,hold:0,lock:0};this.comboTime=0;this.pendingBonus=0;this.exposure=0;this.exposureLimit=.7;this.feedback=null;this.greeting=null;this.tutorialSeen=false;this.stats={moves:0,moveTime:0,greetings:0,picked:0,closeCalls:0,banked:0,activityTime:{joke:0,game:0,dance:0,work:0}};this.soundField={office:this.config.event?{kind:this.config.event,nextAt:(this.config.event==='meeting'?12:10)+(this.seed%5),count:0,activeUntil:0}:null,clock:0,tickRemainder:0,nextId:1,emitter:null,sources:[],claimed:{},respondedZones:{}};this.inspectors=Array.from({length:this.config.bosses},(_,i)=>({x:i?708:12,y:i?350:585,name:i?'主管':'老板',seed:(seed+i*91)>>>0,speed:62,angle:i?-Math.PI/2:0,last:i?5:6,previous:-1,queue:[{kind:'wait',left:3+i*2,angle:i?Math.PI:0},{kind:'move',x:i?655:65,y:i?350:585}],hold:0,hidden:false,leaving:false,greeted:false,clock:0,tickRemainder:0,patrolOrder:i?((seed+i*91)%2?[3,1,0,2,4,5]:[3,5,4,2,0,1]):(level===0?[3,1,0,2,4,5]:(seed%2?[2,4,5,3,1,0]:[2,0,1,3,5,4])),patrolIndex:0,zone:null,checkedZones:{},avoidZones:[],lastSeen:null,suspicion:0,observation:null,lastHeard:null,pendingSound:null,hearingTime:0,hearingId:null,evidenceKind:'routine',soundField:this.soundField,directed:false,closeClaimed:false}));this.npcs=[0,3,8,10,4,1,11].slice(0,this.config.npcs).map((seat,i)=>({...seats[seat],seat,target:null,route:[],next:level===3?35+i*6:Infinity,color:i%3}));}
+ constructor(level=0,seed=Date.now()){this.level=level;this.config=levels[level];this.layout=createOfficeLayout(this.config.seatCount);const {seats,ys}=this.layout;this.seed=seed>>>0;this.time=this.config.time;this.elapsed=0;this.coins=0;this.warned=false;this.catches=0;this.ads=0;this.extended=false;this.mirror=0;this.inventory={mirror:0,meeting:0};this.special=null;this.specialAt=10;this.dropAt=14;this.drops=[];this.modal=null;this.paused=false;this.toast='选一种摸鱼方式，留意老板的朝向';this.toastLeft=5;this.player={...seats[7],seat:7,activity:'work',riskActivity:'game',route:[],target:null,stopping:0,pending:null,hold:0,lock:0};this.comboTime=0;this.pendingBonus=0;this.exposure=0;this.exposureLimit=.7;this.feedback=null;this.greeting=null;this.tutorialSeen=false;this.stats={moves:0,moveTime:0,greetings:0,picked:0,closeCalls:0,banked:0,activityTime:{joke:0,game:0,dance:0,work:0}};this.soundField={office:this.config.event?{kind:this.config.event,nextAt:(this.config.event==='meeting'?12:10)+(this.seed%5),count:0,activeUntil:0}:null,clock:0,tickRemainder:0,nextId:1,emitter:null,sources:[],claimed:{},respondedZones:{}};this.inspectors=Array.from({length:this.config.bosses},(_,i)=>({layout:this.layout,x:i?708:12,y:ys[i?1:2],name:i?'主管':'老板',seed:(seed+i*91)>>>0,speed:62,angle:i?-Math.PI/2:0,last:i?5:6,previous:-1,queue:[{kind:'wait',left:3+i*2,angle:i?Math.PI:0},{kind:'move',x:i?655:65,y:ys[i?1:2]}],hold:0,hidden:false,leaving:false,greeted:false,clock:0,tickRemainder:0,patrolOrder:(i?((seed+i*91)%2?[3,1,0,2,4,5]:[3,5,4,2,0,1]):(level===0?[3,1,0,2,4,5]:(seed%2?[2,4,5,3,1,0]:[2,0,1,3,5,4]))).filter(zone=>zone<this.layout.desks.length).concat(this.layout.desks.map(d=>d.zone).filter(zone=>zone>=6)),patrolIndex:0,zone:null,checkedZones:{},avoidZones:[],lastSeen:null,suspicion:0,observation:null,lastHeard:null,pendingSound:null,hearingTime:0,hearingId:null,evidenceKind:'routine',soundField:this.soundField,directed:false,closeClaimed:false}));this.npcs=[...new Set([0,3,8,10,4,1,11,...seats.map(s=>s.id)])].filter(id=>id<seats.length&&id!==this.player.seat).slice(0,this.config.npcs).map((seat,i)=>({...seats[seat],seat,target:null,route:[],next:level===3?35+i*6:Infinity,color:i%3}));}
  jump(){const p=this.player;if(this.modal||this.paused||p.activity!=='game'||p.seat===null||p.route.length||p.stopping>0||p.lock>0)return false;return jumpRunner(this.runner);}
  nextJoke(){
   const p=this.player;if(this.modal||this.paused||p.activity!=='joke'||p.seat===null||p.route.length||p.stopping>0||p.lock>0)return false;
@@ -151,11 +150,11 @@ export class Game{
  }
  notify(text){this.toast=text;this.toastLeft=3.5;}
  occupied(id,except){return(this.player!==except&&this.player.seat===id)||this.npcs.some(n=>n!==except&&n.seat===id);}
- empty(){return seats.filter(s=>!this.occupied(s.id));}
+ empty(){return this.layout.seats.filter(s=>!this.occupied(s.id));}
  activityThreats(a){return this.inspectors.filter(i=>!i.hidden&&['warning','checking'].includes(i.queue[0]?.phase)&&visible(i,this.player,activities[a]?.range||0)).map(i=>i.name);}
  setActivity(a){const p=this.player;if(this.modal||this.paused||!activities[a]||p.lock>0)return false;if(p.route.length){if(a==='work'){p.route=[];p.target=null;p.activity='work';this.notify('停在过道 · 点击空座继续');}return false;}if(p.seat===null&&a!=='work')return false;if(p.stopping>0)return false;if(p.activity===a)return true;this.transition({type:'activity',activity:a});return true;}
  transition(action){const p=this.player;if(p.stopping>0)return false;const stop=activities[p.activity].stop;if(stop>0){p.stopping=stop;p.pending=action;}else this.perform(action);return true;}
- perform(action){const p=this.player;if(action.type==='activity'&&action.activity!=='work')p.riskActivity=action.activity;if(action.type==='move'||action.activity==='work')this.bankBonus();p.activity='work';if(action.type==='activity'){p.activity=action.activity;if(action.activity==='game')this.runner=createRunner();if(action.activity==='dance'){p.warmup=.8;p.danceStartedAt=this.elapsed;}else p.warmup=0;}else{if(this.occupied(action.seat)){this.notify('这个工位被同事占了，换一个吧');return;}p.route=pathBetween(p,seats[action.seat]);p.target=action.seat;p.seat=null;this.stats.moves++;}}
+ perform(action){const p=this.player;if(action.type==='activity'&&action.activity!=='work')p.riskActivity=action.activity;if(action.type==='move'||action.activity==='work')this.bankBonus();p.activity='work';if(action.type==='activity'){p.activity=action.activity;if(action.activity==='game')this.runner=createRunner();if(action.activity==='dance'){p.warmup=.8;p.danceStartedAt=this.elapsed;}else p.warmup=0;}else{if(this.occupied(action.seat)){this.notify('这个工位被同事占了，换一个吧');return;}p.route=pathBetween(p,this.layout.seats[action.seat],this.layout);p.target=action.seat;p.seat=null;this.stats.moves++;}}
  bankBonus(){
   let amount=this.pendingBonus,close=false;
   if(this.comboTime>=3-1e-8)for(const ins of this.inspectors){const q=ins.queue[0];if(q?.phase==='warning'&&q.left<=1+1e-8&&!q.closeClaimed&&visible(ins,this.player,activities[this.player.activity].range)){q.closeClaimed=true;ins.closeClaimed=true;amount+=5;this.stats.closeCalls++;close=true;}}
@@ -164,9 +163,9 @@ export class Game{
  }
  remainingRoute(actor){let prev=actor;return actor.route.reduce((sum,p)=>{const d=dist(prev,p);prev=p;return sum+d;},0);}
  protectedSeat(id){const p=this.player;return p.target===id&&p.route.length&&this.remainingRoute(p)<=PLAYER_SPEED+1e-8;}
- moveTo(id){if(this.modal||this.paused||!seats[id]||this.occupied(id)||this.player.lock>0)return false;if(this.player.route.length){this.player.route=pathBetween(this.player,seats[id]);this.player.target=id;return true;}return this.transition({type:'move',seat:id});}
+ moveTo(id){if(this.modal||this.paused||!this.layout.seats[id]||this.occupied(id)||this.player.lock>0)return false;if(this.player.route.length){this.player.route=pathBetween(this.player,this.layout.seats[id],this.layout);this.player.target=id;return true;}return this.transition({type:'move',seat:id});}
  spawnSpecial(){
-  const choices=this.empty().map(seat=>{let previous=this.player;const distance=pathBetween(this.player,seat).reduce((sum,p)=>{const d=dist(previous,p);previous=p;return sum+d;},0);const stop=this.player.route.length?0:this.player.stopping>0?this.player.stopping:activities[this.player.activity].stop;return{seat,time:distance/PLAYER_SPEED+stop};});
+  const choices=this.empty().map(seat=>{let previous=this.player;const distance=pathBetween(this.player,seat,this.layout).reduce((sum,p)=>{const d=dist(previous,p);previous=p;return sum+d;},0);const stop=this.player.route.length?0:this.player.stopping>0?this.player.stopping:activities[this.player.activity].stop;return{seat,time:distance/PLAYER_SPEED+stop};});
   if(!this.special&&choices.length){const nearby=choices.filter(c=>c.time<=6),pool=nearby.length?nearby:[choices.sort((a,b)=>a.time-b.time)[0]],chosen=pool[Math.floor(rand(this)*pool.length)];this.special={seat:chosen.seat.id,left:Math.max(18,Math.ceil(chosen.time)+12)};this.notify('黄金工位出现！限时摸鱼收益 ×2');}
  }
  spawnDrop(){const choices=this.empty().filter(s=>!this.drops.some(d=>d.seat===s.id));if(this.drops.length<2&&choices.length){this.drops.push({seat:choices[Math.floor(rand(this)*choices.length)].id,type:this.level===0||rand(this)<.87?'mirror':'meeting'});this.notify('空工位出现了道具，坐下即可拾取');}}
@@ -187,7 +186,7 @@ export class Game{
  this.inspectors.forEach((ins,k)=>{const heard=ins.pendingSound||ins.lastHeard;if((heard?.soundId||0)>heardBefore[k])this.notify(`${ins.name}听见了${heard.kind==='dance'?'音乐':'手柄按键声'}，${ins.pendingSound?'稍后':'会'}查看${heard.seat+1}号工位`);});
  if(this.level===0&&!this.tutorialSeen&&this.inspectors.some(i=>i.queue[0]?.phase==='warning')){this.tutorialSeen=true;this.modal={kind:'tutorial'};return;}
 
- for(const n of this.npcs){if(n.route.length){if(this.protectedSeat(n.target)){n.route=[];n.target=null;n.next=this.elapsed+1;}else this.walk(n,dt,62);}else if(this.elapsed>=n.next){const empty=this.empty().filter(s=>!this.npcs.some(o=>o.target===s.id)&&!this.protectedSeat(s.id));if(empty.length){n.target=empty[Math.floor(rand(this)*empty.length)].id;n.route=pathBetween(n,seats[n.target]);n.seat=null;}n.next=this.elapsed+40+rand(this)*20;}}
+ for(const n of this.npcs){if(n.route.length){if(this.protectedSeat(n.target)){n.route=[];n.target=null;n.next=this.elapsed+1;}else this.walk(n,dt,62);}else if(this.elapsed>=n.next){const empty=this.empty().filter(s=>!this.npcs.some(o=>o.target===s.id)&&!this.protectedSeat(s.id));if(empty.length){n.target=empty[Math.floor(rand(this)*empty.length)].id;n.route=pathBetween(n,this.layout.seats[n.target],this.layout);n.seat=null;}n.next=this.elapsed+40+rand(this)*20;}}
  p.lock=Math.max(0,p.lock-dt);if(p.checker&&p.checker.queue[0]===p.checkCommand&&dist(p,p.checker)<250)p.lock=Math.max(p.lock,.02);else{p.checker=null;p.checkCommand=null;}
  if(p.seat!==null&&p.lock===0&&!p.route.length)this.stats.activityTime[p.activity]+=dt;
  const warmup=p.warmup||0;p.warmup=Math.max(0,warmup-dt);

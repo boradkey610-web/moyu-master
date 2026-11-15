@@ -96,7 +96,7 @@ test('打印机停止后游戏噪声恢复，已有调查记忆不被抹去',()=
 
 test('打印机掩护不影响面对玩家的视觉检查',()=>{
  const g=new Game(5,100);g.step(g.soundField.office.nextAt+.1);
- Object.assign(g.inspectors[0],{x:545,y:585,angle:-Math.PI/2,directed:true,zone:3,queue:[{kind:'wait',left:4,phase:'checking',angle:-Math.PI/2}]});
+ Object.assign(g.inspectors[0],{x:g.player.x,y:g.player.y+70,angle:-Math.PI/2,directed:true,zone:3,queue:[{kind:'wait',left:4,phase:'checking',angle:-Math.PI/2}]});
  g.inspectors[1].queue=[{kind:'wait',left:20,hidden:true}];
  g.setActivity('game');g.step(.8);
  assert.equal(g.modal?.kind,'warning');assert.equal(g.catches,1);
