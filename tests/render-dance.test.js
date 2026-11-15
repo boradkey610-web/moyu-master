@@ -18,6 +18,24 @@ test('蹦迪按钮不轮询检查者接近状态，也不显示风险感叹号�
  assert.equal(marks['is-risky'],false);assert.doesNotMatch(attributes['aria-description'],/当前检查范围/);
 });
 
+test('蹦迪及收手期间，其他玩法按钮也不能泄露检查范围',()=>{
+ const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
+ const start=app.indexOf(" for(const b of document.querySelectorAll('[data-activity]')){"),end=app.indexOf(' const jokeVisible',start);
+ for(const stopping of [false,true]){
+  const buttons=['joke','game','dance'].map(activity=>{const marks={},attributes={};return{marks,attributes,dataset:{activity},classList:{toggle:(k,v)=>marks[k]=v},setAttribute:(k,v)=>attributes[k]=v,getAttribute:k=>attributes[k],querySelector:()=>({})};});
+  vm.runInNewContext(app.slice(start,end),{document:{querySelectorAll:()=>buttons},p:{activity:'dance',seat:7},stopping,locked:false,blocked:false,multiplier:1,activities,g:{activityThreats(){assert.fail('蹦迪时不能通过其他玩法按钮查询检查位置');}}});
+  for(const b of buttons){assert.equal(b.marks['is-risky'],false);assert.doesNotMatch(b.attributes['aria-description'],/当前检查范围/);assert.doesNotMatch(b.title,/当前检查范围/);}
+ }
+});
+
+test('回到工作状态后，打游戏按钮保留原有风险显示',()=>{
+ const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
+ const start=app.indexOf(" for(const b of document.querySelectorAll('[data-activity]')){"),end=app.indexOf(' const jokeVisible',start);
+ const marks={},attributes={},b={dataset:{activity:'game'},classList:{toggle:(k,v)=>marks[k]=v},setAttribute:(k,v)=>attributes[k]=v,getAttribute:k=>attributes[k],querySelector:()=>({})};
+ vm.runInNewContext(app.slice(start,end),{document:{querySelectorAll:()=>[b]},p:{activity:'work',seat:7},stopping:false,locked:false,blocked:false,multiplier:1,activities,g:{activityThreats:()=>['老板']}});
+ assert.equal(marks['is-risky'],true);assert.match(attributes['aria-description'],/当前检查范围内：老板/);
+});
+
 test('approved dance atlas uses 28 original cells, eight beats and a four-second loop',()=>{
  const png=readFileSync(new URL('../'+meta.src,import.meta.url));
  assert.equal(png.readUInt32BE(16),meta.width);assert.equal(png.readUInt32BE(20),meta.height);
