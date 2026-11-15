@@ -1,8 +1,11 @@
 import {Game,seats,activities,levels} from './engine.js';
 import {Renderer} from './render.js';
 import {drawRunner} from './runner.js';
+import {GameAudio} from './audio.js';
 const $=s=>document.querySelector(s),canvas=$('#office'),renderer=new Renderer(canvas);
-let save={unlocked:1,best:{}},g=new Game(),screen='menu',lastModal=null,lastTime=0,visualTime=0,sound=true,audio;
+let save={unlocked:1,best:{}},g=new Game(),screen='menu',lastModal=null,lastTime=0,visualTime=0,sound=true;
+const audio=new GameAudio();
+let audioGame=null,audioFeedback=null,audioCleared=0;
 const jokePosts=[
  '老板说工作要有回响。\n我敲了两下空格。',
  '今天也很忙。\n忙着等下班。',
@@ -40,10 +43,21 @@ if(savedProgress){
  }
 }
 if(!shortSave){try{localStorage.setItem(SAVE_KEY,JSON.stringify(save));}catch{}}
-function beep(freq=440){if(!sound)return;try{audio??=new (window.AudioContext||window.webkitAudioContext)();const o=audio.createOscillator(),v=audio.createGain();o.connect(v);v.connect(audio.destination);o.frequency.value=freq;v.gain.setValueAtTime(.025,audio.currentTime);v.gain.exponentialRampToValueAtTime(.001,audio.currentTime+.09);o.start();o.stop(audio.currentTime+.1);}catch{}}
+function beep(kind='tap'){audio.play(kind);}
+function syncAudio(){
+ const field=g.soundField,mode=!screen&&g.player.activity==='dance'?'disco':'office',paused=document.hidden||!!g.modal||(g.paused&&!['menu','levels'].includes(screen));
+ const printer=!screen&&!g.modal&&field.office?.kind==='printer'&&field.clock<field.office.activeUntil-1e-8;
+ audio.update({enabled:sound,paused,mode,printer});
+ const cleared=g.runner?.cleared||0;
+ if(audioGame===g&&!paused&&((g.feedback&&g.feedback!==audioFeedback)||cleared>audioCleared))audio.play('coin');
+ audioGame=g;audioFeedback=g.feedback;audioCleared=cleared;
+ const title=!sound?'音乐与音效已关闭':paused?'音乐与音效已暂停':audio.ctx?.state!=='running'?'点击后播放音乐与音效':mode==='disco'?'正在播放：摸鱼迪斯科':'正在播放：办公室轻爵士';
+ for(const b of document.querySelectorAll('.sound-toggle'))b.title=title;
+ $('#pause').title=title;
+}
 function formatTime(t){return `${String(Math.floor(Math.max(0,t)/60)).padStart(2,'0')}:${String(Math.floor(Math.max(0,t)%60)).padStart(2,'0')}`;}
 function coinAmount(value){return Math.floor(value+1e-8);}
-function button(text,fn,kind=''){const el=document.createElement('button');el.textContent=text;el.className=kind;el.addEventListener('click',()=>{beep();fn();});return el;}
+function button(text,fn,kind=''){const el=document.createElement('button');el.textContent=text;el.className=kind;el.addEventListener('click',()=>{beep();fn();syncAudio();});return el;}
 const dialogIcons={
  clock:'<circle cx="24" cy="25" r="15"/><path d="M24 15v11l7 4M9 9l5-4m20 0 5 4M12 39l-3 4m27-4 3 4"/>',
  cup:'<path d="M15 7h18v12c0 10-18 10-18 0V7Zm0 3H8v7c0 5 5 8 9 8m16-15h7v7c0 5-5 8-9 8M24 28v9m-9 5h18m-14-5h10"/>',
@@ -61,9 +75,9 @@ function statement(){
  return `<div class="payroll-top"><span>摸鱼大师 · 薪酬结算处</span><span>员工联 / ${String(g.level+1).padStart(2,'0')}</span></div><div class="payroll-heading"><div><span class="payroll-day">${g.config.name}</span><h2 id="dialog-title">摸鱼工资条</h2></div><div class="payroll-portrait">${portrait('player')}</div><span class="payroll-stamp ${won?'approved':'rejected'}">${stamp}<small>摸鱼专用章</small></span></div><div class="shift-score"><span>本局到账</span><div class="payroll-total"><strong>${coinAmount(g.coins)}</strong><small>金币</small></div><footer><span>目标 ${g.config.target} 金币</span><span>${g.ads?'助力挑战':'独立挑战'}</span></footer></div>`;
 }
 function modalBackground(inert){for(const el of document.querySelectorAll('.hud,.scene,.controls'))el.inert=inert;}
-function show(html,buttons=[]){modalBackground(true);$('#overlay').dataset.page=['menu','levels','guide'].includes(screen)?screen:'';$('#overlay').classList.remove('hidden');$('#dialog').dataset.kind=screen==='result'?g.modal?.kind||'result':screen||'';$('#dialog').classList.toggle('office-result',['win','timeout','lose'].includes($('#dialog').dataset.kind));$('#dialog').classList.toggle('office-note',['pause','help','instructions','guide','tutorial','fine','meeting','reward'].includes($('#dialog').dataset.kind));$('#dialog').innerHTML=html;for(const b of buttons)$('#dialog').append(button(...b));g.paused=true;queueMicrotask(()=>{const dialog=$('#dialog');if(dialog.dataset.kind==='menu'){dialog.tabIndex=-1;dialog.focus({preventScroll:true});}else dialog.querySelector('button:not(:disabled)')?.focus({preventScroll:true});});renderer.ready.then(()=>{paintHomeArt();for(const portrait of document.querySelectorAll('#dialog canvas[data-person]')){const c=portrait.getContext('2d');c.clearRect(0,0,144,170);renderer.portrait(c,portrait.dataset.person,72,300,286);}});}
-function hide(){modalBackground(false);$('#overlay').dataset.page='';screen=null;$('#overlay').classList.add('hidden');g.paused=false;lastModal=null;}
-function start(level){g=new Game(level);lastModal=null;hide();beep(660);}
+function show(html,buttons=[]){modalBackground(true);$('#overlay').dataset.page=['menu','levels','guide'].includes(screen)?screen:'';$('#overlay').classList.remove('hidden');$('#dialog').dataset.kind=screen==='result'?g.modal?.kind||'result':screen||'';$('#dialog').classList.toggle('office-result',['win','timeout','lose'].includes($('#dialog').dataset.kind));$('#dialog').classList.toggle('office-note',['pause','help','instructions','guide','tutorial','fine','meeting','reward'].includes($('#dialog').dataset.kind));$('#dialog').innerHTML=html;for(const b of buttons)$('#dialog').append(button(...b));g.paused=true;syncAudio();queueMicrotask(()=>{const dialog=$('#dialog');if(dialog.dataset.kind==='menu'){dialog.tabIndex=-1;dialog.focus({preventScroll:true});}else dialog.querySelector('button:not(:disabled)')?.focus({preventScroll:true});});renderer.ready.then(()=>{paintHomeArt();for(const portrait of document.querySelectorAll('#dialog canvas[data-person]')){const c=portrait.getContext('2d');c.clearRect(0,0,144,170);renderer.portrait(c,portrait.dataset.person,72,300,286);}});}
+function hide(){modalBackground(false);$('#overlay').dataset.page='';screen=null;$('#overlay').classList.add('hidden');g.paused=false;lastModal=null;syncAudio();}
+function start(level){g=new Game(level);lastModal=null;hide();beep('start');}
 function paintHomeArt(){
  const art=$('#home-art');
  if(art){
@@ -91,8 +105,8 @@ function menu(){
  actions.append(button('▶  开始摸鱼',selectLevel,'primary home-start'));
  const utilities=document.createElement('div');utilities.className='home-utilities';
  const guide=button('玩法说明',()=>instructions(menu));guide.innerHTML=`<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">${dialogIcons.briefcase}</svg><span>玩法说明</span>`;
- const audioButton=button(sound?'音效已开':'音效已关',()=>{sound=!sound;menu();});audioButton.setAttribute('aria-pressed',String(sound));
- audioButton.innerHTML=`<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h6l7-6v20l-7-6H5z"/>${sound?'<path d="M23 11q5 5 0 10m3-14q8 9 0 18"/>':'<path d="m23 12 6 8m0-8-6 8"/>'}</svg><span>${sound?'音效已开':'音效已关'}</span>`;
+ const audioButton=button(sound?'声音已开':'声音已关',()=>{sound=!sound;syncAudio();if(sound)audio.unlock();menu();},'sound-toggle');audioButton.setAttribute('aria-pressed',String(sound));
+ audioButton.innerHTML=`<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h6l7-6v20l-7-6H5z"/>${sound?'<path d="M23 11q5 5 0 10m3-14q8 9 0 18"/>':'<path d="m23 12 6 8m0-8-6 8"/>'}</svg><span>${sound?'声音已开':'声音已关'}</span>`;
  utilities.append(guide,audioButton);actions.append(utilities);$('#dialog').append(actions);
 }
 function selectLevel(){
@@ -133,11 +147,11 @@ function pause(){
  $('#dialog .pause-actions').append(button('继续摸鱼',hide,'primary'));
  $('#dialog .pause-options').append(button('重开本关',()=>start(g.level)),button('返回关卡',selectLevel));
  const audioToggle=button('',()=>{
-  sound=!sound;audioToggle.setAttribute('aria-checked',String(sound));
+  sound=!sound;syncAudio();if(sound)audio.unlock();audioToggle.setAttribute('aria-checked',String(sound));
   audioToggle.querySelector('.pause-sound-state').textContent=sound?'已开':'已关';
- },'pause-audio');
- audioToggle.setAttribute('role','switch');audioToggle.setAttribute('aria-label','音效');audioToggle.setAttribute('aria-checked',String(sound));
- audioToggle.innerHTML=`<span>音效</span><span class="pause-sound-control"><span class="pause-sound-state">${sound?'已开':'已关'}</span><i aria-hidden="true"></i></span>`;
+ },'pause-audio sound-toggle');
+ audioToggle.setAttribute('role','switch');audioToggle.setAttribute('aria-label','声音');audioToggle.setAttribute('aria-checked',String(sound));
+ audioToggle.innerHTML=`<span>声音</span><span class="pause-sound-control"><span class="pause-sound-state">${sound?'已开':'已关'}</span><i aria-hidden="true"></i></span>`;
  $('#dialog').append(audioToggle);
 }
 function help(){
@@ -172,27 +186,28 @@ function processModal(){if(!g.modal||screen==='reward'||g.modal===lastModal)retu
   if(g.level>0&&g.ads<2)$('#dialog').append(button('请同事帮忙解释 · 测试助力',()=>rewardConfirm('explain'),'outlined'));$('#dialog').append(button('返回关卡',selectLevel,'secondary'));
  }else if(m.kind==='win'){
   record();const used=g.config.time+(g.extended?15:0)-g.time;
-  show(`${statement()}${activitySummary()}<div class="result-facts"><span>用时 <b>${formatTime(used)}</b></span><span>抓包 <b>${g.catches} 次</b></span><span>换位 <b>${g.stats.moves} 次</b></span></div><div class="best-record">${g.ads?'助力':'无助力'}最佳用时 <b>${formatTime(save.best[`${g.level}-${g.ads?'assisted':'clean'}`])}</b></div>`,[[g.level<levels.length-1?'下一天，继续 →':'再摸一局',()=>start(Math.min(levels.length-1,g.level+1)),'primary'],['选择关卡',selectLevel,'secondary']]);beep(880);
+  show(`${statement()}${activitySummary()}<div class="result-facts"><span>用时 <b>${formatTime(used)}</b></span><span>抓包 <b>${g.catches} 次</b></span><span>换位 <b>${g.stats.moves} 次</b></span></div><div class="best-record">${g.ads?'助力':'无助力'}最佳用时 <b>${formatTime(save.best[`${g.level}-${g.ads?'assisted':'clean'}`])}</b></div>`,[[g.level<levels.length-1?'下一天，继续 →':'再摸一局',()=>start(Math.min(levels.length-1,g.level+1)),'primary'],['选择关卡',selectLevel,'secondary']]);beep('win');
  }else{
   const timeout=m.kind==='timeout';
   show(`${statement()}${activitySummary()}<p>${m.reason||`还差 <b>${Math.ceil(g.config.target-g.coins-1e-8)} 金币</b>。下回趁老板转身，再摸一把。`}${g.catches?`<br>本局抓包 ${g.catches} 次，提前收手能保住奖金。`:""}</p>`,[['再摸一局',()=>start(g.level),'primary']]);
   if(timeout&&g.level>0&&g.ads<2&&!g.extended)$('#dialog').append(button('借我 15 秒 · 测试助力',()=>rewardConfirm('extend'),'outlined'));
   $('#dialog').append(button('选择关卡',selectLevel,'secondary'));
  }}
-const seatButtons=seats.map(s=>{const b=document.createElement('button');b.className='seat-hit';b.style.left=`${s.x/720*100}%`;b.style.top=`${s.y/920*100}%`;b.setAttribute('aria-label',`移动到${s.id+1}号工位`);b.onclick=()=>{if(!screen){if(g.moveTo(s.id))beep(520);else g.notify('当前不能换到这个工位');}};$('#seat-buttons').append(b);return b;});
-for(const b of document.querySelectorAll('[data-activity]'))b.onclick=()=>{if(!screen){g.setActivity(b.dataset.activity);beep(b.dataset.activity==='dance'?700:500);}};
-$('#joke-card').onclick=()=>{if(g.nextJoke())beep(570);};
-$('#runner-jump').onpointerdown=e=>{if(e.button===0&&e.isPrimary&&!screen&&g.jump())beep(600);};
-$('#runner-jump').onclick=e=>{if(e.detail===0&&!screen&&g.jump())beep(600);};
-$('#work').onclick=()=>{if(!screen){g.setActivity('work');beep(320);}};$('#mirror').onclick=()=>{if(!screen&&!g.useMirror())g.notify(g.inventory.mirror?'检查者暂时离场，回来后再用':'空工位拾取反光镜，或在求助中领取');};$('#meeting').onclick=meeting;$('#help').onclick=help;$('#pause').onclick=pause;
-document.addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='Escape'){if(screen==='pause')hide();else if(!screen)pause();}if(screen)return;if(e.code==='ArrowUp'||e.code==='KeyJ'){e.preventDefault();if(g.jump())beep(600);return;}const a={Digit1:'joke',Digit2:'game',Digit3:'dance',Space:'work'}[e.code];if(a){e.preventDefault();g.setActivity(a);}});
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&!screen&&!g.modal)pause();lastTime=0;});
+const seatButtons=seats.map(s=>{const b=document.createElement('button');b.className='seat-hit';b.style.left=`${s.x/720*100}%`;b.style.top=`${s.y/920*100}%`;b.setAttribute('aria-label',`移动到${s.id+1}号工位`);b.onclick=()=>{if(!screen){if(g.moveTo(s.id))beep('tap');else g.notify('当前不能换到这个工位');}};$('#seat-buttons').append(b);return b;});
+for(const b of document.querySelectorAll('[data-activity]'))b.onclick=()=>{if(!screen){g.setActivity(b.dataset.activity);beep('tap');}};
+$('#joke-card').onclick=()=>{if(g.nextJoke())beep('tap');};
+$('#runner-jump').onpointerdown=e=>{if(e.button===0&&e.isPrimary&&!screen&&g.jump())beep('jump');};
+$('#runner-jump').onclick=e=>{if(e.detail===0&&!screen&&g.jump())beep('jump');};
+$('#work').onclick=()=>{if(!screen){g.setActivity('work');beep('work');}};$('#mirror').onclick=()=>{if(!screen&&!g.useMirror())g.notify(g.inventory.mirror?'检查者暂时离场，回来后再用':'空工位拾取反光镜，或在求助中领取');};$('#meeting').onclick=meeting;$('#help').onclick=help;$('#pause').onclick=pause;
+document.addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='Escape'){if(screen==='pause')hide();else if(!screen)pause();}if(screen)return;if(e.code==='ArrowUp'||e.code==='KeyJ'){e.preventDefault();if(g.jump())beep('jump');return;}const a={Digit1:'joke',Digit2:'game',Digit3:'dance',Space:'work'}[e.code];if(a){e.preventDefault();g.setActivity(a);}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&!screen&&!g.modal)pause();syncAudio();lastTime=0;});
+for(const type of ['pointerdown','keydown'])document.addEventListener(type,()=>{syncAudio();audio.unlock();},{capture:true});
 function updateUI(){
  const p=g.player,boosted=g.special?.seat===p.seat&&p.seat!==null,multiplier=boosted?2:1,moving=!!p.route.length;
  const blocked=!!screen||!!g.modal,stopping=p.stopping>0,locked=p.lock>0;
  const checks=g.inspectors.filter(i=>!i.hidden).map(i=>{const q=i.queue[0];return `${i.name}${q?.phase==='warning'?(i.threatensPlayer===false?'在查别处':`预告${Math.ceil(q.left)}秒`):q?.phase==='checking'?(i.threatensPlayer===false?'在查别处':`检查${Math.ceil(q.left)}秒`):i.directed?'调查旧位置':i.suspicion>0?'发现动静':'巡逻中'}`;}).join('；');
  const source=g.soundField.sources.find(s=>s.seat===p.seat),soundChecks=g.inspectors.flatMap(i=>{const cue=renderer.soundTarget(i);return cue?[`${i.name}${cue.fresh?'听到了'+(cue.point.kind==='dance'?'音乐':'手柄按键声'):'正在确认声音'}，${cue.pending?'稍后查看':'目标'}${cue.point.seat+1}号工位${cue.point.seat!==p.seat?'，旧声源':''}${cue.pending&&cue.current?`，当前仍查${cue.current.seat+1}号`:''}`]:[];}).join('；');
- const office=g.soundField.office,event=office?.kind==='printer'?(g.soundField.clock<office.activeUntil?'打印机正在运转，按键声暂被盖住，视线检查照常':'打印机停止，按键声正常传播'):office?.kind==='meeting'?(g.inspectors[0].leaving||g.inspectors[0].hidden?'老板正在开会，主管继续巡视':'办公室例会，老板当前在场'):'';
+ const office=g.soundField.office,event=office?.kind==='printer'?(g.soundField.clock<office.activeUntil-1e-8?`打印机正在运转，掩护剩余${Math.ceil(office.activeUntil-g.soundField.clock-1e-8)}秒，按键声暂被盖住，视线检查照常`:'打印机待机，按键声正常传播'):office?.kind==='meeting'?(g.inspectors[0].leaving||g.inspectors[0].hidden?'老板正在开会，主管继续巡视':'办公室例会，老板当前在场'):'';
  canvas.setAttribute('aria-description',`${event?event+'；':''}${checks}；${renderer.noiseLabel(source)}${soundChecks?'；'+soundChecks:''}；连续摸鱼${Math.floor(g.comboTime)}秒，收手可领${coinAmount(g.pendingBonus)}金币；${g.exposure>0?'正在暴露':'安全'}${g.feedback?'；'+g.feedback.text:''}`);
  $('#money').innerHTML=`${coinAmount(g.coins)} <em>/ ${g.config.target}</em>`;
  $('#time').textContent=formatTime(g.time);$('#time').classList.toggle('low-time',g.time<30);
@@ -252,6 +267,6 @@ function updateUI(){
  $('#help').disabled=blocked;$('#pause').disabled=blocked;
  seatButtons.forEach((b,i)=>{b.disabled=blocked||g.occupied(i)||locked||stopping;const drop=g.drops.find(d=>d.seat===i);b.setAttribute('aria-label',`移动到${i+1}号工位${g.special?.seat===i?`，黄金工位 ×2，剩余${Math.ceil(g.special.left)}秒`:''}${drop?`，可拾取${drop.type==='mirror'?'反光镜':'开会通知'}`:''}`);});
 }
-function frame(time){const dt=lastTime?Math.min(.1,(time-lastTime)/1000):0;lastTime=time;if(!g.paused&&!g.modal)visualTime+=dt;g.step(dt);processModal();renderer.draw(g,visualTime);updateUI();requestAnimationFrame(frame);}
+function frame(time){const dt=lastTime?Math.min(.1,(time-lastTime)/1000):0;lastTime=time;if(!g.paused&&!g.modal)visualTime+=dt;g.step(dt);processModal();renderer.draw(g,visualTime);updateUI();syncAudio();requestAnimationFrame(frame);}
 renderer.ready.then(errors=>{if(errors.length)g.notify('部分画面素材未加载，可刷新重试');});
 menu();requestAnimationFrame(frame);

@@ -695,7 +695,7 @@ export class Renderer{
   const field=g.soundField,office=field?.office;if(office?.kind!=='printer')return;
   const left=Math.max(0,office.activeUntil-field.clock),active=left>1e-8;
   this.printer(c,355,61,92,active,field.clock);
-  this.chip(c,active?`按键声掩护 · ${Math.ceil(left-1e-8)}s`:'打印机待机',355,114,active?'#e5efd8':'#f1efe4',active?'#4c7754':'#929583');
+  this.chip(c,active?`按键声掩护 · ${Math.ceil(left-1e-8)}s`:'打印机待机',355,114,active?'#e5efd8':'#f1efe4',active?'#4c7754':'#929583',active?24:20);
   if(active){this.line(c,[[285,136],[425,136]],'#d0d9bf',4);this.line(c,[[285,136],[285+140*left/10,136]],'#73a260',4);}
  }
  officeEventCue(c,g){
