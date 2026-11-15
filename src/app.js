@@ -32,9 +32,9 @@ const jokePosts=[
  '今日成就：保持在线。\n实际操作：移动鼠标。',
  '我在等一个重要通知。\n下班铃。'
 ];
-const SAVE_KEY='moyu-master-save-v5-runner';
+const SAVE_KEY='moyu-master-save-v6-ripple-office';
 function readStoredSave(key){try{const data=JSON.parse(localStorage.getItem(key));return data&&typeof data==='object'&&!Array.isArray(data)?data:null;}catch{return null;}}
-const shortSave=readStoredSave(SAVE_KEY),savedProgress=shortSave||readStoredSave('moyu-master-save-v4-sound')||readStoredSave('moyu-master-save-v3-patrol')||readStoredSave('moyu-master-save-v2-short')||readStoredSave('moyu-master-save-v1');
+const shortSave=readStoredSave(SAVE_KEY),savedProgress=shortSave||readStoredSave('moyu-master-save-v5-runner')||readStoredSave('moyu-master-save-v4-sound')||readStoredSave('moyu-master-save-v3-patrol')||readStoredSave('moyu-master-save-v2-short')||readStoredSave('moyu-master-save-v1');
 if(savedProgress){
  save.unlocked=Math.max(1,Math.min(levels.length,Math.floor(Number(savedProgress.unlocked)||1)));
  // Preserve unlocked days; records from older patrol rules are not comparable.
