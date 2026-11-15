@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2026-11-15 - GitHub Pages 公网试玩
+
+- 试玩地址：https://boradkey610-web.github.io/moyu-master/ 。无需安装或 GitHub 登录。
+- 发布来源：`gh-pages` 根目录，发布提交 `3fbff51`，构建来源 `88e1bf7`；保持当前纯文本段子玩法和全部关卡开放，不修改游戏代码。
+- 仅发布29项运行资源、`.nojekyll`及版本清单，没有上传源码文档、内部部署配置或仓库历史。
+- 已在375×667浏览器检查首页、关卡选择、点击换段子、收手、跑酷跳跃和暂停；素材状态为ready，控制台无警告或错误。148项JavaScript测试及静态构建通过。
+
 ## 2026-11-12 17:49 GMT+8 - 55c383f9
 
 - Site: https://moyulijin15.frontend-cloud.corp.kuaishou.com/
