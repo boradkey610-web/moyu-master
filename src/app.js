@@ -95,9 +95,9 @@ function menu(){
 }
 function selectLevel(){
  screen='levels';
- show(`<div class="level-topline"><span>打工人闯关记</span><span>全关卡开放</span></div><div class="level-heading"><span class="map-kicker">OFFICE ADVENTURE</span><h2 id="dialog-title">今天也要<span>快乐摸鱼</span></h2><p>选个工位，开始你的带薪冒险！</p></div>`);
+ show(`<div class="level-topline"><span>摸鱼办 · 内部安排</span><span>全关卡开放</span></div><div class="level-heading"><span class="map-kicker">不许转发给老板</span><h2 id="dialog-title">今日摸鱼<span>任务板</span></h2><p>领个差事，争取准点下班。</p></div>`);
  const list=document.createElement('div');list.className='level-list adventure-map';
- const descriptions=['熟悉老板的巡逻，抓住摸鱼时机','换个工位，抢一把双倍金椅','老板和主管，一起突击检查','同事也来抢座，考验手速和时机'];
+ const descriptions=['老板一转身，机会就来了','金椅限时双倍，先到先赚','两个人巡逻，眼观六路','同事也抢金椅，手慢就没了'];
  levels.forEach((l,i)=>{
   const clean=save.best[`${i}-clean`],assisted=save.best[`${i}-assisted`];
   const hasClean=Number.isFinite(clean)&&clean>=0,hasAssisted=Number.isFinite(assisted)&&assisted>=0;
