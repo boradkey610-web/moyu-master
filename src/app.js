@@ -1,4 +1,4 @@
-import {Game,seats,activities,levels} from './engine.js';
+import {Game,activities,levels} from './engine.js';
 import {Renderer} from './render.js';
 import {drawRunner} from './runner.js';
 import {GameAudio} from './audio.js';
@@ -77,7 +77,7 @@ function statement(){
 function modalBackground(inert){for(const el of document.querySelectorAll('.hud,.scene,.controls'))el.inert=inert;}
 function show(html,buttons=[]){modalBackground(true);$('#overlay').dataset.page=['menu','levels','guide'].includes(screen)?screen:'';$('#overlay').classList.remove('hidden');$('#dialog').dataset.kind=screen==='result'?g.modal?.kind||'result':screen||'';$('#dialog').classList.toggle('office-result',['win','timeout','lose'].includes($('#dialog').dataset.kind));$('#dialog').classList.toggle('office-note',['pause','help','instructions','guide','tutorial','fine','meeting','reward'].includes($('#dialog').dataset.kind));$('#dialog').innerHTML=html;for(const b of buttons)$('#dialog').append(button(...b));g.paused=true;syncAudio();queueMicrotask(()=>{const dialog=$('#dialog');if(dialog.dataset.kind==='menu'){dialog.tabIndex=-1;dialog.focus({preventScroll:true});}else dialog.querySelector('button:not(:disabled)')?.focus({preventScroll:true});});renderer.ready.then(()=>{paintHomeArt();for(const portrait of document.querySelectorAll('#dialog canvas[data-person]')){const c=portrait.getContext('2d');c.clearRect(0,0,144,170);renderer.portrait(c,portrait.dataset.person,72,300,286);}});}
 function hide(){modalBackground(false);$('#overlay').dataset.page='';screen=null;$('#overlay').classList.add('hidden');g.paused=false;lastModal=null;syncAudio();}
-function start(level){g=new Game(level);lastModal=null;hide();beep('start');}
+function start(level){g=new Game(level);syncSeatButtons();lastModal=null;hide();beep('start');}
 function paintHomeArt(){
  const art=$('#home-art');
  if(art){
@@ -193,7 +193,12 @@ function processModal(){if(!g.modal||screen==='reward'||g.modal===lastModal)retu
   if(timeout&&g.level>0&&g.ads<2&&!g.extended)$('#dialog').append(button('借我 15 秒 · 测试助力',()=>rewardConfirm('extend'),'outlined'));
   $('#dialog').append(button('选择关卡',selectLevel,'secondary'));
  }}
-const seatButtons=seats.map(s=>{const b=document.createElement('button');b.className='seat-hit';b.style.left=`${s.x/720*100}%`;b.style.top=`${s.y/920*100}%`;b.setAttribute('aria-label',`移动到${s.id+1}号工位`);b.onclick=()=>{if(!screen){if(g.moveTo(s.id))beep('tap');else g.notify('当前不能换到这个工位');}};$('#seat-buttons').append(b);return b;});
+let seatButtons=[];
+function syncSeatButtons(){
+ seatButtons=g.layout.seats.map(s=>{const b=document.createElement('button');b.className='seat-hit';b.style.left=`${s.x/720*100}%`;b.style.top=`${s.y/920*100}%`;b.setAttribute('aria-label',`移动到${s.id+1}号工位`);b.onclick=()=>{if(!screen){if(g.moveTo(s.id))beep('tap');else g.notify('当前不能换到这个工位');}};return b;});
+ $('#seat-buttons').replaceChildren(...seatButtons);
+}
+syncSeatButtons();
 for(const b of document.querySelectorAll('[data-activity]'))b.onclick=()=>{if(!screen){g.setActivity(b.dataset.activity);beep('tap');}};
 $('#joke-card').onclick=()=>{if(g.nextJoke())beep('tap');};
 $('#runner-jump').onpointerdown=e=>{if(e.button===0&&e.isPrimary&&!screen&&g.jump())beep('jump');};
@@ -208,6 +213,7 @@ function updateUI(){
  const checks=g.inspectors.filter(i=>!i.hidden).map(i=>{const q=i.queue[0];return `${i.name}${q?.phase==='warning'?(i.threatensPlayer===false?'在查别处':`预告${Math.ceil(q.left)}秒`):q?.phase==='checking'?(i.threatensPlayer===false?'在查别处':`检查${Math.ceil(q.left)}秒`):i.directed?'调查旧位置':i.suspicion>0?'发现动静':'巡逻中'}`;}).join('；');
  const source=g.soundField.sources.find(s=>s.seat===p.seat),soundChecks=g.inspectors.flatMap(i=>{const cue=renderer.soundTarget(i);return cue?[`${i.name}${cue.fresh?'听到了'+(cue.point.kind==='dance'?'音乐':'手柄按键声'):'正在确认声音'}，${cue.pending?'稍后查看':'目标'}${cue.point.seat+1}号工位${cue.point.seat!==p.seat?'，旧声源':''}${cue.pending&&cue.current?`，当前仍查${cue.current.seat+1}号`:''}`]:[];}).join('；');
  const office=g.soundField.office,event=office?.kind==='printer'?(g.soundField.clock<office.activeUntil-1e-8?`打印机正在运转，掩护剩余${Math.ceil(office.activeUntil-g.soundField.clock-1e-8)}秒，按键声暂被盖住，视线检查照常`:'打印机待机，按键声正常传播'):office?.kind==='meeting'?(g.inspectors[0].leaving||g.inspectors[0].hidden?'老板正在开会，主管继续巡视':'办公室例会，老板当前在场'):'';
+ canvas.setAttribute('aria-label',`${g.layout.desks.length}组办公桌和${g.layout.seats.length}个工位`);
  canvas.setAttribute('aria-description',`${event?event+'；':''}${checks}；${renderer.noiseLabel(source)}${soundChecks?'；'+soundChecks:''}；连续摸鱼${Math.floor(g.comboTime)}秒，收手可领${coinAmount(g.pendingBonus)}金币；${g.exposure>0?'正在暴露':'安全'}${g.feedback?'；'+g.feedback.text:''}`);
  $('#money').innerHTML=`${coinAmount(g.coins)} <em>/ ${g.config.target}</em>`;
  $('#time').textContent=formatTime(g.time);$('#time').classList.toggle('low-time',g.time<30);

@@ -1,9 +1,10 @@
-import {seats,activities,forecastAll} from './engine.js';
+import {activities,forecastAll} from './engine.js';
 import {DiscoScene,discoOpacity} from './disco.js';
+import {createOfficeLayout} from './office-layout.js';
 const W=720,H=920;
 const DANCE_FLOOR_RADIUS=40,DANCE_FLOOR_FLATTEN=.35;
 export class Renderer{
- constructor(canvas){this.canvas=canvas;this.c=canvas.getContext('2d');this.bg=document.createElement('canvas');this.bg.width=W;this.bg.height=H;this.drawOffice(this.bg.getContext('2d'));this.predictions=[];this.predictionTime=-1;this.art={};this.motion=new Map();this.ready=this.loadArt();}
+ constructor(canvas){this.layout=createOfficeLayout(12);this.canvas=canvas;this.c=canvas.getContext('2d');this.bg=document.createElement('canvas');this.bg.width=W;this.bg.height=H;this.drawOffice(this.bg.getContext('2d'));this.predictions=[];this.predictionTime=-1;this.art={};this.motion=new Map();this.ready=this.loadArt();}
  loadImage(src){
   // Some embedded webviews never settle decode(); the load event remains
   // reliable for these local PNG/SVG resources and drawImage decodes on use.
@@ -48,17 +49,17 @@ export class Renderer{
   if(!this.art.office||!this.art.desk)return false;
   c.clearRect(0,0,W,H);c.drawImage(this.art.office.img,0,0,W,H);
   // Side-door centers share the exact road exit coordinates from the simulation.
-  for(const y of [115,350,585,820])for(const right of [false,true]){
+  for(const y of this.layout.ys)for(const right of [false,true]){
    c.save();if(right){c.translate(W,0);c.scale(-1,1);}
    if(this.art['room-details'])c.drawImage(this.art['room-details'].img,26,190,34,138,0,y-32,27,64);
    else this.door(c,0,y-30,24,60);
    c.restore();
   }
-  for(let row=0;row<3;row++)for(let col=0;col<2;col++){
-   const x=col?390:100,y=136+row*235;
-   this.box(c,x-8,y-7,236,193,12,'#9e88691a','#bfb29b80',1);
-   this.box(c,x-4,y-3,228,185,10,'#fffcf315','#fffcf391',2);
-   this.asset(c,'desk',x-6,y-8,238,151);
+  for(const d of this.layout.desks){
+   const k=this.layout.scale;
+   this.box(c,d.center-118*k,d.seatY-151*k,236*k,193*k,12*k,'#9e88691a','#bfb29b80',1);
+   this.box(c,d.center-114*k,d.seatY-147*k,228*k,185*k,10*k,'#fffcf315','#fffcf391',2);
+   this.asset(c,'desk',d.x,d.y,d.w,d.h);
   }
   return true;
  }
@@ -247,11 +248,11 @@ export class Renderer{
  this.box(c,0,76,720,13,1,'#b7b4a4','#9d9b8d');this.door(c,33,12);this.door(c,621,12);this.couch(c,422,45);this.plant(c,242,70,.85);this.plant(c,599,70,.85);this.plant(c,694,70,1.1);
  this.box(c,164,27,34,55,5,'#e1e7df','#8b9e96');this.ellipse(c,181,25,15,7,'#c1e0e8','#83a5ae');this.box(c,167,5,28,23,7,'#abd3e4','#7b9aa8');this.line(c,[[174,38],[174,43]],'#e3a484',4);this.line(c,[[187,38],[187,43]],'#85b5d1',4);this.box(c,171,53,20,17,3,'#b8cbcd','#9bb0ab',1);
  // Doors at every road endpoint, matched to the route graph.
- for(const y of [115,350,585,820])for(const x of [0,698]){this.box(c,x,y-30,22,60,2,'#a5bfc0','#859c99',2);this.line(c,[[x+11,y-25],[x+11,y+25]],'#cce1da',2);this.box(c,x+6,y-4,4,10,1,'#e9e9d9','#889b91',1);}
+ for(const y of this.layout.ys)for(const x of [0,698]){this.box(c,x,y-30,22,60,2,'#a5bfc0','#859c99',2);this.line(c,[[x+11,y-25],[x+11,y+25]],'#cce1da',2);this.box(c,x+6,y-4,4,10,1,'#e9e9d9','#889b91',1);}
  this.door(c,324,8,62,62);
  // Side wall cabinets, framed posters and small plants.
  for(const y of [185,420,655]){this.box(c,0,y,21,88,3,'#c2b294','#94896e');this.box(c,3,y+5,12,64,1,'#d8c7a6','#ab9879',1);this.plant(c,9,y+16,.65);this.box(c,703,y+15,17,76,2,'#d7c9ad','#9b8b71');this.plant(c,714,y+10,.7);}
- for(let row=0;row<3;row++)for(let col=0;col<2;col++){const x=col?406:116,y=153+row*235;this.box(c,x-13,y-17,218,188,10,'#c5baa927',null);this.box(c,x-18,y-22,226,188,9,'#e9e3d299','#c7bea8',2);this.box(c,x-11,y-15,212,174,6,'#f3eddf66','#f8f4e6',2);this.desk(c,x,y,row,col);}
+ for(const d of this.layout.desks){const x=d.center-94,y=d.seatY-127;c.save();c.translate(d.center,d.seatY);c.scale(this.layout.scale,this.layout.scale);c.translate(-d.center,-d.seatY);this.box(c,x-13,y-17,218,188,10,'#c5baa927',null);this.box(c,x-18,y-22,226,188,9,'#e9e3d299','#c7bea8',2);this.box(c,x-11,y-15,212,174,6,'#f3eddf66','#f8f4e6',2);this.desk(c,x,y,d.row,d.col);c.restore();}
  this.box(c,0,844,720,76,0,'#d5d2c2','#a29e8b');this.box(c,0,841,720,8,0,'#b7b09a','#9f9780');this.door(c,35,853,60,65);this.door(c,623,853,60,65);this.couch(c,427,866);this.plant(c,245,890,.95);this.plant(c,596,891,1);this.plant(c,11,856,1.3);this.box(c,123,856,77,64,3,'#bbab8f','#8c8069');this.line(c,[[161,857],[161,918]],'#8e816b',2);this.line(c,[[154,880],[154,891]],'#776b56',3);this.line(c,[[169,880],[169,891]],'#776b56',3);
  this.door(c,324,855,62,65);
  // Gentle paper flecks give flat colors an illustrated finish.
@@ -631,7 +632,7 @@ export class Renderer{
   else if(actor.suspicion>0){label+=' · ? 有点动静';color='#fff0be';ink='#936527';}
   else if(!pose.moving&&command?.kind==='wait')label+=` · 巡视 ${left}秒`;
   if(sound&&phase)label+=phase==='warning'?` · ${sound.pending?'当前':''}${left}秒后查`:` · 检查${left}秒`;
-  this.chip(c,label,actor.x,Math.max(17,actor.y-110),color,ink,21);
+  this.chip(c,label,actor.x,Math.max(17,actor.y-110*(actor.scale??1)),color,ink,21);
  }
  playerStakes(c,g){
   const p=g.player,pending=Math.floor(Math.max(0,g.pendingBonus||0)+1e-8);
@@ -741,7 +742,7 @@ export class Renderer{
   this.text(c,active?'按键声被盖住 · 视线检查照常':'按键声恢复正常传播',63,25,23,'#7b785d','600');
   c.restore();
  }
- draw(g,t){if(this.lastGame!==g){this.lastGame=g;this.facings=new Map();this.motion.clear();this.predictionTime=-1;this.predictions=[];}const c=this.c;c.clearRect(0,0,W,H);c.drawImage(this.bg,0,0);this.soundSources(c,g,t);
+ draw(g,t){if(this.layout!==g.layout){this.layout=g.layout;this.drawOffice(this.bg.getContext('2d'));}if(this.lastGame!==g){this.lastGame=g;this.facings=new Map();this.motion.clear();this.predictionTime=-1;this.predictions=[];}const c=this.c;c.clearRect(0,0,W,H);c.drawImage(this.bg,0,0);this.soundSources(c,g,t);
  const office=g.soundField?.office;
  this.printerStatus(c,g);
  if(office?.kind==='meeting'){
@@ -752,22 +753,25 @@ export class Renderer{
   this.text(c,away?'老板开会中':'会议室',633,70,14,away?'#ba8253':'#8d9c87');
  }
  if(g.mirror>0){if(g.elapsed-this.predictionTime>.1||this.predictionTime<0){this.predictions=forecastAll(g.inspectors,g.mirror);this.predictionTime=g.elapsed;}this.predictions.forEach((points,i)=>{c.setLineDash([10,8]);this.line(c,points.filter(p=>!p.hidden).map(p=>[p.x,p.y]),i?'#d77c77':'#499dbb',4);c.setLineDash([]);const end=points.filter(p=>!p.hidden).at(-1);if(end){this.ellipse(c,end.x,end.y,8,8,i?'#d77c77':'#499dbb');this.text(c,'•',end.x,end.y,18,'#fff');}let last;for(const p of points)if(p.waiting&&(!last||Math.hypot(p.x-last.x,p.y-last.y)>5)){this.chip(c,'停',p.x,p.y-18,'#fff8e9');last=p;}});}
- const p=g.player,dance=this.danceState(g);this.movePath(c,p,g.elapsed);
+ const p=g.player,dance=this.danceState(g),{seats,scale}=g.layout;this.movePath(c,p,g.elapsed);
  for(const ins of g.inspectors)if(!ins.hidden)this.inspectionCone(c,ins,p.activity==='work'?(p.riskActivity||'game'):p.activity,t);
  if(g.special)this.goldGlow(c,seats[g.special.seat],t);
- for(const s of seats){if(dance&&p.seat===s.id){this.tuckedChair(c,s,g.special?.seat===s.id,dance.chairTuck);continue;}const occupant=[p,...g.npcs].find(a=>a.seat===s.id&&a.activity!=='dance');this.chair(c,s.x,s.y,g.special?.seat===s.id,occupant?'base':'all');}
- for(const d of g.drops){const s=seats[d.seat],y=s.y-70+Math.sin(t*3)*3;this.ellipse(c,s.x,y+24,19,6,'#5c6d6c20');this.box(c,s.x-18,y-18,36,36,9,d.type==='mirror'?'#e1f2f1':'#fff0c9',d.type==='mirror'?'#73a6ab':'#bf9d52',2);const icon=this.toolIcons?.[d.type];if(icon)c.drawImage(icon,s.x-14,y-14,28,28);if(d.type==='meeting')this.text(c,'开会',s.x,y+29,11,'#7c806e');}
+ for(const s of seats){c.save();c.translate(s.x,s.y);c.scale(scale,scale);c.translate(-s.x,-s.y);if(dance&&p.seat===s.id)this.tuckedChair(c,s,g.special?.seat===s.id,dance.chairTuck);else{const occupant=[p,...g.npcs].find(a=>a.seat===s.id&&a.activity!=='dance');this.chair(c,s.x,s.y,g.special?.seat===s.id,occupant?'base':'all');}c.restore();}
+ for(const d of g.drops){const s=seats[d.seat],y=s.y-70*scale+Math.sin(t*3)*3;this.ellipse(c,s.x,y+24,19,6,'#5c6d6c20');this.box(c,s.x-18,y-18,36,36,9,d.type==='mirror'?'#e1f2f1':'#fff0c9',d.type==='mirror'?'#73a6ab':'#bf9d52',2);const icon=this.toolIcons?.[d.type];if(icon)c.drawImage(icon,s.x-14,y-14,28,28);if(d.type==='meeting')this.text(c,'开会',s.x,y+29,11,'#7c806e');}
  const actors=[...g.npcs.map((n,i)=>({...n,type:`npc${n.color}`,visualKey:`npc-${i}`})),...g.inspectors.filter(i=>!i.hidden).map((i,k)=>({...i,type:i.name==='老板'?'boss':'supervisor'})),{...p,type:'player'}].sort((a,b)=>a.y-b.y);
  for(const a of actors){
+  a.scale=scale;
   a.gold=a.seat!=null&&g.special?.seat===a.seat;
   const pose=this.pose(a,a.visualKey||a.type),actorY=a.y+(a.activity==='dance'?35:0);
   a.renderPose=pose;
+  c.save();c.translate(a.x,a.y);c.scale(scale,scale);c.translate(-a.x,-a.y);
   const seatedFade=a.type==='player'&&dance&&this.art.seated;
   if(seatedFade)this.sprite(c,'seated',0,0,a.x,a.y+16,99);
   else if(!this.paintedPerson(c,a,pose,a.type==='player'&&dance?dance.time:t)){
    if(pose.seated)this.seatedPerson(c,a.x,a.y,a.type,t,a.activity||'work',a.gold);
    else this.person(c,a.x,actorY,a.type,t,pose.moving,a.activity,pose.direction);
   }
+  c.restore();
  }
  // Inspector positions and map-only cues belong to the office layer.
  for(const a of actors)if(a.name)this.inspectionLabel(c,a,a.renderPose);
@@ -780,13 +784,13 @@ export class Renderer{
   const pose=a.renderPose;
   if(a.type==='player'){
    const greeting=g.greeting?.left>0?g.greeting:null;
-   if(greeting)this.chip(c,`${greeting.who}好！借过一下～`,a.x,Math.max(18,a.y-134),'#edf4e5','#65805a');
-   else if(a.route.length)this.chip(c,'去新工位',a.x,Math.max(18,a.y-134));
+   if(greeting)this.chip(c,`${greeting.who}好！借过一下～`,a.x,Math.max(18,a.y-134*scale),'#edf4e5','#65805a');
+   else if(a.route.length)this.chip(c,'去新工位',a.x,Math.max(18,a.y-134*scale));
    else if(a.stopping>0){
-    this.chip(c,'收手中…',a.x,a.y-134,'#fff1d0');
+    this.chip(c,'收手中…',a.x,a.y-134*scale,'#fff1d0');
     if(a.activity==='dance')this.noiseBadge(c,g,a);
    }
-   else if(a.lock>0)this.chip(c,'认真工作…',a.x,a.y-134);
+   else if(a.lock>0)this.chip(c,'认真工作…',a.x,a.y-134*scale);
    else if(a.activity!=='work'){
     this.noiseBadge(c,g,a);
     this.incomePop(c,a,t);
