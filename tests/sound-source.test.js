@@ -2,13 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Game,seats,advanceInspectors,forecastAll} from '../src/engine.js';
 const quiet=()=>{const g=new Game(3,1);g.npcs=[];g.inspectors=[];return g;};
-test('手柄按键声半径90到150，蹦迪180到320，增长速度仍不同',()=>{
+test('手柄按键声半径100到170，蹦迪180到320，增长速度仍不同',()=>{
  const game=quiet(),dance=quiet();game.setActivity('game');dance.setActivity('dance');
  game.step(10.01);dance.step(1.83);
- assert.ok(game.soundField.sources[0].radius>=90&&game.soundField.sources[0].radius<91);
+ assert.ok(game.soundField.sources[0].radius>=100&&game.soundField.sources[0].radius<101);
  assert.ok(dance.soundField.sources[0].radius>=180&&dance.soundField.sources[0].radius<182);
  game.step(15);dance.step(4);
- assert.equal(game.soundField.sources[0].radius,150);assert.equal(dance.soundField.sources[0].radius,320);
+ assert.equal(game.soundField.sources[0].radius,170);assert.equal(dance.soundField.sources[0].radius,320);
 });
 test('同样在过道背对玩家，远处能听见蹦迪但听不到手柄',()=>{
  for(const activity of ['game','dance']){

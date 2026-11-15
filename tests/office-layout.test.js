@@ -2,6 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Game,seats,nodes,pathBetween,advanceInspectors,forecastAll} from '../src/engine.js';
 
+test('八工位两排均匀分布，不能只删第三排后留下大片空地',()=>{
+ const g=new Game(0,1),left=g.layout.desks.filter(d=>d.col===0),gaps=[left[0].y-89,left[1].y-(left[0].seatY+40),844-(left[1].seatY+40)];
+ assert.ok(Math.max(...gaps)-Math.min(...gaps)<=30,`上下及排间留白应均衡，实际${gaps}`);
+});
+
 test('六关工位按8、12、16递进，初始角色座位有效且互不占用',()=>{
  for(const [level,count] of [8,8,12,12,16,16].entries()){
   const g=new Game(level,31);
