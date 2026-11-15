@@ -43,3 +43,31 @@ test('每次补刷遵守上限，并优先选择实际六秒内可达机会',()=
   assert.ok(travel<=6+1e-6);
  }
 });
+
+test('坐任一金椅基础与连续奖金均翻倍，两把不会叠成四倍',()=>{
+ const a=quiet(),b=quiet(),c=quiet();
+ for(const g of [a,b,c]){g.specialAt=999;g.setActivity('joke');}
+ b.specials=[{seat:b.player.seat,left:18},{seat:0,left:18}];c.specials=[{seat:0,left:18},{seat:2,left:18}];
+ a.step(9);b.step(9);c.step(9);
+ assert.ok(Math.abs(b.coins-a.coins*2)<1e-6);assert.ok(Math.abs(b.pendingBonus-a.pendingBonus*2)<1e-6);
+ assert.ok(Math.abs(c.coins-a.coins)<1e-6);assert.ok(Math.abs(c.pendingBonus-a.pendingBonus)<1e-6);
+ for(const g of [a,b]){g.setActivity('work');g.step(.1);}
+ assert.ok(Math.abs(b.coins-a.coins*2)<1e-6);assert.equal(b.pendingBonus,0);
+});
+test('金椅只覆盖连续收益时间片中的实际有效区间',()=>{
+ const g=quiet();g.specialAt=999;g.specials=[{seat:g.player.seat,left:.005},{seat:0,left:18}];g.setActivity('joke');g.comboTime=6;g.step(.02);
+ assert.ok(Math.abs(g.coins-.05)<1e-8);assert.ok(Math.abs(g.pendingBonus-.02)<1e-8);assert.equal(g.specials.length,1);
+});
+test('跑酷计分按金椅有效区间归属，到期后的分数不再翻倍',()=>{
+ for(const [x,expected] of [[44.3,8],[45.5,4]]){
+  const g=quiet();g.specialAt=999;g.setActivity('game');g.comboTime=6;g.runner.height=35;g.runner.obstacle.x=x;
+  g.specials=[{seat:g.player.seat,left:.005},{seat:0,left:18}];g.step(.02);
+  assert.equal(g.coins,expected);assert.ok(Math.abs(g.pendingBonus-expected*.4)<1e-8);assert.equal(g.runner.feedback,`+${expected}`);
+ }
+});
+test('从一把金椅换到另一把，收手结算且移动途中不赚金币',()=>{
+ const g=quiet();g.specialAt=999;g.specials=[{seat:7,left:18},{seat:6,left:18}];g.setActivity('joke');g.step(5);
+ g.moveTo(6);g.step(.1);const afterStop=g.coins;assert.equal(g.pendingBonus,0);assert.equal(g.player.seat,null);
+ g.step(3);assert.equal(g.player.seat,6);assert.equal(g.coins,afterStop);
+ g.setActivity('joke');g.step(1);assert.ok(Math.abs(g.coins-afterStop-4)<1e-6);
+});

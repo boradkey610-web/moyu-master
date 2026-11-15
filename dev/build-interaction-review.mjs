@@ -9,13 +9,13 @@ await writeFile(new URL('outputs/interaction-review.html',root),html);
 let app=await read('src/app.js');app=app.replace("from './engine.js'","from '../src/engine.js'").replace("from './render.js'","from '../src/render.js'");
 app=app.replaceAll('localStorage.setItem(SAVE_KEY,JSON.stringify(save))','void 0');
 app+=`\nconst review=document.createElement('aside');review.style.cssText='position:fixed;left:6px;top:6px;z-index:1000;width:155px;padding:8px;background:#fffdf5;border:1px solid #ddd;font:11px system-ui;';review.innerHTML='<b>开发场景检查</b><div id="review-buttons"></div><pre id="review-state" style="white-space:pre-wrap"></pre>';document.body.append(review);
-function base(){g=new Game(2,123);g.npcs=[];g.inspectors=[];g.specialAt=999;g.dropAt=999;g.coins=127;g.time=g.config.time;g.elapsed=12;g.toastLeft=0;g.specials=[{seat:6,left:16}];lastModal=null;hide();}
+function base(){g=new Game(2,123);syncSeatButtons();g.npcs=[];g.inspectors=[];g.specialAt=999;g.dropAt=999;g.coins=127;g.time=g.config.time;g.elapsed=12;g.toastLeft=0;g.specials=[{seat:6,left:16}];lastModal=null;hide();}
 const fixture={
  '换位遇老板':()=>{base();g.inspectors=[{...new Game(2,123).inspectors[0],x:500,y:585,queue:[{kind:'wait',left:30,angle:-Math.PI/2}]}];},
  '老板招呼':()=>encounter('老板'), '主管招呼':()=>encounter('主管'),
  '双倍空椅':()=>{base();g.paused=true;},
- '玩家金椅':()=>{base();Object.assign(g.player,{...seats[6],seat:6});g.paused=true;},
- '同事金椅':()=>{base();g.npcs=[{...seats[6],seat:6,route:[],target:null,next:999,color:0}];g.paused=true;},
+ '玩家金椅':()=>{base();Object.assign(g.player,{...g.layout.seats[6],seat:6});g.paused=true;},
+ '同事金椅':()=>{base();g.npcs=[{...g.layout.seats[6],seat:6,route:[],target:null,next:999,color:0}];g.paused=true;},
  '到期还原':()=>{base();g.specials[0].left=.02;g.step(.04);g.paused=true;},
  '下班结算':()=>{base();g.time=0;g.modal={kind:'timeout'};},
  '通关结算':()=>{base();g.coins=g.config.target;g.modal={kind:'win'};},

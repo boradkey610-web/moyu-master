@@ -58,3 +58,24 @@ test('真实座位同步逻辑在8到16再到8座重建按钮，中心与点击�
   container.children[0].onclick();assert.equal(g.player.target,0);
  }
 });
+test('两把金椅分别绘制光效和秒数，到期只移除对应徽章',()=>{
+ const g=new Game(2,3),r=Object.create(Renderer.prototype),c=canvasContext(),glows=[],badges=[];g.npcs=[];g.inspectors=[];g.specialAt=999;
+ g.specials=[{seat:g.player.seat,left:.2},{seat:0,left:3.2}];
+ Object.assign(r,{c,bg:{},art:{},layout:g.layout,motion:new Map(),facings:new Map()});
+ for(const name of ['soundSources','printerStatus','movePath','inspectionCone','chair','soundSignals','discoOverlay','noiseMeter','playerStakes','momentFeedback','officeEventCue','inspectionLabel','incomePop','chip','noiseBadge','text'])r[name]=()=>{};
+ r.paintedPerson=()=>true;r.goldGlow=(c,seat)=>glows.push(seat.id);r.goldBadge=(c,seat,left)=>badges.push([seat.id,Math.ceil(left)]);
+ r.draw(g,0);assert.deepEqual(glows,[7,0]);assert.deepEqual(badges,[[7,1],[0,4]]);
+ g.step(.3);glows.length=0;badges.length=0;r.draw(g,.3);assert.deepEqual(glows,[0]);assert.deepEqual(badges,[[0,3]]);
+});
+test('开发场景切到12座时同步按钮，金椅人物夹具使用当前布局',()=>{
+ const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8'),builder=readFileSync(new URL('../dev/build-interaction-review.mjs',import.meta.url),'utf8');
+ const sync=app.slice(app.indexOf('function syncSeatButtons(){'),app.indexOf("for(const b of document.querySelectorAll('[data-activity]'))b.onclick"));
+ const fixtures=builder.slice(builder.indexOf('function base(){'),builder.indexOf('\nfunction encounter'));
+ const container={children:[],replaceChildren(...buttons){this.children=buttons;}};
+ const context={Game,g:new Game(0,1),lastModal:null,screen:null,hide(){},beep(){},$:()=>container,document:{createElement:()=>({style:{},setAttribute(){}})}};
+ vm.createContext(context);vm.runInContext('let seatButtons=[];'+sync+fixtures,context);assert.equal(container.children.length,8);
+ vm.runInContext('base()',context);assert.equal(container.children.length,12);
+ assert.equal(container.children[0].style.top,`${context.g.layout.seats[0].y/920*100}%`);
+ assert.doesNotThrow(()=>vm.runInContext("fixture['玩家金椅']()",context));assert.equal(context.g.player.x,context.g.layout.seats[6].x);
+ assert.doesNotThrow(()=>vm.runInContext("fixture['同事金椅']()",context));assert.equal(context.g.npcs[0].y,context.g.layout.seats[6].y);
+});

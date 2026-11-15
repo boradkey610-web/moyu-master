@@ -7,7 +7,7 @@ import {readFileSync} from 'node:fs';
 const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
 const coinCode=app.slice(app.indexOf('function coinAmount('),app.indexOf('function button('));
 const statementCode=coinCode+app.slice(app.indexOf('function statement('),app.indexOf('function modalBackground('));
-const modalCode=app.slice(app.indexOf('function processModal('),app.indexOf('const seatButtons='));
+const modalCode=app.slice(app.indexOf('function processModal('),app.indexOf('let seatButtons='));
 
 test('第四关与第五关继续新关，末关重玩自身而非跳回第四关',()=>{
  for(const [level,next]of [[3,4],[4,5],[5,5]]){

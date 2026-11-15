@@ -18,6 +18,8 @@ base-ref: 349a72165a3bdc31e68eda0757b85f37195a7366
 
 ## 执行边界与基线
 
+- 第一批三项完成后，用户明确选择“后续直接做完并试玩发布，不再停批次确认”；后续按已批准范围持续完成，批次只报告进展，不重复请求确认。当前分支与测试先行方式保持。
+
 - 仓库根目录：`/Users/lucas/Documents/ChatGPT/快小游项目/moyu-master-github`。后文命令均在此运行。
 - 保留 `feature/20261114/office-paper-ui` 当前分支，不新建 worktree、不 push、不归档。`openspec/changes/ecs-public-playtest/` 与 `outputs/` 为既有未跟踪工作，不删除、不批量暂存、不纳入发布。
 - 需求事实源：`openspec/changes/ripple-office-progression/specs/progressive-office/spec.md`；技术设计：本文件 YAML 所指文档。以下七组一一对应原 `tasks.md` 的 1.1、1.2、2.1、2.2、2.3、3.1、3.2。
@@ -142,7 +144,7 @@ git diff --check
 2. 对相同 `source`、相同 `g.elapsed` 重画要求完全一致；推进 elapsed 后要求内部波纹半径/透明度变化。序列化 Game 前后并监测随机数，断言渲染不改模拟、不取每帧随机数；不要用快照像素代替真实半径断言。
 3. 运行 `node --test tests/noise-visual.test.js tests/render-dance.test.js`，确认旧粗圈和静态内部样式失败。
 4. 原生 Canvas 绘制透明径向波面、约 1.8 世界单位连续细边及少量移动短高光；三/五层相位由 `time` 计算，随半径向外增大并淡出，限制在 `source.radius` 内；保留游戏紫色、蹦迪暖金色。沿用真实 `active/kind/radius`，不修改 100～170／180～320 半径公式、40% 阈值、声音积累/掩护/衰减/记忆规则，不加贴图或大面积模糊。
-5. 在 Game 暂停后调用多次 draw，外部绘制时间即使不同也必须使用冻结的 `g.elapsed` 产生相同波纹；继续后再推进。收手完成后即使余音 volume/radius 尚存也不画范围；打印机掩护游戏声、蹦迪仍可传出，均以真实声场为准。
+5. 在 Game 暂停后调用多次 draw，外部绘制时间即使不同也必须使用冻结的 `g.elapsed` 产生相同波纹；继续后再推进。收手完成后当前工位 volume/radius 及进度清零，不再显示余音回落，已听见的旧位置仍会调查；打印机掩护游戏声、蹦迪仍可传出，均以真实声场为准。
 6. 验证办公室声场在人物之前；蹦迪舞台上只重画玩家自己的声源与声音进度，检查者提示留在办公室层，不以检查者距离改变波纹。375×667 截图对比游戏/蹦迪范围、进度与传出线，确认最外缘看得见但不抢占人物。
 
 **组验收命令：** `node --test tests/noise-visual.test.js tests/render-dance.test.js tests/render-motion.test.js tests/sound-source.test.js tests/office-events.test.js`、`npm run build`、`git diff --check`。
