@@ -1,0 +1,14 @@
+{
+  "change": "restore-text-jokes",
+  "phase": "design",
+  "mode": "compact",
+  "canonical_spec": "openspec",
+  "generated_by": "omw-handoff.sh",
+  "context_hash": "f3de8c74788b9b983c1b226500b9ade1182e89d71d85ecd08d5537cc2f7070d4",
+  "files": [
+    { "path": "openspec/changes/restore-text-jokes/proposal.md", "sha256": "5218701bdbfddb15f84301f2de930970d23a1cf0ba709b7b8fe16d28ac7abcc1" },
+    { "path": "openspec/changes/restore-text-jokes/design.md", "sha256": "221b5b44117aaf33f6ccb1d9c2869d2b99d1fcbdda510ac912697a410a004e8f" },
+    { "path": "openspec/changes/restore-text-jokes/tasks.md", "sha256": "81972e992b13c9e2927d6011d3fab0b3796f0b3e1cfe5f583f5a52599bce0e6c" },
+    { "path": "openspec/changes/restore-text-jokes/specs/text-joke-feed/spec.md", "sha256": "d9f4dfbbab5aa343304a10b95904bdc2192c19194380c65eacf70e615235da80" }
+  ]
+}

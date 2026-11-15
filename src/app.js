@@ -1,9 +1,34 @@
 import {Game,seats,activities,levels} from './engine.js';
 import {Renderer} from './render.js';
 import {drawRunner} from './runner.js';
-import {drawComic,comicScenes} from './comic.js';
 const $=s=>document.querySelector(s),canvas=$('#office'),renderer=new Renderer(canvas);
 let save={unlocked:1,best:{}},g=new Game(),screen='menu',lastModal=null,lastTime=0,visualTime=0,sound=true,audio;
+const jokePosts=[
+ '老板说工作要有回响。\n我敲了两下空格。',
+ '今天也很忙。\n忙着等下班。',
+ '问：我的职业规划？\n答：工位离门再近一点。',
+ '电脑可以休眠。\n我不可以，合理吗？',
+ '老板：你在忙什么？\n我：忙着显得很忙。',
+ '开会要带脑子。\n我带了本子，先记着。',
+ '同事问我怎么这么准时。\n我说的是下班。',
+ '下班不是结束。\n是我今天正式开机。',
+ '我把需求写进了愿望清单。\n希望它自己实现。',
+ '老板问我有没有大局观。\n我说已经看到周五了。',
+ '我的工作状态很稳定。\n稳定地想下班。',
+ '领导说要多一点弹性。\n我把椅背往后调了一格。',
+ '今天的待办只有两项。\n上班，和下班。',
+ '我不是在发呆。\n我在给脑子放缓存。',
+ '会议结束得很突然。\n因为下一场会议开始了。',
+ '工作让我学会了耐心。\n尤其是等待电梯的时候。',
+ '同事问我怎么总喝水。\n我说给灵感留条水路。',
+ '我最擅长的时间管理。\n是把午休管理得很准。',
+ '周五的进度条很慢。\n但我一直没有退出。',
+ '领导说这是个小改动。\n我先把周末收起来了。',
+ '我的键盘有个梦想。\n每天六点准时关灯。',
+ '我给文件取名“最终版”。\n它又多了三个弟弟。',
+ '今日成就：保持在线。\n实际操作：移动鼠标。',
+ '我在等一个重要通知。\n下班铃。'
+];
 const SAVE_KEY='moyu-master-save-v5-runner';
 function readStoredSave(key){try{const data=JSON.parse(localStorage.getItem(key));return data&&typeof data==='object'&&!Array.isArray(data)?data:null;}catch{return null;}}
 const shortSave=readStoredSave(SAVE_KEY),savedProgress=shortSave||readStoredSave('moyu-master-save-v4-sound')||readStoredSave('moyu-master-save-v3-patrol')||readStoredSave('moyu-master-save-v2-short')||readStoredSave('moyu-master-save-v1');
@@ -88,8 +113,8 @@ function selectLevel(){
 function instructions(back=()=>hide()){
  screen=back===menu?'guide':'instructions';
  const rules=[
-  '三种玩法从第1关可用。打游戏点按跳障碍；看段子点漫画里的饼、闹钟和咖啡。',
-  '点道具触发漫画演出，每幕完成额外3金币，金椅翻倍。看漫画时办公室照常巡逻，空格或绿色按钮收手。',
+  '三种玩法从第1关可用。打游戏点按跳障碍；看段子点击卡片看下一条。',
+  '互动窗口在下方，办公室照常巡逻；段子安静，蹦迪更吵。空格或绿色按钮收手。',
   '检查前有预告。可降档继续摸鱼，藏不住就一键工作；收手需要时间。',
   '头顶的“收手领”是额外奖金，按一键工作或换座后到账，被抓就丢。连玩越久，奖金越多。',
   '喇叭显示声音能传多远；出现感叹号时，才是检查者真的听到了。',
@@ -154,8 +179,7 @@ function processModal(){if(!g.modal||screen==='reward'||g.modal===lastModal)retu
  }}
 const seatButtons=seats.map(s=>{const b=document.createElement('button');b.className='seat-hit';b.style.left=`${s.x/720*100}%`;b.style.top=`${s.y/920*100}%`;b.setAttribute('aria-label',`移动到${s.id+1}号工位`);b.onclick=()=>{if(!screen){if(g.moveTo(s.id))beep(520);else g.notify('当前不能换到这个工位');}};$('#seat-buttons').append(b);return b;});
 for(const b of document.querySelectorAll('[data-activity]'))b.onclick=()=>{if(!screen){g.setActivity(b.dataset.activity);beep(b.dataset.activity==='dance'?700:500);}};
-const comicAction=$('#comic-action');
-comicAction.onclick=()=>{if(!screen&&g.actComic())beep(520);};
+$('#joke-card').onclick=()=>{if(g.nextJoke())beep(570);};
 $('#runner-jump').onpointerdown=e=>{if(e.button===0&&e.isPrimary&&!screen&&g.jump())beep(600);};
 $('#runner-jump').onclick=e=>{if(e.detail===0&&!screen&&g.jump())beep(600);};
 $('#work').onclick=()=>{if(!screen){g.setActivity('work');beep(320);}};$('#mirror').onclick=()=>{if(!screen&&!g.useMirror())g.notify(g.inventory.mirror?'检查者暂时离场，回来后再用':'空工位拾取反光镜，或在求助中领取');};$('#meeting').onclick=meeting;$('#help').onclick=help;$('#pause').onclick=pause;
@@ -187,23 +211,19 @@ function updateUI(){
   b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));
   b.disabled=blocked||p.seat===null||locked||stopping;
   const threats=a==='dance'?[]:g.activityThreats(a),risk=threats.length>0;
-  b.classList.toggle('is-risky',risk);b.setAttribute('aria-description',`${a==='joke'?'安静看漫画，会让先前的声音消散':a==='game'?'手柄按键声逐渐变大，附近的检查者可能听见':'音乐声增长更快，远处的检查者也可能听见'}${a==='dance'?'':'；'+(risk?'当前检查范围内：'+threats.join('、'):'当前检查范围外')}`);b.title=b.getAttribute('aria-description');
+  b.classList.toggle('is-risky',risk);b.setAttribute('aria-description',`${a==='joke'?'无声，会让先前的声音消散':a==='game'?'手柄按键声逐渐变大，附近的检查者可能听见':'音乐声增长更快，远处的检查者也可能听见'}${a==='dance'?'':'；'+(risk?'当前检查范围内：'+threats.join('、'):'当前检查范围外')}`);b.title=b.getAttribute('aria-description');
 
   b.querySelector('small').textContent=a==='game'?'点按闯关':`+${activities[a].rate*multiplier} / 秒`;
  }
  const jokeVisible=p.activity==='joke'&&p.seat!==null&&!moving;
- $('#comic-panel').hidden=!jokeVisible;$('.controls').classList.toggle('is-reading-joke',jokeVisible);
+ $('#joke-panel').hidden=!jokeVisible;$('.controls').classList.toggle('is-reading-joke',jokeVisible);
  if(jokeVisible){
-  const comic=g.comic,scene=comicScenes[comic.post%comicScenes.length],hit=scene.hit;
-  $('#comic-title').textContent=scene.title;
-  $('#comic-counter').textContent=comic.phase==='done'?`+${comic.reward} 金币`:`第 ${comic.post+1} 幕`;
-  comicAction.disabled=blocked||stopping||locked;
-  comicAction.setAttribute('aria-disabled',String(comic.phase!=='ready'));
-  comicAction.setAttribute('aria-label',`${scene.action}${scene.steps>1?`，${comic.step}/${scene.steps}`:''}`);
-  comicAction.style.left=`${hit.x/480*100}%`;comicAction.style.top=`${hit.y/128*100}%`;comicAction.style.width=`${hit.w/480*100}%`;comicAction.style.height=`${hit.h/128*100}%`;
-  $('#comic-hint').textContent=stopping?'正在收起漫画…':comic.phase==='acting'?'好戏来了…':comic.phase==='done'?'看完这幕，下一幕马上来':scene.prompt;
-  $('#comic-canvas').setAttribute('aria-label',`${scene.title}，${comic.phase==='done'?'笑点已触发':comic.phase==='acting'?'正在演出':scene.prompt}`);
-  drawComic($('#comic-canvas'),comic,stopping,renderer);
+  const j=g.joke,text=jokePosts[(g.level*6+j.post)%jokePosts.length];
+  if($('#joke-text').textContent!==text)$('#joke-text').textContent=text;
+  $('#joke-counter').textContent=`第 ${j.post+1} 条`;
+  $('#joke-card').disabled=blocked||stopping||locked;
+  $('#joke-card').setAttribute('aria-label',`${text.replace('\n',' ')} 点击看下一条。Enter也可换条，空格收手。`);
+  $('#joke-hint').textContent=stopping?'正在收好段子…':'点一下，换个段子';
  }
  const runnerVisible=p.activity==='game'&&p.seat!==null&&!moving;
  $('#runner-panel').hidden=!runnerVisible;$('.controls').classList.toggle('is-playing-runner',runnerVisible);

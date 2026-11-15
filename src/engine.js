@@ -1,5 +1,4 @@
 import {createRunner,jumpRunner,stepRunner} from './runner.js';
-import {createComic,tapComic,stepComic} from './comic.js';
 export const activities={work:{name:'工作',rate:0,range:0,stop:0},joke:{name:'看段子',rate:2,range:70,stop:.1},game:{name:'打游戏',rate:3,range:140,stop:.5},dance:{name:'蹦迪',rate:6,range:230,stop:1}};
 export const levels=[{name:'入职第一天',target:90,time:60,npcs:2,bosses:1},{name:'找个好工位',target:170,time:75,npcs:3,bosses:1},{name:'主管也来了',target:400,time:90,npcs:5,bosses:2},{name:'周五抢座大战',target:440,time:90,npcs:7,bosses:2}];
 export const seats=Array.from({length:12},(_,id)=>{const row=Math.floor(id/4),col=Math.floor(id%4/2);return{id,x:(col?455:165)+(id%2)*90,y:280+row*235,row,col};});
@@ -123,12 +122,12 @@ export function forecastAll(inspectors,seconds=10){
 export function forecast(ins,seconds=10){return forecastAll([ins],seconds)[0];}
 export class Game{
  runner=createRunner();
- comic=createComic();
+ joke={post:0};
  constructor(level=0,seed=Date.now()){this.level=level;this.config=levels[level];this.seed=seed>>>0;this.time=this.config.time;this.elapsed=0;this.coins=0;this.warned=false;this.catches=0;this.ads=0;this.extended=false;this.mirror=0;this.inventory={mirror:0,meeting:0};this.special=null;this.specialAt=10;this.dropAt=14;this.drops=[];this.modal=null;this.paused=false;this.toast='选一种摸鱼方式，留意老板的朝向';this.toastLeft=5;this.player={...seats[7],seat:7,activity:'work',riskActivity:'game',route:[],target:null,stopping:0,pending:null,hold:0,lock:0};this.comboTime=0;this.pendingBonus=0;this.exposure=0;this.exposureLimit=.7;this.feedback=null;this.greeting=null;this.tutorialSeen=false;this.stats={moves:0,moveTime:0,greetings:0,picked:0,closeCalls:0,banked:0,activityTime:{joke:0,game:0,dance:0,work:0}};this.soundField={clock:0,tickRemainder:0,nextId:1,emitter:null,sources:[],claimed:{},respondedZones:{}};this.inspectors=Array.from({length:this.config.bosses},(_,i)=>({x:i?708:12,y:i?350:585,name:i?'主管':'老板',seed:(seed+i*91)>>>0,speed:62,angle:i?-Math.PI/2:0,last:i?5:6,previous:-1,queue:[{kind:'wait',left:3+i*2,angle:i?Math.PI:0},{kind:'move',x:i?655:65,y:i?350:585}],hold:0,hidden:false,leaving:false,greeted:false,clock:0,tickRemainder:0,patrolOrder:i?((seed+i*91)%2?[3,1,0,2,4,5]:[3,5,4,2,0,1]):(level===0?[3,1,0,2,4,5]:(seed%2?[2,4,5,3,1,0]:[2,0,1,3,5,4])),patrolIndex:0,zone:null,checkedZones:{},avoidZones:[],lastSeen:null,suspicion:0,observation:null,lastHeard:null,pendingSound:null,hearingTime:0,hearingId:null,evidenceKind:'routine',soundField:this.soundField,directed:false,closeClaimed:false}));this.npcs=[0,3,8,10,4,1,11].slice(0,this.config.npcs).map((seat,i)=>({...seats[seat],seat,target:null,route:[],next:level===3?35+i*6:Infinity,color:i%3}));}
  jump(){const p=this.player;if(this.modal||this.paused||p.activity!=='game'||p.seat===null||p.route.length||p.stopping>0||p.lock>0)return false;return jumpRunner(this.runner);}
- actComic(){
+ nextJoke(){
   const p=this.player;if(this.modal||this.paused||p.activity!=='joke'||p.seat===null||p.route.length||p.stopping>0||p.lock>0)return false;
-  return tapComic(this.comic);
+  this.joke.post++;return true;
  }
  notify(text){this.toast=text;this.toastLeft=3.5;}
  occupied(id,except){return(this.player!==except&&this.player.seat===id)||this.npcs.some(n=>n!==except&&n.seat===id);}
@@ -177,10 +176,6 @@ export class Game{
    // Integrate tier boundaries exactly, including double-income expiry.
    for(let tier=1;p.activity!=='game'&&tier<=3;tier++){const start=Math.max(before,tier*3),end=Math.min(this.comboTime,tier===3?Infinity:(tier+1)*3);if(end>start){const base=activities[p.activity].rate*(end-start);const boostedPart=boosted?Math.max(0,Math.min(end-before,boostTime)-Math.max(start-before,0)):0;this.pendingBonus+=(base+activities[p.activity].rate*boostedPart)*tier*.2;}}
   }
- }
- if(p.activity==='joke'&&p.seat!==null&&!p.route.length&&p.lock===0&&p.stopping===0){
-  const score=stepComic(this.comic,dt);
-  if(score){const reward=score*(boostTime>0?2:1);this.comic.reward=reward;this.coins+=reward;this.pendingBonus+=reward*Math.min(3,Math.floor(this.comboTime/3))*.2;}
  }
  if(p.activity==='game'&&p.seat!==null&&!p.route.length&&p.lock===0&&p.stopping===0){
   const score=stepRunner(this.runner,dt);
