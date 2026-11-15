@@ -1,0 +1,121 @@
+{
+  "source_commit": "88e1bf74aeb97e822b623ed7be8c59b0ed8a4d2d",
+  "runtime_files": [
+    {
+      "path": "assets/back_steps.png",
+      "sha256": "b80823f36df05e60cc9f28a554382f36e9fadb7eda7a90693207e759a4d64db8"
+    },
+    {
+      "path": "assets/boss.png",
+      "sha256": "cf34a74736f3a1ad25b9006cb338fca997a7af2f87b9b705694ceaf7d10b925b"
+    },
+    {
+      "path": "assets/chair-gold.png",
+      "sha256": "10913ce09d58fc939730604b23e77373aedee56b0ddfcb8a528f780f8fbdcc10"
+    },
+    {
+      "path": "assets/chair.png",
+      "sha256": "3e4111c2713253c15827dbf53a52df7f8f1dfb2d2d953e19e21dd6c10c0b599f"
+    },
+    {
+      "path": "assets/desk.png",
+      "sha256": "5928042d6f27c105ae617bdba5f99c5ef6843d7c9e5b9eefeffa6c7e57b65e63"
+    },
+    {
+      "path": "assets/front_steps.png",
+      "sha256": "3cce7efaabffd4a7a2cdfb5f4cdadf86651b8dc25f12ec312e8d7dce83bca57b"
+    },
+    {
+      "path": "assets/generated/player-dance-eight-beat-clean/frames.png",
+      "sha256": "6c367fc7e2cfebfe4f397abf135d7b3a1c20f20c65684a96f2e1657f4ea29cc5"
+    },
+    {
+      "path": "assets/generated/supervisor-v7/back-steps.png",
+      "sha256": "8150825726f2afdc9cc74ed604841eb2edf7adf917da3fc140730f5a26da4369"
+    },
+    {
+      "path": "assets/generated/supervisor-v7/front-steps.png",
+      "sha256": "f0c82ca05029f2b2220a92722d87c2e8f8e0d53c48f182a66db5a3a88b90716c"
+    },
+    {
+      "path": "assets/generated/supervisor-v7/idle.png",
+      "sha256": "9c564cea8d4e0b0db487ddb3cda10624a2e627e51e12475f3e06f2d6156c29da"
+    },
+    {
+      "path": "assets/generated/supervisor-v7/side-steps.png",
+      "sha256": "8c76cb4063dd555ed924fce94a7447e29fd5b8b1d634942e8d69c3df2ca3a746"
+    },
+    {
+      "path": "assets/generated/supervisor-v7/supervisor.png",
+      "sha256": "39a93387b1c5b91c12596197b926c0bc52679eb57cbb67e3f115180e6fab6734"
+    },
+    {
+      "path": "assets/idle.png",
+      "sha256": "43f12310bfd5b4c518ab0c98ede028e1b2773571679f26d7cba6d4c48c39d37b"
+    },
+    {
+      "path": "assets/manifest.json",
+      "sha256": "5bc3e4eabe86ad7f8c004a29dd568ce36a42fea1f0623e81017d248249617a34"
+    },
+    {
+      "path": "assets/npc.png",
+      "sha256": "1e9aea180b7db3af3203af23d4bbc3d5d537b00ff23210af8c7b348fbc3b3c9a"
+    },
+    {
+      "path": "assets/office.png",
+      "sha256": "3b6506f229183d9d07fc15d935b6e386433a9c374f220bce1a0ffb278476ee4b"
+    },
+    {
+      "path": "assets/player.png",
+      "sha256": "cc79307f72c1c8f810b7571c690b47b7d46e39ed5c77ff9113bd031d9e76f3d8"
+    },
+    {
+      "path": "assets/room-details.png",
+      "sha256": "bc7ebd3c3929833e331f1170c97ffd5ce776a544196aa775016a8778f9897714"
+    },
+    {
+      "path": "assets/seated.png",
+      "sha256": "b8a0135780e63256f740f30cf1267f98a3b6dcd6ce30466e7db737df4e4ac484"
+    },
+    {
+      "path": "assets/side_steps.png",
+      "sha256": "a49659e26eeb16dfa7c523d9fc49a157393db7b5b98a769c14f32fda826ff7d0"
+    },
+    {
+      "path": "assets/supervisor.png",
+      "sha256": "9043146e4c1abac6c715d3450ad15e99cf69206f7d8e853a67d3dda6c4e9a10f"
+    },
+    {
+      "path": "dev/dance-review.html",
+      "sha256": "156be39129c1c8529fc6f3180d2fe737ebc73ee8ba8fe68eef47e79529ce1e88"
+    },
+    {
+      "path": "index.html",
+      "sha256": "5a636b7cc44cc958da5fb3c9b180997aed41472c3926575951d7b5da33385f92"
+    },
+    {
+      "path": "src/app.js",
+      "sha256": "7f4b0035344c93143cb7076fd87d26fec8c0e4d96b40314f348085005f452655"
+    },
+    {
+      "path": "src/disco.js",
+      "sha256": "5c93217ab20c8a8e5cfb038183b27120255126422be80694e97e8e69e3606114"
+    },
+    {
+      "path": "src/engine.js",
+      "sha256": "5a8e9c69cb6c97a12458a3cb284d3163765e5eeaccfb1224527f8889a04cfbf2"
+    },
+    {
+      "path": "src/render.js",
+      "sha256": "ca95852b88df704ab22fc7571cce5c5fd6ccff11a26ca80c64f2363ffa592bc2"
+    },
+    {
+      "path": "src/runner.js",
+      "sha256": "05e9c9e689ba5014164b1ffd1958f44a0b6df230d5a5bb9298ddf9cea941b94a"
+    },
+    {
+      "path": "style.css",
+      "sha256": "ff19b3e9418e3db0d69cddd5072a64655733ee561b793075e8de4237d4a7f0d0"
+    }
+  ]
+}
