@@ -508,15 +508,37 @@ export class Renderer{
   return{point,age,fresh,pending:!!ins.pendingSound,current:ins.directed&&ins.evidenceKind==='sound'?ins.lastHeard:null};
  }
  soundSources(c,g,t){
-  for(const source of g.soundField?.sources||[])if(source.active){
-   const loud=source.volume>=40;
-   for(let n=0;n<2;n++){const wave=(t*(loud?1.4:.8)+n/2)%1;c.save();c.globalAlpha=(1-wave)*(loud?.65:.3);this.ellipse(c,source.x,source.y-5,26+wave*(loud?58:24),15+wave*(loud?34:14),'#0000',loud?'#c57d98':'#9aaf9a');c.restore();}
-  }
+  for(const source of g.soundField?.sources||[])this.noiseRange(c,source,g.elapsed);
   for(const ins of g.inspectors){const cue=this.soundTarget(ins);if(!cue)continue;const p=cue.point;
    c.save();c.setLineDash([7,7]);c.lineDashOffset=-t*22;this.line(c,[[ins.x,ins.y-34],[p.x,p.y+10]],cue.pending?'#b19d6f99':'#d0873999',2.5);c.restore();
    this.ellipse(c,p.x,p.y+8,48+Math.sin(t*5)*3,27,'#ffc95b24','#d58b39',3);
    if(cue.current&&cue.current.seat!==p.seat){const old=cue.current;this.line(c,[[ins.x,ins.y-34],[old.x,old.y+10]],'#d0873999',2.5);this.ellipse(c,old.x,old.y+8,48,27,'#ffc95b24','#d58b39',3);}
   }
+ }
+ noiseRange(c,source,time){
+  if(!source?.active||source.radius<=0)return;
+  c.save();c.globalAlpha=.68+Math.sin(time*2)*.08;c.strokeStyle=source.kind==='dance'?'#e8bc78':'#7b9066';c.lineWidth=4;c.setLineDash([3,12]);c.lineCap='round';
+  c.beginPath();c.arc(source.x,source.y,source.radius,0,Math.PI*2);c.stroke();c.restore();
+ }
+ noiseMeter(c,g){
+  const p=g.player;if(p.seat==null||p.route.length)return;
+  const field=g.soundField,source=field.sources.find(s=>s.seat===p.seat),volume=source?.volume||0;
+  const masked=p.activity==='game'&&field.office?.kind==='printer'&&field.clock<field.office.activeUntil-1e-8;
+  if(!['joke','game','dance'].includes(p.activity)&&volume<=0)return;
+  const active=!!source?.active,ink=masked?'#75a69c':!active?'#91ac9d':volume>=75?'#e4b665':volume>=40?'#d6a058':'#82ad94';
+  const label=masked?'机器掩护':!active?(volume>0?'动静回落':p.activity==='joke'?'无声摸鱼':'越线会传出'):volume<40?'越线会传出':volume<75?'声音已传出':'声音传更远';
+  const x=Math.max(95,Math.min(W-95,p.x+85)),y=Math.max(195,p.y-(p.activity==='dance'?118:173));
+  c.save();c.translate(x,y);
+  for(let i=0;i<10;i++){
+   const h=14+i*2.7,filled=Math.max(0,Math.min(1,volume/10-i));
+   this.box(c,-63+i*13,-h,9,h,2,'#94b29b70','#fff9eb80',.8);
+   if(filled>0)this.box(c,-63+i*13,-h*filled,9,h*filled,2,ink,null);
+  }
+  this.line(c,[[-13,-49],[-13,5]],'#c79b5c',2.5);
+  this.line(c,[[-19,-49],[-7,-49]],'#c79b5c',2.5);
+  c.font='800 26px "PingFang SC",sans-serif';c.textAlign='center';c.textBaseline='middle';c.lineJoin='round';
+  c.strokeStyle=p.activity==='dance'?'#183138':'#fffaf0';c.lineWidth=4;c.strokeText(label,0,26);c.fillStyle=p.activity==='dance'?'#e8d6ad':'#5b765e';c.fillText(label,0,26);
+  c.restore();
  }
  soundSignals(c,g,t){
   const marked=new Set();
@@ -536,7 +558,7 @@ export class Renderer{
   if(a.activity==='dance'){this.danceSound(c,g,a);return;}
   if(a.activity!=='game')return;
   const source=g.soundField?.sources.find(s=>s.seat===a.seat),volume=source?.volume||0;
-  const t=g.elapsed,x=Math.min(W-45,a.x+52),y=a.y-110,pressed=Math.floor(t*7)%2;
+  const t=g.elapsed,x=Math.min(W-45,a.x+52),y=Math.max(258,a.y-110),pressed=Math.floor(t*7)%2;
   c.save();c.translate(x,y);c.rotate(Math.sin(t*8)*.035);c.scale(.78,.78);c.translate(-26,-26);
   c.beginPath();c.moveTo(15,13);c.bezierCurveTo(9,13,6,18,4,28);c.bezierCurveTo(2,37,4,42,9,42);
   c.bezierCurveTo(13,42,16,36,19,35);c.lineTo(33,35);c.bezierCurveTo(37,36,40,42,44,42);
@@ -747,6 +769,7 @@ export class Renderer{
  if(g.special)this.goldBadge(c,seats[g.special.seat],g.special.left,t);
  this.soundSignals(c,g,t);
  this.discoOverlay(c,dance);
+ if(dance)this.noiseRange(c,g.soundField.sources.find(s=>s.seat===p.seat),g.elapsed);
  // Player-only feedback stays above the disco; office reactions stay underneath.
  for(const a of actors){
   const pose=a.renderPose;
@@ -765,6 +788,6 @@ export class Renderer{
    }
   }
  }
- this.playerStakes(c,g);this.momentFeedback(c,g);this.officeEventCue(c,g);
+ this.noiseMeter(c,g);this.playerStakes(c,g);this.momentFeedback(c,g);this.officeEventCue(c,g);
  }
 }
