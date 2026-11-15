@@ -182,7 +182,7 @@ export class Game{
  this.soundField.emitter={x:p.x,y:p.y,seat:p.seat,activity:p.activity,seated:p.seat!==null&&!p.route.length};
  const heardBefore=this.inspectors.map(i=>Math.max(i.lastHeard?.soundId||0,i.pendingSound?.soundId||0)),officeBefore=this.soundField.office?.count||0;
  advanceInspectors(this.inspectors,dt,this.soundField);
- if(officeBefore===0&&this.soundField.office?.count>0)this.notify(this.soundField.office.kind==='meeting'?'老板被叫去开会了，主管照常巡视':'打印机响了，按键声暂时被盖住');
+ if(officeBefore===0&&this.soundField.office?.count>0&&this.soundField.office.kind==='meeting')this.notify('老板被叫去开会了，主管照常巡视');
  this.inspectors.forEach((ins,k)=>{const heard=ins.pendingSound||ins.lastHeard;if((heard?.soundId||0)>heardBefore[k])this.notify(`${ins.name}听见了${heard.kind==='dance'?'音乐':'手柄按键声'}，${ins.pendingSound?'稍后':'会'}查看${heard.seat+1}号工位`);});
  if(this.level===0&&!this.tutorialSeen&&this.inspectors.some(i=>i.queue[0]?.phase==='warning')){this.tutorialSeen=true;this.modal={kind:'tutorial'};return;}
 

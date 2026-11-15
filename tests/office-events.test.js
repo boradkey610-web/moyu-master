@@ -1,6 +1,43 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Game,levels,seats,advanceInspectors,forecastAll} from '../src/engine.js';
+import {Renderer} from '../src/render.js';
+
+test('打印机每次开始和停止短暂提示，位置居中且随暂停冻结',()=>{
+ const g=new Game(5,100),r=Object.create(Renderer.prototype),labels=[],icons=[],positions=[];
+ const c=new Proxy({}, {get:(o,k)=>o[k]??(()=>{}),set:(o,k,v)=>(o[k]=v,true)});
+ c.translate=(x,y)=>positions.push([x,y]);r.box=r.ellipse=()=>{};
+ r.text=(c,text)=>labels.push(text);r.printer=(...args)=>icons.push(args);
+ const field=g.soundField,office=field.office;
+ const draw=()=>{labels.length=0;icons.length=0;positions.length=0;r.officeEventCue(c,g);};
+ draw();assert.equal(labels.length,0,'启动前不遮挡画面');
+ advanceInspectors(g.inspectors,office.nextAt+.5);draw();
+ assert.ok(labels.includes('打印机响了！'));assert.ok(labels.includes('按键声被盖住 · 视线检查照常'));
+ assert.ok(positions[0][0]===360&&positions[0][1]>350&&positions[0][1]<460);
+ assert.ok(icons[0][3]>=100,'图标比顶部常驻打印机更醒目');
+ const state=JSON.stringify(field),still=JSON.stringify({labels,icons,positions});
+ g.paused=true;g.step(5);draw();assert.equal(JSON.stringify(field),state);
+ assert.equal(JSON.stringify({labels,icons,positions}),still,'暂停不推动提示消失');
+ g.paused=false;advanceInspectors(g.inspectors,3);draw();assert.equal(labels.length,0,'运转期间不常驻遮挡');
+ advanceInspectors(g.inspectors,7);draw();assert.ok(labels.includes('打印机停了'));
+ assert.ok(labels.includes('按键声恢复正常传播'));
+ advanceInspectors(g.inspectors,2.5);draw();assert.equal(labels.length,0);
+ advanceInspectors(g.inspectors,office.nextAt-field.clock+.5);draw();assert.ok(labels.includes('打印机响了！'),'下一次运转也提示');
+});
+
+test('中央打印机提示不查询检查者，也不在其他主题出现',()=>{
+ const r=Object.create(Renderer.prototype);
+ for(const level of [0,4])r.officeEventCue({},new Game(level,100));
+});
+
+test('打印机不再重复底部首次通知，会议通知保留',()=>{
+ for(const level of [4,5]){
+  const g=new Game(level,100),messages=[];g.notify=text=>messages.push(text);
+  g.step(g.soundField.office.nextAt+.1);
+  if(level===5)assert.ok(messages.every(text=>!text.includes('打印机响了')));
+  else assert.ok(messages.some(text=>text.includes('老板被叫去开会了')));
+ }
+});
 
 test('六关开放，旧四关目标保持，新主题独立配置',()=>{
  assert.equal(levels.length,6);

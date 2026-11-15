@@ -688,7 +688,23 @@ export class Renderer{
   this.box(c,-21,10+(active?Math.sin(t*6)*3:0),42,25,1,'#fffdf1','#bcc1a8',1);
   this.line(c,[[-13,18],[13,18]],'#b6b79f',1.5);this.line(c,[[-13,23],[7,23]],'#b6b79f',1.5);
   this.ellipse(c,25,-10,3,3,active?'#79b76d':'#9aab91');
-  if(active){c.strokeStyle='#b98d45';c.lineWidth=2.5;c.globalAlpha=.55+Math.sin(t*7)*.25;for(let r=12;r<=28;r+=8){c.beginPath();c.arc(39,-7,r,-.7,.7);c.stroke();}}
+  if(active){c.strokeStyle='#b98d45';c.lineWidth=2.5;c.globalAlpha*=.55+Math.sin(t*7)*.25;for(let r=12;r<=28;r+=8){c.beginPath();c.arc(39,-7,r,-.7,.7);c.stroke();}}
+  c.restore();
+ }
+ officeEventCue(c,g){
+  const field=g.soundField,office=field?.office;
+  if(office?.kind!=='printer'||!office.count)return;
+  const active=field.clock<office.activeUntil,age=field.clock-(office.activeUntil-(active?10:0)),duration=active?3:2.5;
+  if(age<0||age>=duration)return;
+  const fade=Math.min(1,age/.18,(duration-age)/.4);
+  c.save();c.globalAlpha=fade;c.translate(W/2,410-(1-fade)*12);
+  this.box(c,-295,-64,590,136,6,'#546b4c25',null);
+  this.box(c,-295,-72,590,136,6,active?'#fff9e8':'#f5f4e8',active?'#829373':'#a5a48b',2.5);
+  this.box(c,-43,-81,86,18,1,'#dfc58bab',null);
+  this.ellipse(c,-209,-2,60,51,active?'#dce8cc':'#e3e5d8');
+  this.printer(c,-209,-1,108,active,field.clock);
+  this.text(c,active?'打印机响了！':'打印机停了',63,-22,35,active?'#446a50':'#686d59','900');
+  this.text(c,active?'按键声被盖住 · 视线检查照常':'按键声恢复正常传播',63,25,23,'#7b785d','600');
   c.restore();
  }
  draw(g,t){if(this.lastGame!==g){this.lastGame=g;this.facings=new Map();this.motion.clear();this.predictionTime=-1;this.predictions=[];}const c=this.c;c.clearRect(0,0,W,H);c.drawImage(this.bg,0,0);this.soundSources(c,g,t);
@@ -742,6 +758,6 @@ export class Renderer{
    }
   }
  }
- this.playerStakes(c,g);this.momentFeedback(c,g);
+ this.playerStakes(c,g);this.momentFeedback(c,g);this.officeEventCue(c,g);
  }
 }
