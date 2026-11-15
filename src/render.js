@@ -499,7 +499,7 @@ export class Renderer{
    c.save();c.shadowColor='#ffc739';c.shadowBlur=6;c.beginPath();c.moveTo(x+dx,sy-r);c.lineTo(x+dx+2,sy-2);c.lineTo(x+dx+r,sy);c.lineTo(x+dx+2,sy+2);c.lineTo(x+dx,sy+r);c.lineTo(x+dx-2,sy+2);c.lineTo(x+dx-r,sy);c.lineTo(x+dx-2,sy-2);c.closePath();c.fillStyle='#fff9d2';c.fill();c.strokeStyle='#e9b53c';c.lineWidth=1;c.stroke();c.restore();
   }
  }
- noiseLabel(source){return !source?.active?(source?.volume>0?'余音在消散':'没有声音'):source.volume<40?'暂未传出':source.kind==='game'?'近处可听见':source.volume<75?'附近可听见':'远处也可听见';}
+ noiseLabel(source){return !source?.active?(source?.volume>0?'余音在消散':'没有声音'):source.volume<40?'暂未传出':source.radius===0?'声音被掩盖':source.kind==='game'?'近处可听见':source.volume<75?'附近可听见':'远处也可听见';}
  soundTarget(ins){
   if(ins.hidden||ins.leaving)return null;
   const point=ins.pendingSound||(ins.directed&&ins.evidenceKind==='sound'?ins.lastHeard:null)||ins.lastHeard;
@@ -733,9 +733,16 @@ export class Renderer{
  printerStatus(c,g){
   const field=g.soundField,office=field?.office;if(office?.kind!=='printer')return;
   const left=Math.max(0,office.activeUntil-field.clock),active=left>1e-8;
-  this.printer(c,355,61,92,active,field.clock);
-  this.chip(c,active?`按键声掩护 · ${Math.ceil(left-1e-8)}s`:'打印机待机',355,114,active?'#e5efd8':'#f1efe4',active?'#4c7754':'#929583',active?24:20);
-  if(active){this.line(c,[[285,136],[425,136]],'#d0d9bf',4);this.line(c,[[285,136],[285+140*left/10,136]],'#73a260',4);}
+  this.printer(c,264,62,60,active,field.clock);
+  this.box(c,301,40,176,64,3,'#6b624323');
+  this.box(c,300,37,176,64,3,'#fff9e9','#c9bd9d',1.2);
+  this.box(c,365,32,42,9,0,'#ddc994b0');
+  this.text(c,active?'打印中':'待机',349,55,18,active?'#4c7754':'#848373','800');
+  this.text(c,active?'盖住按键声':'按键声正常',349,77,14,'#8a8065','600');
+  this.line(c,[[410,46],[410,81]],'#dbd0b8',1);
+  this.text(c,active?`${Math.ceil(left-1e-8)}s`:'—',443,64,23,active?'#4c7754':'#a09a87','800');
+  this.line(c,[[313,91],[464,91]],'#e1ddc8',2);
+  if(active)this.line(c,[[313,91],[313+151*left/10,91]],'#78a17b',2);
  }
  officeEventCue(c,g){
   const field=g.soundField,office=field?.office;

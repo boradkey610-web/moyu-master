@@ -48,14 +48,22 @@ test('蹦迪更快传出，收手完成清空进度和可听范围',()=>{
  d.r.noiseRange(d.c,g.soundField.sources[0],g.elapsed);assert.equal(d.arcs.length,0);
  const before=JSON.stringify(g.soundField);g.paused=true;g.step(4);d.r.noiseMeter(d.c,g);assert.equal(JSON.stringify(g.soundField),before);
 });
-test('段子无声、打印机掩护与原有动静回落可区分',()=>{
+test('段子无声，打印机只隐藏范围，音量表继续积累',()=>{
  const quiet=game(),d=drawing();quiet.setActivity('joke');d.r.noiseMeter(d.c,quiet);assert.ok(d.labels.includes('无声'));
  const g=game(5);g.setActivity('game');g.step(9);const volume=g.soundField.sources[0].volume;
  advanceInspectors([],g.soundField.office.nextAt-g.soundField.clock+.1,g.soundField);g.step(2);d.clear();d.r.noiseMeter(d.c,g);
- assert.ok(d.labels.includes('声音被掩盖'));assert.ok(g.soundField.sources[0].volume<volume);d.r.noiseRange(d.c,g.soundField.sources[0],g.elapsed);assert.equal(d.arcs.length,0);
+ assert.ok(d.labels.includes('声音被掩盖'));assert.ok(g.soundField.sources[0].volume>volume);d.r.noiseRange(d.c,g.soundField.sources[0],g.elapsed);assert.equal(d.arcs.length,0);
 });
 test('顶部工位的动静表避开打印机与关卡标签',()=>{
  const g=game(5),d=drawing(),positions=[];Object.assign(g.player,{seat:1,x:255,y:280,activity:'game'});
  d.c.translate=(x,y)=>positions.push([x,y]);d.r.noiseMeter(d.c,g);
  assert.ok(positions[0][1]-45>136,'标记应位于顶部事件区域之外');
+});
+
+test('无障碍声音状态与打印机掩护和停机后的真实范围一致',()=>{
+ const g=game(5),d=drawing();g.setActivity('game');g.step(g.soundField.office.nextAt+2);
+ const source=g.soundField.sources[0];assert.ok(source.volume>40);assert.equal(source.radius,0);
+ assert.equal(d.r.noiseLabel(source),'声音被掩盖');
+ g.step(g.soundField.office.activeUntil-g.soundField.clock+.02);
+ assert.ok(g.soundField.sources[0].radius>0);assert.equal(d.r.noiseLabel(g.soundField.sources[0]),'近处可听见');
 });

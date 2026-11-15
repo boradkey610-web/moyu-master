@@ -51,14 +51,14 @@ function schedulePatrol(ins){
  if(!ins.queue.length)ins.queue=[{kind:'wait',left:1,angle:ins.angle}];
 }
 function advanceSound(field,dt){
- field.respondedZones??={};const emitter=field.emitter,masked=field.office?.kind==='printer'&&field.clock<field.office.activeUntil-1e-8&&emitter?.activity==='game',rate=emitter?.seated&&!masked?({game:4,dance:22}[emitter.activity]||0):0;
+ field.respondedZones??={};const emitter=field.emitter,printerRunning=field.office?.kind==='printer'&&field.clock<field.office.activeUntil-1e-8,rate=emitter?.seated?({game:4,dance:22}[emitter.activity]||0):0;
  if(rate&&!field.sources.some(s=>s.seat===emitter.seat))field.sources.push({seat:emitter.seat,x:emitter.x,y:emitter.y,zone:zoneFor(emitter),volume:0,kind:emitter.activity,pulseId:null,lastPulse:-Infinity});
  for(const source of field.sources){
   source.active=!!rate&&source.seat===emitter.seat;
   if(source.active){source.volume=Math.min(100,source.volume+rate*dt);source.kind=emitter.activity;}
   else source.volume=Math.max(0,source.volume-12*dt);
   const near=source.kind==='game'?100:180,spread=source.kind==='game'?70:140;
-  source.radius=source.volume>=40-1e-8?near+(source.volume-40)/60*spread:0;
+  source.radius=!(printerRunning&&source.kind==='game')&&source.volume>=40-1e-8?near+(source.volume-40)/60*spread:0;
   if(source.volume>=40-1e-8&&(source.pulseId===null||field.clock-source.lastPulse>=8-1e-8)){source.pulseId=field.nextId++;source.lastPulse=field.clock;}
  }
  field.sources=field.sources.filter(s=>s.volume>1e-8);
