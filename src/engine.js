@@ -59,7 +59,8 @@ function advanceSound(field,dt){
   source.active=!!rate&&source.seat===emitter.seat;
   if(source.active){source.volume=Math.min(100,source.volume+rate*dt);source.kind=emitter.activity;}
   else source.volume=Math.max(0,source.volume-12*dt);
-  source.radius=source.volume>=40-1e-8?180+(source.volume-40)/60*140:0;
+  const near=source.kind==='game'?90:180,spread=source.kind==='game'?60:140;
+  source.radius=source.volume>=40-1e-8?near+(source.volume-40)/60*spread:0;
   if(source.volume>=40-1e-8&&(source.pulseId===null||field.clock-source.lastPulse>=8-1e-8)){source.pulseId=field.nextId++;source.lastPulse=field.clock;}
  }
  field.sources=field.sources.filter(s=>s.volume>1e-8);

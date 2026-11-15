@@ -1,0 +1,13 @@
+{
+  "change": "compact-noise-cues",
+  "phase": "design",
+  "mode": "compact",
+  "canonical_spec": "openspec",
+  "generated_by": "omw-handoff.sh",
+  "context_hash": "df2d3577b9ed4e7ca3eb65cbbd2606c020e54010b0317e7db2730d28d19ea98d",
+  "files": [
+    { "path": "openspec/changes/compact-noise-cues/proposal.md", "sha256": "fcb6633c1c2b243059f2b657ecd3f44f63617dd5d2e5f96b3dda3fbdba8714ec" },
+    { "path": "openspec/changes/compact-noise-cues/design.md", "sha256": "8137bab959f477385a863538acb11c717f9c397a11c4a7a3acfc46490019c0c4" },
+    { "path": "openspec/changes/compact-noise-cues/tasks.md", "sha256": "bab3ec0ee1b90f2364e8bfc074b98157642e4f4eedfcf36c60f299d80a1e130e" }
+  ]
+}

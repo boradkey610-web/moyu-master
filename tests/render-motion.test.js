@@ -29,6 +29,7 @@ test('声音提示区分传出阈值和已停止的声源，不误报有人听�
  assert.equal(r.noiseLabel({active:true,volume:39.9}),'暂未传出');
  assert.equal(r.noiseLabel({active:true,volume:40}),'附近可听见');
  assert.equal(r.noiseLabel({active:true,volume:75}),'远处也可听见');
+ assert.equal(r.noiseLabel({active:true,volume:100,kind:'game'}),'近处可听见');
  assert.equal(r.noiseLabel({active:false,volume:90}),'余音在消散');
  assert.equal(r.noiseLabel(null),'没有声音');
 });
@@ -53,12 +54,12 @@ test('闻声转头朝记录的声源，身体继续原方向，事件过后及�
  ins.clock=4.1;assert.equal(r.pose(ins,'boss').lookDirection,'right');
  ins.clock=4.3;assert.equal(r.pose(ins,'boss').lookDirection,null);
 });
-test('游戏用手柄按键图形，无键盘底框或扩散声波，段子不显示手柄',()=>{
+test('紧凑音量标记内保留手柄按键图形，段子改用手机图形',()=>{
  const r=renderer(),g=new Game(3,1),curves=[],buttons=[];g.inspectors=[];g.setActivity('game');g.step(12);
- r.box=()=>assert.fail('手柄不应有键盘底框');r.ellipse=(c,...args)=>buttons.push(args);r.line=()=>{};r.text=()=>assert.fail('手柄不应有文字框');
+ r.box=()=>{};r.ellipse=(c,...args)=>buttons.push(args);r.line=()=>{};r.text=()=>{};
  const c=new Proxy({bezierCurveTo:(...a)=>curves.push(a),arc:()=>assert.fail('手柄不再绘制扩散声波')}, {get:(o,k)=>o[k]??(()=>{})});
- r.noiseBadge(c,g,g.player);assert.ok(curves.length>0);assert.equal(buttons.length,2);
- curves.length=0;buttons.length=0;g.player.activity='joke';r.noiseBadge(c,g,g.player);assert.deepEqual(curves,[]);assert.deepEqual(buttons,[]);
+ r.noiseMeter(c,g);assert.ok(curves.length>0);assert.equal(buttons.length,2);
+ curves.length=0;buttons.length=0;g.player.activity='joke';r.noiseMeter(c,g);assert.deepEqual(curves,[]);assert.equal(buttons.length,1);
 });
 test('放大的闻声感叹号在靠边过道也完整显示',()=>{
  const r=renderer(),ins={x:655,y:115,clock:3,lastHeard:{x:545,y:280,seat:3,time:3,kind:'game'}},positions=[],scales=[];
