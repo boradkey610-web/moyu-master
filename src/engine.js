@@ -175,7 +175,18 @@ export class Game{
   if(added)this.notify('黄金工位出现！限时摸鱼收益 ×2');
  }
 
- spawnDrop(){const choices=this.empty().filter(s=>!this.drops.some(d=>d.seat===s.id));if(this.drops.length<2&&choices.length){this.drops.push({seat:choices[Math.floor(rand(this)*choices.length)].id,type:this.level===0||rand(this)<.87?'mirror':'meeting'});this.notify('空工位出现了道具，坐下即可拾取');}}
+ spawnDrop(){
+  if(this.drops.length>=2)return;
+  const type=(this.level===0?['mirror']:['meeting','mirror']).find(type=>!this.inventory[type]&&!this.drops.some(d=>d.type===type));
+  if(!type)return;
+  const choices=this.empty().filter(seat=>!this.drops.some(d=>d.seat===seat.id)).map(seat=>{
+   let previous=this.player;const distance=pathBetween(this.player,seat,this.layout).reduce((sum,p)=>{const d=dist(previous,p);previous=p;return sum+d;},0);
+   return{seat,distance};
+  }).sort((a,b)=>a.distance-b.distance).slice(0,3);
+  if(!choices.length)return;
+  this.drops.push({seat:choices[Math.floor(rand(this)*choices.length)].seat.id,type});
+  this.notify('空工位出现了道具，坐下即可拾取');
+ }
  pickup(){const p=this.player;const d=this.drops.find(d=>d.seat===p.seat);if(d&&!this.inventory[d.type]){this.inventory[d.type]=1;this.drops=this.drops.filter(x=>x!==d);this.stats.picked++;this.notify(d.type==='mirror'?'拿到反光镜 · 可看全部检查者十秒路线':'拿到开会通知 · 可支走一名检查者');}}
  useMirror(){if(this.modal||this.paused||!this.inventory.mirror||!this.inspectors.some(i=>!i.hidden))return false;this.inventory.mirror=0;this.mirror=10;this.notify('情报生效 · 全员未来十秒路线');return true;}
  useMeeting(index){const ins=this.inspectors[index];if(!ins||ins.hidden||ins.leaving||!this.inventory.meeting||this.modal||this.paused)return false;sendToMeeting(ins,10);this.inventory.meeting=0;this.notify(`${ins.name}去开会了，正在步行离场`);return true;}
