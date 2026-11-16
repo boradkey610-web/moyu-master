@@ -717,32 +717,25 @@ export class Renderer{
  }
  printer(c,x,y,size,active,t){
   c.save();c.translate(x,y);c.scale(size/80,size/80);
-  if(active)c.translate(Math.sin(t*24)*.8,0);
+  if(active)c.translate(Math.sin(t*24)*1.2,0);
   this.ellipse(c,0,29,39,7,'#4d594528');
   this.box(c,-25,-48,50,38,2,'#fffdf1','#a6aa92',1.5);
   this.line(c,[[-16,-37],[15,-37]],'#b2b59f',2);this.line(c,[[-16,-30],[9,-30]],'#b2b59f',2);
   this.box(c,-39,-23,78,48,6,'#c4cebf','#697f70',2);
   this.box(c,-33,-17,66,14,3,'#e8eadb','#a1ad96',1);
   this.box(c,-26,6,52,8,2,'#5b6d61');
-  this.box(c,-21,10+(active?Math.sin(t*6)*3:0),42,25,1,'#fffdf1','#bcc1a8',1);
-  this.line(c,[[-13,18],[13,18]],'#b6b79f',1.5);this.line(c,[[-13,23],[7,23]],'#b6b79f',1.5);
-  this.ellipse(c,25,-10,3,3,active?'#79b76d':'#9aab91');
+  const feed=active?Math.sin(t*14)*4:0;
+  this.box(c,-21,10+feed,42,25,1,'#fffdf1','#bcc1a8',1);
+  this.line(c,[[-13,18+feed],[13,18+feed]],'#b6b79f',1.5);this.line(c,[[-13,23+feed],[7,23+feed]],'#b6b79f',1.5);
+  this.ellipse(c,25,-10,3,3,active?(Math.sin(t*8)>0?'#e6aa48':'#ffda78'):'#9aab91');
   if(active){c.strokeStyle='#b98d45';c.lineWidth=2.5;c.globalAlpha*=.55+Math.sin(t*7)*.25;for(let r=12;r<=28;r+=8){c.beginPath();c.arc(39,-7,r,-.7,.7);c.stroke();}}
   c.restore();
  }
  printerStatus(c,g){
   const field=g.soundField,office=field?.office;if(office?.kind!=='printer')return;
   const left=Math.max(0,office.activeUntil-field.clock),active=left>1e-8;
-  this.printer(c,W/2,38,60,active,field.clock);
-  this.box(c,273,71,176,44,3,'#6b624323');
-  this.box(c,272,68,176,44,3,'#fff9e9','#c9bd9d',1.2);
-  this.box(c,339,63,42,9,0,'#ddc994b0');
-  this.text(c,active?'打印中':'待机',321,82,18,active?'#4c7754':'#848373','800');
-  this.text(c,active?'盖住按键声':'按键声正常',321,100,14,'#8a8065','600');
-  this.line(c,[[382,74],[382,102]],'#dbd0b8',1);
-  this.text(c,active?`${Math.ceil(left-1e-8)}s`:'—',415,87,23,active?'#4c7754':'#a09a87','800');
-  this.line(c,[[285,108],[436,108]],'#e1ddc8',2);
-  if(active)this.line(c,[[285,108],[285+151*left/10,108]],'#78a17b',2);
+  this.printer(c,W/2,62,92,active,field.clock);
+  if(active)this.text(c,`${Math.ceil(left-1e-8)}s`,424,25,20,'#587b58','800');
  }
  officeEventCue(c,g){
   const field=g.soundField,office=field?.office;

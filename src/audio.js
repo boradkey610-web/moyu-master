@@ -46,12 +46,15 @@ export function composeMusic(mode){
  return data;
 }
 export function composePrinter(){
- const data=new Float32Array(RATE),length=data.length;let seed=74,smooth=0;
- for(let i=0;i<length;i++){
+ const data=new Float32Array(RATE*2);let seed=74,smooth=0;
+ for(let i=0;i<data.length;i++){
   seed=(Math.imul(seed,1664525)+1013904223)>>>0;const t=i/RATE,n=seed/2147483648-1;
   smooth=.8*smooth+.2*n;
-  const feed=Math.sin(TAU*2*t)**8;
-  data[i]=(Math.sin(TAU*96*t)*.035+Math.sin(TAU*192*t)*.02+smooth*(.06+feed*.38))*Math.sin(Math.PI*t)**.3;
+  const feed=(.5-.5*Math.cos(TAU*2*t))**3;
+  const motor=Math.sin(TAU*210*t+.4*Math.sin(TAU*2*t))*.09+Math.sin(TAU*420*t)*.035;
+  const roller=Math.sin(TAU*38*t)*.025+smooth*(.1+feed*.3);
+  const click=Math.sin(TAU*1200*t)*Math.exp(-(t%.25)/.008)*.07;
+  data[i]=motor+roller+click;
  }
  return data;
 }
@@ -90,10 +93,10 @@ export class GameAudio{
   if(!this.ctx)return;
   const active=enabled&&!paused;
   if(changed||!this.mixed){
-   const now=this.ctx.currentTime,duck=printer?.7:1;
+   const now=this.ctx.currentTime,duck=printer?.45:1;
    this.office.gain.setTargetAtTime(mode==='office'?.65*duck:0,now,.16);
    this.disco.gain.setTargetAtTime(mode==='disco'?.52*duck:0,now,.16);
-   this.machine.gain.setTargetAtTime(printer?.65:0,now,.045);this.mixed=true;
+   this.machine.gain.setTargetAtTime(printer?.85:0,now,.045);this.mixed=true;
   }
   if(active!==this.active){
    this.active=active;

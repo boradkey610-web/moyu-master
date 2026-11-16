@@ -55,3 +55,22 @@ test('首次手势发生在暂停状态时也不会启动背景音乐',()=>{
  audio.update({enabled:true,paused:true,mode:'office',printer:false});audio.unlock();
  assert.equal(ctx.state,'suspended');
 });
+
+test('故障机器声持续有机械动静，循环不留明显静音空隙',()=>{
+ const data=composePrinter(),window=2000;
+ for(let at=0;at+window<=data.length;at+=window)assert.ok(metrics(data.subarray(at,at+window)).rms>.035,'故障期间每段都应有可辨识机器声');
+ const m=metrics(data);assert.ok(m.peak<.8);assert.ok(Math.abs(m.dc)<.015);assert.ok(Math.abs(data[0]-data.at(-1))<.1);
+});
+
+test('打印机全程循环且音量高于压低后的背景音乐，结束恢复混音',()=>{
+ const ctx=device(),audio=new GameAudio(()=>ctx);audio.unlock();const count=ctx.nodes.length;
+ for(const mode of ['office','disco']){
+  audio.update({enabled:true,paused:false,mode,printer:true});
+  const bed=metrics(composeMusic(mode)).rms*audio[mode].gain.value;
+  const machine=metrics(composePrinter()).rms*audio.machine.gain.value;
+  assert.ok(machine>bed*1.5,'故障机器声应从背景音乐中清楚突出');
+  for(let second=1;second<=10;second++){ctx.currentTime=second;audio.update({enabled:true,paused:false,mode,printer:true});assert.ok(audio.machine.gain.value>0);}
+  assert.equal(ctx.nodes.length,count,'持续播放同一循环，不叠加声源');
+  audio.update({enabled:true,paused:false,mode,printer:false});assert.equal(audio.machine.gain.value,0);assert.ok(audio[mode].gain.value>0);
+ }
+});

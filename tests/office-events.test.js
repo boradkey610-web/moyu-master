@@ -3,24 +3,21 @@ import assert from 'node:assert/strict';
 import {Game,levels,seats,advanceInspectors,forecastAll} from '../src/engine.js';
 import {Renderer} from '../src/render.js';
 
-test('打印机本体居中且纸签在其正下方，暂停冻结，结束回待机',()=>{
+test('打印机居中放大，待机无文字纸签，故障时只显示小倒计时',()=>{
  const g=new Game(5,100),r=Object.create(Renderer.prototype),labels=[],states=[],boxes=[];
  const c=new Proxy({}, {get:(o,k)=>o[k]??(()=>{})});
  r.printer=(c,x,y,size,active,t)=>states.push({x,y,size,active,t});r.text=(c,text)=>labels.push(text);
- r.box=(c,x,y,w,h)=>boxes.push({x,y,w,h});r.line=()=>{};
- r.chip=()=>assert.fail('状态不再堆叠大文字条');
- const draw=()=>{labels.length=0;boxes.length=0;r.printerStatus(c,g);};
- draw();assert.ok(labels.includes('待机'));
- assert.ok(states.at(-1).size<=64,'打印机缩小，给工位留空间');
- assert.equal(states.at(-1).x,360,'打印机本体位于画面水平中心');
- assert.ok(boxes.filter(b=>b.w===176).every(b=>Math.abs(b.x+b.w/2-360)<=1),'纸签与打印机居中对齐');
- assert.ok(boxes.every(b=>b.y+b.h<=116),'状态纸签不压到第一排工位');
- assert.ok(boxes.filter(b=>b.w===176).every(b=>b.y>states.at(-1).y+35*states.at(-1).size/80),'纸签在打印机下方');
+ r.box=(...args)=>boxes.push(args);r.line=()=>{};
+ r.chip=()=>assert.fail('不再显示常驻文字条');
+ const draw=()=>{labels.length=boxes.length=0;r.printerStatus(c,g);};
+ draw();assert.equal(labels.length,0,'待机只保留打印机');assert.equal(boxes.length,0,'不再有状态纸签');
+ assert.equal(states.at(-1).x,360);assert.ok(states.at(-1).size>=88,'恢复较大的打印机');
+ assert.ok(states.at(-1).y+35*states.at(-1).size/80<=116,'不压到首排工位');
  advanceInspectors(g.inspectors,g.soundField.office.nextAt+.5);
- draw();assert.ok(labels.includes('打印中'));assert.ok(labels.includes('盖住按键声'));assert.ok(labels.includes('10s'));
- advanceInspectors(g.inspectors,4);draw();assert.ok(labels.includes('6s'));
+ draw();assert.deepEqual(labels,['10s']);assert.equal(boxes.length,0);
+ advanceInspectors(g.inspectors,4);draw();assert.deepEqual(labels,['6s']);
  const before=states.at(-1);g.paused=true;g.step(3);draw();assert.deepEqual(states.at(-1),before);
- advanceInspectors(g.inspectors,6);draw();assert.ok(labels.includes('待机'));assert.equal(states.at(-1).active,false);
+ advanceInspectors(g.inspectors,6);draw();assert.equal(labels.length,0);assert.equal(states.at(-1).active,false);
 });
 
 test('打印机每次开始和停止短暂提示，位置居中且随暂停冻结',()=>{
