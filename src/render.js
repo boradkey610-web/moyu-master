@@ -733,16 +733,16 @@ export class Renderer{
  printerStatus(c,g){
   const field=g.soundField,office=field?.office;if(office?.kind!=='printer')return;
   const left=Math.max(0,office.activeUntil-field.clock),active=left>1e-8;
-  this.printer(c,264,62,60,active,field.clock);
-  this.box(c,301,40,176,64,3,'#6b624323');
-  this.box(c,300,37,176,64,3,'#fff9e9','#c9bd9d',1.2);
-  this.box(c,365,32,42,9,0,'#ddc994b0');
-  this.text(c,active?'打印中':'待机',349,55,18,active?'#4c7754':'#848373','800');
-  this.text(c,active?'盖住按键声':'按键声正常',349,77,14,'#8a8065','600');
-  this.line(c,[[410,46],[410,81]],'#dbd0b8',1);
-  this.text(c,active?`${Math.ceil(left-1e-8)}s`:'—',443,64,23,active?'#4c7754':'#a09a87','800');
-  this.line(c,[[313,91],[464,91]],'#e1ddc8',2);
-  if(active)this.line(c,[[313,91],[313+151*left/10,91]],'#78a17b',2);
+  this.printer(c,W/2,38,60,active,field.clock);
+  this.box(c,273,71,176,44,3,'#6b624323');
+  this.box(c,272,68,176,44,3,'#fff9e9','#c9bd9d',1.2);
+  this.box(c,339,63,42,9,0,'#ddc994b0');
+  this.text(c,active?'打印中':'待机',321,82,18,active?'#4c7754':'#848373','800');
+  this.text(c,active?'盖住按键声':'按键声正常',321,100,14,'#8a8065','600');
+  this.line(c,[[382,74],[382,102]],'#dbd0b8',1);
+  this.text(c,active?`${Math.ceil(left-1e-8)}s`:'—',415,87,23,active?'#4c7754':'#a09a87','800');
+  this.line(c,[[285,108],[436,108]],'#e1ddc8',2);
+  if(active)this.line(c,[[285,108],[285+151*left/10,108]],'#78a17b',2);
  }
  officeEventCue(c,g){
   const field=g.soundField,office=field?.office;

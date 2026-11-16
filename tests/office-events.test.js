@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {Game,levels,seats,advanceInspectors,forecastAll} from '../src/engine.js';
 import {Renderer} from '../src/render.js';
 
-test('打印机纸签并排显示状态和秒数，暂停冻结，结束回待机',()=>{
+test('打印机本体居中且纸签在其正下方，暂停冻结，结束回待机',()=>{
  const g=new Game(5,100),r=Object.create(Renderer.prototype),labels=[],states=[],boxes=[];
  const c=new Proxy({}, {get:(o,k)=>o[k]??(()=>{})});
  r.printer=(c,x,y,size,active,t)=>states.push({x,y,size,active,t});r.text=(c,text)=>labels.push(text);
@@ -12,7 +12,10 @@ test('打印机纸签并排显示状态和秒数，暂停冻结，结束回待�
  const draw=()=>{labels.length=0;boxes.length=0;r.printerStatus(c,g);};
  draw();assert.ok(labels.includes('待机'));
  assert.ok(states.at(-1).size<=64,'打印机缩小，给工位留空间');
- assert.ok(boxes.every(b=>b.y+b.h<=110),'状态纸签不压到第一排工位');
+ assert.equal(states.at(-1).x,360,'打印机本体位于画面水平中心');
+ assert.ok(boxes.filter(b=>b.w===176).every(b=>Math.abs(b.x+b.w/2-360)<=1),'纸签与打印机居中对齐');
+ assert.ok(boxes.every(b=>b.y+b.h<=116),'状态纸签不压到第一排工位');
+ assert.ok(boxes.filter(b=>b.w===176).every(b=>b.y>states.at(-1).y+35*states.at(-1).size/80),'纸签在打印机下方');
  advanceInspectors(g.inspectors,g.soundField.office.nextAt+.5);
  draw();assert.ok(labels.includes('打印中'));assert.ok(labels.includes('盖住按键声'));assert.ok(labels.includes('10s'));
  advanceInspectors(g.inspectors,4);draw();assert.ok(labels.includes('6s'));
