@@ -1,7 +1,14 @@
 import {createRunner,jumpRunner,stepRunner} from './runner.js';
 import {createOfficeLayout} from './office-layout.js';
 export const activities={work:{name:'工作',rate:0,range:0,stop:0},joke:{name:'看段子',rate:2,range:70,stop:.1},game:{name:'打游戏',rate:3,range:140,stop:.5},dance:{name:'蹦迪',rate:6,range:230,stop:1}};
-export const levels=[{name:'入职第一天',target:90,time:60,npcs:2,bosses:1,seatCount:8},{name:'找个好工位',target:170,time:75,npcs:3,bosses:1,seatCount:8},{name:'主管也来了',target:400,time:90,npcs:5,bosses:2,seatCount:12},{name:'周五抢座大战',target:440,time:90,npcs:7,bosses:2,seatCount:12},{name:'老板开会',target:360,time:90,npcs:4,bosses:2,seatCount:16,event:'meeting'},{name:'打印机故障',target:360,time:90,npcs:4,bosses:2,seatCount:16,event:'printer'}];
+export const levels=[
+ {name:'入职第一天',target:90,time:60,npcs:2,bosses:1,seatCount:8,events:[],goldSeats:0},
+ {name:'老板去开会',target:170,time:75,npcs:3,bosses:1,seatCount:8,events:['meeting'],goldSeats:0},
+ {name:'打印机闹脾气',target:450,time:90,npcs:4,bosses:1,seatCount:12,events:['printer'],goldSeats:0},
+ {name:'黄金工位争夺',target:470,time:90,npcs:5,bosses:1,seatCount:12,events:[],goldSeats:1},
+ {name:'办公室协奏曲',target:480,time:90,npcs:5,bosses:2,seatCount:16,events:['meeting','printer'],goldSeats:2},
+ {name:'周五摸鱼大作战',target:490,time:90,npcs:8,bosses:2,seatCount:16,events:['meeting','printer'],goldSeats:2,rivals:true}
+];
 const defaultLayout=createOfficeLayout(12);
 export const {seats,nodes}=defaultLayout;
 const PLAYER_SPEED=110;
@@ -21,15 +28,18 @@ function sendToMeeting(ins,duration){
  ins.last=best.e.id;ins.previous=-1;ins.leaving=true;
 }
 function advanceOffice(field,list){
- const office=field.office;if(!office||field.clock<office.nextAt-1e-8)return;
- if(office.kind==='meeting'){
-  if(office.count>=2)return;
+ const office=field.office;if(!office)return;
+ const meeting=office.meeting,printer=office.printer;
+ if(meeting&&meeting.count<2&&field.clock>=meeting.nextAt-1e-8){
   const boss=list.find(i=>i.name==='老板');
-  if(!boss||boss.queue.some(q=>q.meetingReturn))return;
-  sendToMeeting(boss,12);office.count++;office.nextAt+=38;
- }else{
-  office.activeUntil=field.clock+10;office.count++;office.nextAt+=24;
+  if(boss&&!boss.leaving&&!boss.hidden&&!boss.queue.some(q=>q.meetingReturn)){
+   const invited=rand(meeting)<.6||(!meeting.count&&field.clock>=30-1e-8);
+   meeting.nextAt=field.clock+10;
+   if(invited){sendToMeeting(boss,12);meeting.count++;meeting.nextAt=field.clock+32+rand(meeting)*8;}
+   else if(!meeting.count)meeting.nextAt=Math.min(meeting.nextAt,30);
+  }
  }
+ if(printer&&field.clock>=printer.nextAt-1e-8){printer.activeUntil=field.clock+10;printer.count++;printer.nextAt+=24;}
 }
 const patrolOrder=[0,1,3,5,4,2];
 const zoneFor=p=>p.seat!=null?Math.floor(p.seat/4)*2+Math.floor(p.seat%4/2):null;
@@ -51,7 +61,7 @@ function schedulePatrol(ins){
  if(!ins.queue.length)ins.queue=[{kind:'wait',left:1,angle:ins.angle}];
 }
 function advanceSound(field,dt){
- field.respondedZones??={};const emitter=field.emitter,printerRunning=field.office?.kind==='printer'&&field.clock<field.office.activeUntil-1e-8,rate=emitter?.seated?({game:4,dance:22}[emitter.activity]||0):0;
+ field.respondedZones??={};const emitter=field.emitter,printerRunning=!!field.office?.printer&&field.clock<field.office.printer.activeUntil-1e-8,rate=emitter?.seated?({game:4,dance:22}[emitter.activity]||0):0;
  if(rate&&!field.sources.some(s=>s.seat===emitter.seat))field.sources.push({seat:emitter.seat,x:emitter.x,y:emitter.y,zone:zoneFor(emitter),volume:0,kind:emitter.activity,pulseId:null,lastPulse:-Infinity});
  for(const source of field.sources){
   source.active=!!rate&&source.seat===emitter.seat;
@@ -142,7 +152,7 @@ export function forecast(ins,seconds=10){return forecastAll([ins],seconds)[0];}
 export class Game{
  runner=createRunner();
  joke={post:0};
- constructor(level=0,seed=Date.now()){this.level=level;this.config=levels[level];this.layout=createOfficeLayout(this.config.seatCount);const {seats,ys}=this.layout;this.seed=seed>>>0;this.time=this.config.time;this.elapsed=0;this.coins=0;this.warned=false;this.catches=0;this.ads=0;this.extended=false;this.mirror=0;this.inventory={mirror:0,meeting:0};this.specials=[];this.specialAt=10;this.dropAt=14;this.drops=[];this.modal=null;this.paused=false;this.toast='选一种摸鱼方式，留意老板的朝向';this.toastLeft=5;this.player={...seats[7],seat:7,activity:'work',riskActivity:'game',route:[],target:null,stopping:0,pending:null,hold:0,lock:0};this.comboTime=0;this.pendingBonus=0;this.exposure=0;this.exposureLimit=.7;this.feedback=null;this.greeting=null;this.tutorialSeen=false;this.stats={moves:0,moveTime:0,greetings:0,picked:0,closeCalls:0,banked:0,activityTime:{joke:0,game:0,dance:0,work:0}};this.soundField={office:this.config.event?{kind:this.config.event,nextAt:(this.config.event==='meeting'?12:10)+(this.seed%5),count:0,activeUntil:0}:null,clock:0,tickRemainder:0,nextId:1,emitter:null,sources:[],claimed:{},respondedZones:{}};this.inspectors=Array.from({length:this.config.bosses},(_,i)=>({layout:this.layout,x:i?708:12,y:ys[i?1:2],name:i?'主管':'老板',seed:(seed+i*91)>>>0,speed:62,angle:i?-Math.PI/2:0,last:i?5:6,previous:-1,queue:[{kind:'wait',left:3+i*2,angle:i?Math.PI:0},{kind:'move',x:i?655:65,y:ys[i?1:2]}],hold:0,hidden:false,leaving:false,greeted:false,clock:0,tickRemainder:0,patrolOrder:(i?((seed+i*91)%2?[3,1,0,2,4,5]:[3,5,4,2,0,1]):(level===0?[3,1,0,2,4,5]:(seed%2?[2,4,5,3,1,0]:[2,0,1,3,5,4]))).filter(zone=>zone<this.layout.desks.length).concat(this.layout.desks.map(d=>d.zone).filter(zone=>zone>=6)),patrolIndex:0,zone:null,checkedZones:{},avoidZones:[],lastSeen:null,suspicion:0,observation:null,lastHeard:null,pendingSound:null,hearingTime:0,hearingId:null,evidenceKind:'routine',soundField:this.soundField,directed:false,closeClaimed:false}));this.npcs=[...new Set([0,3,8,10,4,1,11,...seats.map(s=>s.id)])].filter(id=>id<seats.length&&id!==this.player.seat).slice(0,this.config.npcs).map((seat,i)=>({...seats[seat],seat,target:null,route:[],next:level===3?35+i*6:Infinity,color:i%3}));}
+ constructor(level=0,seed=Date.now()){this.level=level;this.config=levels[level];this.layout=createOfficeLayout(this.config.seatCount);const {seats,ys}=this.layout;this.seed=seed>>>0;this.time=this.config.time;this.elapsed=0;this.coins=0;this.warned=false;this.catches=0;this.ads=0;this.extended=false;this.mirror=0;this.inventory={mirror:0,meeting:0};this.specials=[];this.specialAt=this.config.goldSeats?10:Infinity;this.dropAt=14;this.drops=[];this.modal=null;this.paused=false;this.toast='选一种摸鱼方式，留意老板的朝向';this.toastLeft=5;this.player={...seats[7],seat:7,activity:'work',riskActivity:'game',route:[],target:null,stopping:0,pending:null,hold:0,lock:0};this.comboTime=0;this.pendingBonus=0;this.exposure=0;this.exposureLimit=.7;this.feedback=null;this.greeting=null;this.tutorialSeen=false;this.stats={moves:0,moveTime:0,greetings:0,picked:0,closeCalls:0,banked:0,activityTime:{joke:0,game:0,dance:0,work:0}};this.soundField={office:this.config.events.length?{meeting:this.config.events.includes('meeting')?{nextAt:16+this.seed%7,count:0,seed:Math.imul(this.seed,2654435761)>>>0}:null,printer:this.config.events.includes('printer')?{nextAt:10+this.seed%5,count:0,activeUntil:0}:null}:null,clock:0,tickRemainder:0,nextId:1,emitter:null,sources:[],claimed:{},respondedZones:{}};this.inspectors=Array.from({length:this.config.bosses},(_,i)=>({layout:this.layout,x:i?708:12,y:ys[i?1:2],name:i?'主管':'老板',seed:(seed+i*91)>>>0,speed:62,angle:i?-Math.PI/2:0,last:i?5:6,previous:-1,queue:[{kind:'wait',left:3+i*2,angle:i?Math.PI:0},{kind:'move',x:i?655:65,y:ys[i?1:2]}],hold:0,hidden:false,leaving:false,greeted:false,clock:0,tickRemainder:0,patrolOrder:(i?((seed+i*91)%2?[3,1,0,2,4,5]:[3,5,4,2,0,1]):(level===0?[3,1,0,2,4,5]:(seed%2?[2,4,5,3,1,0]:[2,0,1,3,5,4]))).filter(zone=>zone<this.layout.desks.length).concat(this.layout.desks.map(d=>d.zone).filter(zone=>zone>=6)),patrolIndex:0,zone:null,checkedZones:{},avoidZones:[],lastSeen:null,suspicion:0,observation:null,lastHeard:null,pendingSound:null,hearingTime:0,hearingId:null,evidenceKind:'routine',soundField:this.soundField,directed:false,closeClaimed:false}));this.npcs=[...new Set([0,3,8,10,4,1,11,...seats.map(s=>s.id)])].filter(id=>id<seats.length&&id!==this.player.seat).slice(0,this.config.npcs).map((seat,i)=>({...seats[seat],seat,target:null,route:[],next:this.config.rivals?35+i*6:Infinity,color:i%3}));}
  jump(){const p=this.player;if(this.modal||this.paused||p.activity!=='game'||p.seat===null||p.route.length||p.stopping>0||p.lock>0)return false;return jumpRunner(this.runner);}
  nextJoke(){
   const p=this.player;if(this.modal||this.paused||p.activity!=='joke'||p.seat===null||p.route.length||p.stopping>0||p.lock>0)return false;
@@ -165,7 +175,7 @@ export class Game{
  protectedSeat(id){const p=this.player;return p.target===id&&p.route.length&&this.remainingRoute(p)<=PLAYER_SPEED+1e-8;}
  moveTo(id){if(this.modal||this.paused||!this.layout.seats[id]||this.occupied(id)||this.player.lock>0)return false;if(this.player.route.length){this.player.route=pathBetween(this.player,this.layout.seats[id],this.layout);this.player.target=id;return true;}return this.transition({type:'move',seat:id});}
  spawnSpecial(){
-  const limit=this.level===0?1:2;if(this.specials.length>=limit)return;
+  const limit=this.config.goldSeats;if(!limit||this.specials.length>=limit)return;
   let choices=this.empty().filter(seat=>!this.specials.some(s=>s.seat===seat.id)).map(seat=>{let previous=this.player;const distance=pathBetween(this.player,seat,this.layout).reduce((sum,p)=>{const d=dist(previous,p);previous=p;return sum+d;},0);const stop=this.player.route.length?0:this.player.stopping>0?this.player.stopping:activities[this.player.activity].stop;return{seat,time:distance/PLAYER_SPEED+stop};}),added=false;
   while(this.specials.length<limit&&choices.length){
    const separate=choices.filter(c=>!this.specials.some(s=>Math.floor(s.seat/2)===Math.floor(c.seat.id/2))),available=separate.length?separate:choices;
@@ -198,9 +208,9 @@ export class Game{
  if(this.feedback){this.feedback.left-=dt;if(this.feedback.left<=0)this.feedback=null;}if(this.greeting){this.greeting.left-=dt;if(this.greeting.left<=0)this.greeting=null;}
  for(const ins of this.inspectors)ins.observation={x:p.x,y:p.y,seat:p.seat,activity:p.activity,seated:p.seat!==null&&!p.route.length};
  this.soundField.emitter={x:p.x,y:p.y,seat:p.seat,activity:p.activity,seated:p.seat!==null&&!p.route.length};
- const heardBefore=this.inspectors.map(i=>Math.max(i.lastHeard?.soundId||0,i.pendingSound?.soundId||0)),officeBefore=this.soundField.office?.count||0;
+ const heardBefore=this.inspectors.map(i=>Math.max(i.lastHeard?.soundId||0,i.pendingSound?.soundId||0)),officeBefore=this.soundField.office?.meeting?.count||0;
  advanceInspectors(this.inspectors,dt,this.soundField);
- if(officeBefore===0&&this.soundField.office?.count>0&&this.soundField.office.kind==='meeting')this.notify('老板被叫去开会了，主管照常巡视');
+ if((this.soundField.office?.meeting?.count||0)>officeBefore)this.notify(this.inspectors.length>1?'老板被叫去开会了，主管照常巡视':'老板被叫去开会了，正在步行离场');
  this.inspectors.forEach((ins,k)=>{const heard=ins.pendingSound||ins.lastHeard;if((heard?.soundId||0)>heardBefore[k])this.notify(`${ins.name}听见了${heard.kind==='dance'?'音乐':'手柄按键声'}，${ins.pendingSound?'稍后':'会'}查看${heard.seat+1}号工位`);});
  if(this.level===0&&!this.tutorialSeen&&this.inspectors.some(i=>i.queue[0]?.phase==='warning')){this.tutorialSeen=true;this.modal={kind:'tutorial'};return;}
 

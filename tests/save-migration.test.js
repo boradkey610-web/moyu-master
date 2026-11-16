@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 
-const legacyKey='moyu-master-save-v1',shortKey='moyu-master-save-v6-ripple-office';
+const legacyKey='moyu-master-save-v1',shortKey='moyu-master-save-v7-mechanic-progression';
 const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
 const start=app.indexOf('const SAVE_KEY='),end=app.indexOf('function beep(');
 assert.ok(start>=0&&end>start,'必须从生产 app.js 中提取存档加载片段');
@@ -37,12 +37,17 @@ test('v1 仅继承解锁关卡，旧最佳不迁移且原存档不改写',()=>{
  assert.deepEqual(second.reads,[shortKey]);
 });
 
-test('v6 保留合法有无助力成绩并优先于 v1，不在读取时覆盖成绩',()=>{
+test('v7 保留合法有无助力成绩并优先于 v1，不在读取时覆盖成绩',()=>{
  const current={unlocked:2,best:{'0-clean':21.5,'0-assisted':19,'1-clean':0}};
  const result=load({[shortKey]:JSON.stringify(current),[legacyKey]:JSON.stringify({unlocked:4,best:{'0-clean':1}})});
  assert.deepEqual(result.save,current);
  assert.deepEqual(result.reads,[shortKey]);
  assert.deepEqual(result.writes,[]);
+});
+
+test('机制递进v7继承v6解锁但不混用旧关卡成绩',()=>{
+ const key='moyu-master-save-v6-ripple-office',raw=JSON.stringify({unlocked:6,best:{'1-clean':18,'5-assisted':40}}),result=load({[key]:raw});
+ assert.deepEqual(result.save,{unlocked:6,best:{}});assert.equal(result.data.get(key),raw);assert.equal(result.writes[0][0],shortKey);assert.equal(result.sound,false);
 });
 
 test('无效关卡与成绩字段不会污染可用存档',()=>{

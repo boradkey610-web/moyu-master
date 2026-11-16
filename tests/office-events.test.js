@@ -13,7 +13,7 @@ test('打印机居中放大，待机无文字纸签，故障时只显示小倒�
  draw();assert.equal(labels.length,0,'待机只保留打印机');assert.equal(boxes.length,0,'不再有状态纸签');
  assert.equal(states.at(-1).x,360);assert.ok(states.at(-1).size>=88,'恢复较大的打印机');
  assert.ok(states.at(-1).y+35*states.at(-1).size/80<=116,'不压到首排工位');
- advanceInspectors(g.inspectors,g.soundField.office.nextAt+.5);
+ advanceInspectors(g.inspectors,g.soundField.office.printer.nextAt+.5);
  draw();assert.deepEqual(labels,['10s']);assert.equal(boxes.length,0);
  advanceInspectors(g.inspectors,4);draw();assert.deepEqual(labels,['6s']);
  const before=states.at(-1);g.paused=true;g.step(3);draw();assert.deepEqual(states.at(-1),before);
@@ -25,7 +25,7 @@ test('打印机每次开始和停止短暂提示，位置居中且随暂停冻�
  const c=new Proxy({}, {get:(o,k)=>o[k]??(()=>{}),set:(o,k,v)=>(o[k]=v,true)});
  c.translate=(x,y)=>positions.push([x,y]);r.box=r.ellipse=()=>{};
  r.text=(c,text)=>labels.push(text);r.printer=(...args)=>icons.push(args);
- const field=g.soundField,office=field.office;
+ const field=g.soundField,office=field.office.printer;
  const draw=()=>{labels.length=0;icons.length=0;positions.length=0;r.officeEventCue(c,g);};
  draw();assert.equal(labels.length,0,'启动前不遮挡画面');
  advanceInspectors(g.inspectors,office.nextAt+.5);draw();
@@ -44,41 +44,42 @@ test('打印机每次开始和停止短暂提示，位置居中且随暂停冻�
 
 test('中央打印机提示不查询检查者，也不在其他主题出现',()=>{
  const r=Object.create(Renderer.prototype);
- for(const level of [0,4])r.officeEventCue({},new Game(level,100));
+ for(const level of [0,1,3])r.officeEventCue({},new Game(level,100));
 });
 
 test('打印机不再重复底部首次通知，会议通知保留',()=>{
- for(const level of [4,5]){
+ for(const level of [1,2]){
   const g=new Game(level,100),messages=[];g.notify=text=>messages.push(text);
-  g.step(g.soundField.office.nextAt+.1);
-  if(level===5)assert.ok(messages.every(text=>!text.includes('打印机响了')));
+  const event=level===1?g.soundField.office.meeting:g.soundField.office.printer;if(level===1)event.seed=0;
+  g.step(event.nextAt+.1);
+  if(level===2)assert.ok(messages.every(text=>!text.includes('打印机响了')));
   else assert.ok(messages.some(text=>text.includes('老板被叫去开会了')));
  }
 });
 
-test('六关开放，旧四关目标保持，新主题独立配置',()=>{
+test('六关开放，会议和打印机提前引入，后两关混合',()=>{
  assert.equal(levels.length,6);
- assert.deepEqual(levels.slice(0,4).map(l=>l.target),[90,170,400,440]);
- assert.equal(levels[4].event,'meeting');assert.equal(levels[5].event,'printer');
+ assert.deepEqual(levels.slice(0,4).map(l=>l.target),[90,170,450,470]);
+ assert.deepEqual(levels[1].events,['meeting']);assert.deepEqual(levels[2].events,['printer']);assert.deepEqual(levels[4].events,['meeting','printer']);
 });
 
 test('例会沿正常道路离场并返回，主管继续巡视',()=>{
  const g=new Game(4,100),boss=g.inspectors[0],supervisor=g.inspectors[1];
- const first=g.soundField.office.nextAt;
+ const meeting=g.soundField.office.meeting;meeting.seed=0;const first=meeting.nextAt;
  advanceInspectors(g.inspectors,first-.02);
  assert.equal(boss.leaving,false);const before={x:boss.x,y:boss.y};
  advanceInspectors(g.inspectors,.04);
  assert.equal(boss.leaving,true);assert.equal(supervisor.leaving,false);
  assert.ok(Math.hypot(boss.x-before.x,boss.y-before.y)<=boss.speed*.04+1e-6);
  assert.equal(boss.queue.find(q=>q.hidden).left,12);
- advanceInspectors(g.inspectors,37);
+ meeting.nextAt=Infinity;advanceInspectors(g.inspectors,37);
  assert.equal(boss.hidden,false);assert.equal(boss.leaving,false);
- assert.equal(g.soundField.office.count,1);
+ assert.equal(g.soundField.office.meeting.count,1);
 });
 
 test('打印机运转仅掩护游戏，蹦迪依然形成声源',()=>{
  const g=new Game(5,100),field=g.soundField;
- advanceInspectors(g.inspectors,field.office.nextAt+.1);
+ advanceInspectors(g.inspectors,field.office.printer.nextAt+.1);
  field.emitter={...g.layout.seats[7],seat:7,activity:'game',seated:true};
  advanceInspectors(g.inspectors,2);
  assert.ok(Math.abs(field.sources[0]?.volume-8)<1e-6,'掩护期间按键声继续积累');
@@ -89,7 +90,7 @@ test('打印机运转仅掩护游戏，蹦迪依然形成声源',()=>{
 
 test('打印机停止后游戏噪声恢复，已有调查记忆不被抹去',()=>{
  const g=new Game(5,100),field=g.soundField,ins=g.inspectors[0];
- advanceInspectors(g.inspectors,field.office.nextAt+.1);
+ advanceInspectors(g.inspectors,field.office.printer.nextAt+.1);
  const heard={...seats[7],seat:7,zone:3,time:ins.clock,soundId:99,kind:'game'};
  Object.assign(ins,{directed:true,evidenceKind:'sound',lastHeard:heard,queue:[{kind:'wait',left:5,phase:'checking',angle:0}]});
  field.emitter={...seats[7],seat:7,activity:'game',seated:true};
@@ -101,7 +102,7 @@ test('打印机停止后游戏噪声恢复，已有调查记忆不被抹去',()=
 });
 
 test('打印机掩护不影响面对玩家的视觉检查',()=>{
- const g=new Game(5,100);g.step(g.soundField.office.nextAt+.1);
+ const g=new Game(5,100);g.step(g.soundField.office.printer.nextAt+.1);
  Object.assign(g.inspectors[0],{x:g.player.x,y:g.player.y+70,angle:-Math.PI/2,directed:true,zone:3,queue:[{kind:'wait',left:4,phase:'checking',angle:-Math.PI/2}]});
  g.inspectors[1].queue=[{kind:'wait',left:20,hidden:true}];
  g.setActivity('game');g.step(.8);
@@ -121,7 +122,7 @@ test('反光镜跨事件开始和结束与实际一致，且不修改真实状�
  for(const level of [4,5])for(const offset of [-2,8]){
   const g=new Game(level,100),field=g.soundField;
   field.emitter={...seats[7],seat:7,activity:'game',seated:true};
-  advanceInspectors(g.inspectors,field.office.nextAt+offset);
+  advanceInspectors(g.inspectors,field.office.printer.nextAt+offset);
   const before=JSON.stringify(g.inspectors),prediction=forecastAll(g.inspectors,10);
   assert.equal(JSON.stringify(g.inspectors),before);
   advanceInspectors(g.inspectors,10);
@@ -133,15 +134,15 @@ test('原开会道具仍能打断检查，会议时长保持十秒',()=>{
  const g=new Game(4,100);g.inventory.meeting=1;
  assert.equal(g.useMeeting(0),true);
  assert.equal(g.inventory.meeting,0);assert.equal(g.inspectors[0].queue.find(q=>q.hidden).left,10);
- assert.equal(g.soundField.office.count,0);
+ assert.equal(g.soundField.office.meeting.count,0);
 });
 
 test('满音量游戏跨过打印机掩护，结束立即恢复原范围',()=>{
  const g=new Game(5,100),field=g.soundField;
- field.office.nextAt=30;field.emitter={...g.layout.seats[7],seat:7,activity:'game',seated:true};
+ field.office.printer.nextAt=30;field.emitter={...g.layout.seats[7],seat:7,activity:'game',seated:true};
  advanceInspectors([],25,field);
  assert.equal(field.sources[0].volume,100);assert.equal(field.sources[0].radius,170);
- field.office.nextAt=field.clock+.01;advanceInspectors([],.02,field);
+ field.office.printer.nextAt=field.clock+.01;advanceInspectors([],.02,field);
  assert.equal(field.sources[0].volume,100);assert.equal(field.sources[0].radius,0);
  advanceInspectors([],9.98,field);
  assert.equal(field.sources[0]?.volume,100,'整段打印不消耗或清空音量');assert.equal(field.sources[0].radius,0);
@@ -151,7 +152,7 @@ test('满音量游戏跨过打印机掩护，结束立即恢复原范围',()=>{
 
 test('掩护期间开始打游戏也累积音量，停机后需实际听见才调查',()=>{
  const g=new Game(5,100),field=g.soundField,ins=g.inspectors[0],seat=g.layout.seats[7];
- field.office.nextAt=0;field.emitter={...seat,seat:7,activity:'game',seated:true};
+ field.office.printer.nextAt=0;field.emitter={...seat,seat:7,activity:'game',seated:true};
  Object.assign(ins,{x:seat.x,y:g.layout.ys[2],angle:Math.PI/2,queue:[{kind:'wait',left:30,angle:Math.PI/2}]});
  advanceInspectors([ins],9.99,field);
  assert.ok(Math.abs(field.sources[0]?.volume-39.96)<1e-6);assert.equal(field.sources[0].radius,0);assert.equal(ins.lastHeard,null);

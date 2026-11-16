@@ -32,9 +32,9 @@ const jokePosts=[
  '今日成就：保持在线。\n实际操作：移动鼠标。',
  '我在等一个重要通知。\n下班铃。'
 ];
-const SAVE_KEY='moyu-master-save-v6-ripple-office';
+const SAVE_KEY='moyu-master-save-v7-mechanic-progression';
 function readStoredSave(key){try{const data=JSON.parse(localStorage.getItem(key));return data&&typeof data==='object'&&!Array.isArray(data)?data:null;}catch{return null;}}
-const shortSave=readStoredSave(SAVE_KEY),savedProgress=shortSave||readStoredSave('moyu-master-save-v5-runner')||readStoredSave('moyu-master-save-v4-sound')||readStoredSave('moyu-master-save-v3-patrol')||readStoredSave('moyu-master-save-v2-short')||readStoredSave('moyu-master-save-v1');
+const shortSave=readStoredSave(SAVE_KEY),savedProgress=shortSave||readStoredSave('moyu-master-save-v6-ripple-office')||readStoredSave('moyu-master-save-v5-runner')||readStoredSave('moyu-master-save-v4-sound')||readStoredSave('moyu-master-save-v3-patrol')||readStoredSave('moyu-master-save-v2-short')||readStoredSave('moyu-master-save-v1');
 if(savedProgress){
  save.unlocked=Math.max(1,Math.min(levels.length,Math.floor(Number(savedProgress.unlocked)||1)));
  // Preserve unlocked days; records from older patrol rules are not comparable.
@@ -46,7 +46,7 @@ if(!shortSave){try{localStorage.setItem(SAVE_KEY,JSON.stringify(save));}catch{}}
 function beep(kind='tap'){audio.play(kind);}
 function syncAudio(){
  const field=g.soundField,mode=!screen&&g.player.activity==='dance'?'disco':'office',paused=document.hidden||!!g.modal||(g.paused&&!['menu','levels'].includes(screen));
- const printer=!screen&&!g.modal&&field.office?.kind==='printer'&&field.clock<field.office.activeUntil-1e-8;
+ const printer=!screen&&!g.modal&&!!field.office?.printer&&field.clock<field.office.printer.activeUntil-1e-8;
  audio.update({enabled:sound,paused,mode,printer});
  const cleared=g.runner?.cleared||0;
  if(audioGame===g&&!paused&&((g.feedback&&g.feedback!==audioFeedback)||cleared>audioCleared))audio.play('coin');
@@ -91,11 +91,12 @@ function paintHomeArt(){
  }
  for(const tile of document.querySelectorAll('canvas[data-level-art]')){
   const c=tile.getContext('2d'),i=Number(tile.dataset.levelArt);c.clearRect(0,0,100,100);
-  if(i===1){renderer.asset(c,'chair-gold',15,12,72,82);}
-  else if(i===3){renderer.sprite(c,'seated',0,2,50,97,91);}
-  else if(i===5){renderer.printer(c,50,59,74,false,0);}
-  else if(i===4){renderer.portrait(c,'boss',43,98,92);renderer.box(c,68,18,24,24,3,'#fff8d6','#b88a4e',1.5);renderer.text(c,'会',80,35,13,'#94764e');}
-  else{renderer.portrait(c,i===2?'supervisor':'boss',50,98,92);}
+  if(i===1){renderer.portrait(c,'boss',43,98,92);renderer.box(c,68,18,24,24,3,'#fff8d6','#b88a4e',1.5);renderer.text(c,'会',80,35,13,'#94764e');}
+  else if(i===2){renderer.printer(c,50,59,74,false,0);}
+  else if(i===3){renderer.asset(c,'chair-gold',15,12,72,82);}
+  else if(i===4){renderer.portrait(c,'supervisor',37,98,86);renderer.asset(c,'chair-gold',62,10,27,32);renderer.printer(c,77,72,35,false,0);}
+  else if(i===5){renderer.sprite(c,'seated',0,2,49,97,86);renderer.asset(c,'chair-gold',2,7,27,32);renderer.printer(c,80,28,30,false,0);}
+  else{renderer.portrait(c,'boss',50,98,92);}
  }
 }
 function menu(){
@@ -111,9 +112,9 @@ function menu(){
 }
 function selectLevel(){
  screen='levels';
- show(`<div class="level-topline"><span>摸鱼办 · 内部安排</span><span>全关卡开放</span></div><div class="level-heading"><span class="map-kicker">不许转发给老板</span><h2 id="dialog-title">今日摸鱼<span>任务板</span></h2><p>${levels.length} 份差事，挑一份准点下班。</p></div>`);
+ show(`<div class="level-topline"><span>摸鱼办 · 内部安排</span><span>全关卡开放</span></div><div class="level-heading"><span class="map-kicker">不许转发给老板</span><h2 id="dialog-title">今日摸鱼<span>任务板</span></h2><p>前四关学新招，后两关混合挑战。</p></div>`);
  const list=document.createElement('div');list.className='level-list adventure-map';list.dataset.count=levels.length;
- const descriptions=['老板一转身，机会就来了','金椅限时双倍，先到先赚','两个人巡逻，眼观六路','同事也抢金椅，手慢就没了','老板被叫去开会，主管还在','机器响时，按键声被盖住'];
+ const descriptions=['先看老板朝向，抓住转身空档','新机制：老板偶尔自己去开会','新机制：打印机卡纸，掩护按键声','新机制：一把金椅，限时双倍','混合机会：开会、打印机和双金椅','混合加难：双人巡逻，同事抢座'];
  levels.forEach((l,i)=>{
   const clean=save.best[`${i}-clean`],assisted=save.best[`${i}-assisted`];
   const hasClean=Number.isFinite(clean)&&clean>=0,hasAssisted=Number.isFinite(assisted)&&assisted>=0;
@@ -134,9 +135,9 @@ function instructions(back=()=>hide()){
   '检查前有预告。可降档继续摸鱼，藏不住就一键工作；收手需要时间。',
   '头顶的“收手领”是额外奖金，按一键工作或换座后到账，被抓就丢。连玩越久，奖金越多。',
   '喇叭显示声音能传多远；出现感叹号时，才是检查者真的听到了。',
-  '点空椅子换座，移动不赚钱。金椅限时×2，道具坐下拾取。',
+  '点空椅子换座，移动不赚钱。第四关起金椅限时×2，道具坐下拾取。',
   '感叹号表示听到声音，连线和工位号标调查位置；换座后仍查旧声源。',
-  '反光镜看全员10秒路线，开会支走一人。首次抓包警告，之后扣50。'
+  '反光镜看全员10秒路线；第二关起可捡开会通知，支走一人。首次抓包警告，之后扣50。'
  ];
  show(panelHead('briefcase','入职手册','摸鱼要有分寸')+'<ul>'+rules.map(rule=>'<li>'+rule+'</li>').join('')+'</ul>',[['知道了，稳稳拿捏',back,'primary']]);
 }
@@ -210,9 +211,15 @@ for(const type of ['pointerdown','keydown'])document.addEventListener(type,()=>{
 function updateUI(){
  const p=g.player,gold=g.specials.find(s=>s.seat===p.seat),boosted=!!gold&&p.seat!==null,multiplier=boosted?2:1,moving=!!p.route.length;
  const blocked=!!screen||!!g.modal,stopping=p.stopping>0,locked=p.lock>0;
- const checks=g.inspectors.filter(i=>!i.hidden).map(i=>{const q=i.queue[0];return `${i.name}${q?.phase==='warning'?(i.threatensPlayer===false?'在查别处':`预告${Math.ceil(q.left)}秒`):q?.phase==='checking'?(i.threatensPlayer===false?'在查别处':`检查${Math.ceil(q.left)}秒`):i.directed?'调查旧位置':i.suspicion>0?'发现动静':'巡逻中'}`;}).join('；');
+ const checks=g.inspectors.filter(i=>!i.hidden).map(i=>{const q=i.queue[0];return `${i.name}${i.leaving?'正在去开会':i.queue.some(q=>q.meetingReturn)?'正在返回':q?.phase==='warning'?(i.threatensPlayer===false?'在查别处':`预告${Math.ceil(q.left)}秒`):q?.phase==='checking'?(i.threatensPlayer===false?'在查别处':`检查${Math.ceil(q.left)}秒`):i.directed?'调查旧位置':i.suspicion>0?'发现动静':'巡逻中'}`;}).join('；');
  const source=g.soundField.sources.find(s=>s.seat===p.seat),soundChecks=g.inspectors.flatMap(i=>{const cue=renderer.soundTarget(i);return cue?[`${i.name}${cue.fresh?'听到了'+(cue.point.kind==='dance'?'音乐':'手柄按键声'):'正在确认声音'}，${cue.pending?'稍后查看':'目标'}${cue.point.seat+1}号工位${cue.point.seat!==p.seat?'，旧声源':''}${cue.pending&&cue.current?`，当前仍查${cue.current.seat+1}号`:''}`]:[];}).join('；');
- const office=g.soundField.office,event=office?.kind==='printer'?(g.soundField.clock<office.activeUntil-1e-8?`打印机正在运转，掩护剩余${Math.ceil(office.activeUntil-g.soundField.clock-1e-8)}秒，按键声暂被盖住，视线检查照常`:'打印机待机，按键声正常传播'):office?.kind==='meeting'?(g.inspectors[0].leaving||g.inspectors[0].hidden?'老板正在开会，主管继续巡视':'办公室例会，老板当前在场'):'';
+ const office=g.soundField.office,events=[];
+ if(office?.printer)events.push(g.soundField.clock<office.printer.activeUntil-1e-8?`打印机正在运转，掩护剩余${Math.ceil(office.printer.activeUntil-g.soundField.clock-1e-8)}秒，按键声暂被盖住，视线检查照常`:'打印机待机，按键声正常传播');
+ if(office?.meeting){
+  const boss=g.inspectors[0],status=boss.hidden?'老板正在开会':boss.leaving?'老板正在步行去开会':boss.queue.some(q=>q.meetingReturn)?'老板正在步行返回':'会议机会等待中，老板当前在场';
+  events.push(status+(g.inspectors.length>1?'，主管继续巡视':''));
+ }
+ const event=events.join('；');
  canvas.setAttribute('aria-label',`${g.layout.desks.length}组办公桌和${g.layout.seats.length}个工位`);
  canvas.setAttribute('aria-description',`${event?event+'；':''}${checks}；${renderer.noiseLabel(source)}${soundChecks?'；'+soundChecks:''}；连续摸鱼${Math.floor(g.comboTime)}秒，收手可领${coinAmount(g.pendingBonus)}金币；${g.exposure>0?'正在暴露':'安全'}${g.feedback?'；'+g.feedback.text:''}`);
  $('#money').innerHTML=`${coinAmount(g.coins)} <em>/ ${g.config.target}</em>`;

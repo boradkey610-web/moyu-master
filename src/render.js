@@ -539,7 +539,7 @@ export class Renderer{
  noiseMeter(c,g){
   const p=g.player;if(p.seat==null||p.route.length)return;
   const field=g.soundField,source=field.sources.find(s=>s.seat===p.seat),volume=source?.volume||0;
-  const masked=p.activity==='game'&&field.office?.kind==='printer'&&field.clock<field.office.activeUntil-1e-8;
+  const masked=p.activity==='game'&&!!field.office?.printer&&field.clock<field.office.printer.activeUntil-1e-8;
   if(!['joke','game','dance'].includes(p.activity)&&volume<=0)return;
   const active=!!source?.active,dance=p.activity==='dance',kind=p.activity==='work'?source.kind:p.activity;
   const ink=masked?'#659589':!active?'#829c8c':kind==='game'?'#9474b5':'#d3aa66';
@@ -732,14 +732,14 @@ export class Renderer{
   c.restore();
  }
  printerStatus(c,g){
-  const field=g.soundField,office=field?.office;if(office?.kind!=='printer')return;
+  const field=g.soundField,office=field?.office?.printer;if(!office)return;
   const left=Math.max(0,office.activeUntil-field.clock),active=left>1e-8;
   this.printer(c,W/2,62,92,active,field.clock);
   if(active)this.text(c,`${Math.ceil(left-1e-8)}s`,424,25,20,'#587b58','800');
  }
  officeEventCue(c,g){
-  const field=g.soundField,office=field?.office;
-  if(office?.kind!=='printer'||!office.count)return;
+  const field=g.soundField,office=field?.office?.printer;
+  if(!office||!office.count)return;
   const active=field.clock<office.activeUntil,age=field.clock-(office.activeUntil-(active?10:0)),duration=active?3:2.5;
   if(age<0||age>=duration)return;
   const fade=Math.min(1,age/.18,(duration-age)/.4);
@@ -756,12 +756,12 @@ export class Renderer{
  draw(g,t){if(this.layout!==g.layout){this.layout=g.layout;this.drawOffice(this.bg.getContext('2d'));}if(this.lastGame!==g){this.lastGame=g;this.facings=new Map();this.motion.clear();this.predictionTime=-1;this.predictions=[];}const c=this.c;c.clearRect(0,0,W,H);c.drawImage(this.bg,0,0);this.soundSources(c,g,t);
  const office=g.soundField?.office;
  this.printerStatus(c,g);
- if(office?.kind==='meeting'){
-  const away=g.inspectors[0]?.leaving||g.inspectors[0]?.hidden;
+ if(office?.meeting){
+  const boss=g.inspectors[0],away=boss?.leaving||boss?.hidden,returning=boss?.queue.some(q=>q.meetingReturn);
   this.box(c,580,28,106,55,3,'#fff8e5','#bba77c',1.5);
   this.box(c,608,23,46,10,1,'#d7bd8a99');
   this.text(c,'办公室例会',633,51,15,'#837255','700');
-  this.text(c,away?'老板开会中':'会议室',633,70,14,away?'#ba8253':'#8d9c87');
+  this.text(c,boss?.hidden?'老板开会中':boss?.leaving?'正在去开会':returning?'正在返回':'等待会议机会',633,70,14,away?'#ba8253':'#8d9c87');
  }
  if(g.mirror>0){if(g.elapsed-this.predictionTime>.1||this.predictionTime<0){this.predictions=forecastAll(g.inspectors,g.mirror);this.predictionTime=g.elapsed;}this.predictions.forEach((points,i)=>{c.setLineDash([10,8]);this.line(c,points.filter(p=>!p.hidden).map(p=>[p.x,p.y]),i?'#d77c77':'#499dbb',4);c.setLineDash([]);const end=points.filter(p=>!p.hidden).at(-1);if(end){this.ellipse(c,end.x,end.y,8,8,i?'#d77c77':'#499dbb');this.text(c,'•',end.x,end.y,18,'#fff');}let last;for(const p of points)if(p.waiting&&(!last||Math.hypot(p.x-last.x,p.y-last.y)>5)){this.chip(c,'停',p.x,p.y-18,'#fff8e9');last=p;}});}
  const p=g.player,dance=this.danceState(g),{seats,scale}=g.layout,goldSeats=new Set(g.specials.map(s=>s.seat));this.movePath(c,p,g.elapsed);

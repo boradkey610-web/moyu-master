@@ -8,7 +8,7 @@ function drawing(){
  r.box=(...args)=>boxes.push(args);
  return{r,c,labels,arcs,boxes,strokes,clear(){labels.length=arcs.length=boxes.length=strokes.length=0;}};
 }
-function game(level=2){const g=new Game(level,100);g.inspectors=[];g.npcs=[];return g;}
+function game(level=3){const g=new Game(level,100);g.inspectors=[];g.npcs=[];return g;}
 test('水波纹是三层游戏细波和五层音乐细波，真实范围有连续薄外缘',()=>{
  for(const [kind,radius,count] of [['game',170,3],['dance',320,5]]){
   const d=drawing(),source={active:true,kind,x:355,y:515,radius},before=JSON.stringify(source);
@@ -51,7 +51,7 @@ test('蹦迪更快传出，收手完成清空进度和可听范围',()=>{
 test('段子无声，打印机只隐藏范围，音量表继续积累',()=>{
  const quiet=game(),d=drawing();quiet.setActivity('joke');d.r.noiseMeter(d.c,quiet);assert.ok(d.labels.includes('无声'));
  const g=game(5);g.setActivity('game');g.step(9);const volume=g.soundField.sources[0].volume;
- advanceInspectors([],g.soundField.office.nextAt-g.soundField.clock+.1,g.soundField);g.step(2);d.clear();d.r.noiseMeter(d.c,g);
+ advanceInspectors([],g.soundField.office.printer.nextAt-g.soundField.clock+.1,g.soundField);g.step(2);d.clear();d.r.noiseMeter(d.c,g);
  assert.ok(d.labels.includes('声音被掩盖'));assert.ok(g.soundField.sources[0].volume>volume);d.r.noiseRange(d.c,g.soundField.sources[0],g.elapsed);assert.equal(d.arcs.length,0);
 });
 test('顶部工位的动静表避开打印机与关卡标签',()=>{
@@ -61,9 +61,9 @@ test('顶部工位的动静表避开打印机与关卡标签',()=>{
 });
 
 test('无障碍声音状态与打印机掩护和停机后的真实范围一致',()=>{
- const g=game(5),d=drawing();g.setActivity('game');g.step(g.soundField.office.nextAt+2);
+ const g=game(5),d=drawing();g.setActivity('game');g.step(g.soundField.office.printer.nextAt+2);
  const source=g.soundField.sources[0];assert.ok(source.volume>40);assert.equal(source.radius,0);
  assert.equal(d.r.noiseLabel(source),'声音被掩盖');
- g.step(g.soundField.office.activeUntil-g.soundField.clock+.02);
+ g.step(g.soundField.office.printer.activeUntil-g.soundField.clock+.02);
  assert.ok(g.soundField.sources[0].radius>0);assert.equal(d.r.noiseLabel(g.soundField.sources[0]),'近处可听见');
 });

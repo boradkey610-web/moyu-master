@@ -1,4 +1,4 @@
-import {Game,activities} from '../src/engine.js';
+import {Game,activities,levels} from '../src/engine.js';
 export function simulate(level,seed,careful,target,policy='mixed'){
  const g=new Game(level,seed),activity=level<2?'game':'dance';if(target)g.config={...g.config,target};let tick=0;
  while(tick++<3000){
@@ -21,6 +21,6 @@ export function simulate(level,seed,careful,target,policy='mixed'){
  }
  return {win:g.modal?.kind==='win',seconds:g.elapsed,catches:g.catches,closeCalls:g.stats.closeCalls,coins:g.coins,activities:g.stats.activityTime,heard:Object.keys(g.soundField.claimed).length};
 }
-if(process.argv[1]?.endsWith('simulate-risk-loop.mjs'))for(let level=0;level<4;level++)for(const careful of [false,true]){
+if(process.argv[1]?.endsWith('simulate-risk-loop.mjs'))for(let level=0;level<levels.length;level++)for(const careful of [false,true]){
  const runs=Array.from({length:30},(_,i)=>simulate(level,i+1,careful));console.log(JSON.stringify({level:level+1,strategy:careful?'warning-response':'stationary-greedy',wins:runs.filter(r=>r.win).length,seeds:30,averageSeconds:Math.round(runs.reduce((a,r)=>a+r.seconds,0)/30),averageCatches:runs.reduce((a,r)=>a+r.catches,0)/30,averageCloseCalls:runs.reduce((a,r)=>a+r.closeCalls,0)/30}));
 }
