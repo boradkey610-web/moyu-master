@@ -3,7 +3,7 @@ import {Renderer} from './render.js';
 import {drawRunner} from './runner.js';
 import {GameAudio} from './audio.js';
 const $=s=>document.querySelector(s),canvas=$('#office'),renderer=new Renderer(canvas);
-let save={unlocked:1,best:{}},g=new Game(),screen='menu',lastModal=null,lastTime=0,visualTime=0,sound=true;
+let save={unlocked:1,best:{}},g=new Game(),screen='loading',lastModal=null,lastTime=0,visualTime=0,sound=true;
 const audio=new GameAudio();
 let audioGame=null,audioFeedback=null,audioCleared=0;
 const jokePosts=[
@@ -274,5 +274,20 @@ function updateUI(){
  seatButtons.forEach((b,i)=>{b.disabled=blocked||g.occupied(i)||locked||stopping;const drop=g.drops.find(d=>d.seat===i),gold=g.specials.find(s=>s.seat===i);b.setAttribute('aria-label',`移动到${i+1}号工位${gold?`，黄金工位 ×2，剩余${Math.ceil(gold.left)}秒`:''}${drop?`，可拾取${drop.type==='mirror'?'反光镜':'开会通知'}`:''}`);});
 }
 function frame(time){const dt=lastTime?Math.min(.1,(time-lastTime)/1000):0;lastTime=time;if(!g.paused&&!g.modal)visualTime+=dt;g.step(dt);processModal();renderer.draw(g,visualTime);updateUI();syncAudio();requestAnimationFrame(frame);}
-renderer.ready.then(errors=>{if(errors.length)g.notify('部分画面素材未加载，可刷新重试');});
-menu();requestAnimationFrame(frame);
+async function boot(){
+ g.paused=true;modalBackground(true);
+ const loading=$('#boot-screen'),retry=$('#boot-retry'),shell=$('.game-shell');
+ shell.setAttribute('aria-busy','true');loading.dataset.state='loading';retry.hidden=true;retry.disabled=true;
+ $('#boot-title').textContent='办公室正在就位';$('#boot-note').textContent='桌椅、同事和摸鱼装备，马上到齐。';
+ const errors=await renderer.ready;
+ if(errors.length){
+  loading.dataset.state='error';shell.setAttribute('aria-busy','false');
+  $('#boot-title').textContent='有些资料还没送到';$('#boot-note').textContent='部分画面没加载成功，重新加载后再进入。';
+  retry.hidden=false;retry.disabled=false;return;
+ }
+ menu();renderer.draw(g,visualTime);updateUI();
+ shell.classList.remove('is-loading');shell.setAttribute('aria-busy','false');loading.hidden=true;
+ requestAnimationFrame(frame);
+}
+$('#boot-retry').onclick=()=>{renderer.ready=renderer.loadArt();return boot();};
+boot();

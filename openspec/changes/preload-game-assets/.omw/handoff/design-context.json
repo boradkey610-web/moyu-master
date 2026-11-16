@@ -1,0 +1,14 @@
+{
+  "change": "preload-game-assets",
+  "phase": "design",
+  "mode": "compact",
+  "canonical_spec": "openspec",
+  "generated_by": "omw-handoff.sh",
+  "context_hash": "e8d9017f96401aa368d156fcc464fea7ac1f305cdad94f6f1c8a8ab214bc8cac",
+  "files": [
+    { "path": "openspec/changes/preload-game-assets/proposal.md", "sha256": "f2a1579d3724b5e9832f3a72b8bfc23792d7d2fe5ca258ff690eff0e7d430f5f" },
+    { "path": "openspec/changes/preload-game-assets/design.md", "sha256": "090556252abd309edbdf0cd6d28440b9f1ab42252cefc29aa709e06ac822a4f4" },
+    { "path": "openspec/changes/preload-game-assets/tasks.md", "sha256": "9c058c0ca096eeff20bac681ac5b73386d9847dca8061f107082a68d61898327" },
+    { "path": "openspec/changes/preload-game-assets/specs/ready-before-entry/spec.md", "sha256": "316ad2e0e778f045fb46e81ce400996845d62ec0fd8118fcca21785522fa2984" }
+  ]
+}
