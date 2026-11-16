@@ -1,5 +1,5 @@
 workflow: tweak
-phase: verify
+phase: archive
 context_compression: off
 build_mode: direct
 build_pause: null
@@ -11,9 +11,9 @@ auto_transition: true
 base_ref: 694b7acb3251aa97c9d1e6dde52870d95f2fe54f
 design_doc: null
 plan: null
-verify_result: pending
-verification_report: null
-branch_status: pending
+verify_result: pass
+verification_report: docs/superpowers/reports/2026-11-16-meeting-drop-balance-verify.md
+branch_status: handled
 created_at: 2026-11-16
-verified_at: null
+verified_at: 2026-11-16
 archived: false
