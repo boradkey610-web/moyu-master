@@ -1,0 +1,26 @@
+{
+  "model": "GPT-Image-2",
+  "src": "assets/generated/player-typing-v2/frames.png",
+  "columns": 6,
+  "rows": 1,
+  "cellWidth": 384,
+  "cellHeight": 512,
+  "anchor": 192,
+  "footBaseline": 500,
+  "bodyHeight": 462,
+  "duration": 1,
+  "sequence": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    4,
+    3,
+    2,
+    1
+  ],
+  "motion": "actual hand/forearm drawings; immutable head, torso, hips and feet",
+  "status": "preview-only"
+}

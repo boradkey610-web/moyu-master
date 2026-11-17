@@ -301,3 +301,29 @@
 .boot-screen[data-state=error] .boot-loader{display:none}.boot-retry{margin-top:22px;padding:10px 24px;border:1px solid #62836b;border-radius:4px;background:#6b9478;color:#fffaf0;font-size:14px;font-weight:700;box-shadow:0 3px 0 #4e725a}
 .boot-retry:focus-visible{outline:2px solid #ad8542;outline-offset:4px}@keyframes boot-wait{0%,70%,100%{opacity:.3;transform:translateY(0)}35%{opacity:1;transform:translateY(-4px)}}
 @media(prefers-reduced-motion:reduce){.boot-loader i{animation:none;opacity:.7}}
+
+/* Catch scene: artwork with corner controls, independent dialogue column. */
+.overlay.caught-overlay{position:fixed;inset:0;z-index:80;padding:24px;background:#25332d99;backdrop-filter:blur(4px)}
+.dialog.caught-dialog{display:grid;grid-template-columns:minmax(0,1fr);width:min(480px,100%);max-width:100%;max-height:94svh;padding:10px;gap:0;border:1px solid #cabb9f;border-radius:22px;background:#fff9ed;overflow:auto;text-align:left;box-shadow:0 18px 70px #18251c55}
+.dialog.caught-dialog:before{display:none}
+.caught-stage{position:relative;min-width:0;overflow:hidden;border-radius:15px;background:#e6e3d2;aspect-ratio:480/450}
+#caught-canvas{display:block;width:100%;height:100%;object-fit:cover;object-position:center top;margin:0;border-radius:0;background:transparent}
+.caught-top{position:absolute;inset:12px 12px auto;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;writing-mode:horizontal-tb}
+.caught-status{display:flex;flex-direction:column;gap:4px;flex:0 0 auto;padding:9px 11px;border:1px solid #ffffff30;border-radius:10px;background:#273c32df;color:#fff7e8;white-space:nowrap;box-shadow:0 2px 10px #27352b20}
+.caught-status strong{font-size:13px;line-height:1.2;letter-spacing:1px}.caught-status>span{font-size:10px;line-height:1.3;color:#dfdfc6}
+.dialog.caught-dialog #caught-skip{display:inline-flex;align-items:center;gap:8px;width:auto;min-width:0;min-height:32px;flex:0 0 auto;padding:7px 10px;margin:0;border:1px solid #ffffff70;border-radius:9px;background:#fff9edee;color:#5f6552;font-size:12px;line-height:1.2;white-space:nowrap;box-shadow:0 2px 10px #27352b15}
+#caught-skip>span{font-size:19px;line-height:12px}
+.caught-copy{display:flex;flex-direction:column;justify-content:center;min-width:0;padding:18px 12px 8px;writing-mode:horizontal-tb}
+.caught-dialogue{min-width:0;margin:0;padding:0;background:none;text-align:left}
+.caught-kicker{display:block;margin-bottom:12px;font-size:10px;letter-spacing:2px;color:#978869}
+.caught-dialogue #dialog-title{margin:0 0 9px;color:#344d3d;font-size:21px;line-height:1.3;letter-spacing:1px}
+.dialog.caught-dialog #caught-line{min-height:54px;margin:0;font-size:19px;line-height:1.65;color:#4b4c3f;writing-mode:horizontal-tb;word-break:normal;overflow-wrap:break-word;white-space:pre-line;text-align:left}
+.caught-outcome{padding-top:12px;margin-top:16px;border-top:1px solid #e5dac6;font-size:11px;line-height:1.7;color:#9a8564}
+#caught-actions{margin-top:14px;min-width:0}
+.dialog.caught-dialog #caught-actions button{width:100%;margin-top:8px;border-radius:10px;line-height:1.6;white-space:normal}
+.dialog.caught-dialog #caught-actions button:first-child{margin-top:0}.dialog.caught-dialog #caught-actions .primary{min-height:44px;font-size:14px;background:#587e64;border-color:#456650;box-shadow:0 2px 0 #3f6048;color:#fffbed}
+.dialog.caught-dialog #caught-prompt{margin:14px 0 0;font-size:11px;line-height:1.4;color:#a99a80}
+#caught-actions[hidden],#caught-skip[hidden],#caught-prompt[hidden]{display:none!important}
+@media(min-width:760px){.dialog.caught-dialog{width:min(820px,100%);grid-template-columns:minmax(0,1.2fr) minmax(270px,1fr);padding:12px}.caught-copy{padding:26px 25px}.dialog.caught-dialog #caught-line{min-height:94px;font-size:22px}.caught-outcome{margin-top:22px}.caught-stage{align-self:center}}
+@media(max-width:500px){.overlay.caught-overlay{padding:12px}.caught-stage{max-height:47svh;aspect-ratio:auto;height:min(420px,47svh)}.caught-top{inset:10px 10px auto}.caught-copy{padding:16px 12px 8px}.caught-kicker{margin-bottom:8px}.caught-outcome{margin-top:12px}.dialog.caught-dialog #caught-line{font-size:18px;min-height:50px}}
+@media(max-height:550px) and (min-width:501px){.overlay.caught-overlay{padding:12px}.dialog.caught-dialog{width:min(820px,100%);grid-template-columns:minmax(0,1fr) minmax(250px,1fr);max-height:94svh}.caught-stage{height:76svh;aspect-ratio:auto}.caught-copy{padding:12px 18px}.caught-kicker{margin-bottom:8px}.dialog.caught-dialog #caught-line{font-size:17px;min-height:60px}.caught-outcome{margin-top:10px;padding-top:8px}#caught-actions{margin-top:10px}}

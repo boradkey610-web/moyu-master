@@ -2,10 +2,12 @@ import {Game,activities,levels} from './engine.js';
 import {Renderer} from './render.js';
 import {drawRunner} from './runner.js';
 import {GameAudio} from './audio.js';
+import {CaughtScene,CAUGHT_ASSETS,caughtLines} from './caught-scene.js';
 const $=s=>document.querySelector(s),canvas=$('#office'),renderer=new Renderer(canvas);
 let save={unlocked:1,best:{}},g=new Game(),screen='loading',lastModal=null,lastTime=0,visualTime=0,sound=true;
 const audio=new GameAudio();
 let audioGame=null,audioFeedback=null,audioCleared=0;
+let caughtScene=null;
 const jokePosts=[
  '老板说工作要有回响。\n我敲了两下空格。',
  '今天也很忙。\n忙着等下班。',
@@ -75,8 +77,8 @@ function statement(){
  return `<div class="payroll-top"><span>摸鱼大师 · 薪酬结算处</span><span>员工联 / ${String(g.level+1).padStart(2,'0')}</span></div><div class="payroll-heading"><div><span class="payroll-day">${g.config.name}</span><h2 id="dialog-title">摸鱼工资条</h2></div><div class="payroll-portrait">${portrait('player')}</div><span class="payroll-stamp ${won?'approved':'rejected'}">${stamp}<small>摸鱼专用章</small></span></div><div class="shift-score"><span>本局到账</span><div class="payroll-total"><strong>${coinAmount(g.coins)}</strong><small>金币</small></div><footer><span>目标 ${g.config.target} 金币</span><span>${g.ads?'助力挑战':'独立挑战'}</span></footer></div>`;
 }
 function modalBackground(inert){for(const el of document.querySelectorAll('.hud,.scene,.controls'))el.inert=inert;}
-function show(html,buttons=[]){modalBackground(true);$('#overlay').dataset.page=['menu','levels','guide'].includes(screen)?screen:'';$('#overlay').classList.remove('hidden');$('#dialog').dataset.kind=screen==='result'?g.modal?.kind||'result':screen||'';$('#dialog').classList.toggle('office-result',['win','timeout','lose'].includes($('#dialog').dataset.kind));$('#dialog').classList.toggle('office-note',['pause','help','instructions','guide','tutorial','fine','meeting','reward'].includes($('#dialog').dataset.kind));$('#dialog').innerHTML=html;for(const b of buttons)$('#dialog').append(button(...b));g.paused=true;syncAudio();queueMicrotask(()=>{const dialog=$('#dialog');if(dialog.dataset.kind==='menu'){dialog.tabIndex=-1;dialog.focus({preventScroll:true});}else dialog.querySelector('button:not(:disabled)')?.focus({preventScroll:true});});renderer.ready.then(()=>{paintHomeArt();for(const portrait of document.querySelectorAll('#dialog canvas[data-person]')){const c=portrait.getContext('2d');c.clearRect(0,0,144,170);renderer.portrait(c,portrait.dataset.person,72,300,286);}});}
-function hide(){modalBackground(false);$('#overlay').dataset.page='';screen=null;$('#overlay').classList.add('hidden');g.paused=false;lastModal=null;syncAudio();}
+function show(html,buttons=[]){clearCaughtScene();modalBackground(true);$('#overlay').dataset.page=['menu','levels','guide'].includes(screen)?screen:'';$('#overlay').classList.remove('hidden');$('#dialog').dataset.kind=screen==='result'?g.modal?.kind||'result':screen||'';$('#dialog').classList.toggle('office-result',['win','timeout','lose'].includes($('#dialog').dataset.kind));$('#dialog').classList.toggle('office-note',['pause','help','instructions','guide','tutorial','fine','meeting','reward'].includes($('#dialog').dataset.kind));$('#dialog').innerHTML=html;for(const b of buttons)$('#dialog').append(button(...b));g.paused=true;syncAudio();queueMicrotask(()=>{const dialog=$('#dialog');if(dialog.dataset.kind==='menu'){dialog.tabIndex=-1;dialog.focus({preventScroll:true});}else dialog.querySelector('button:not(:disabled)')?.focus({preventScroll:true});});renderer.ready.then(()=>{paintHomeArt();for(const portrait of document.querySelectorAll('#dialog canvas[data-person]')){const c=portrait.getContext('2d');c.clearRect(0,0,144,170);renderer.portrait(c,portrait.dataset.person,72,300,286);}});}
+function hide(){clearCaughtScene();lastTime=0;modalBackground(false);$('#overlay').dataset.page='';screen=null;$('#overlay').classList.add('hidden');g.paused=false;lastModal=null;syncAudio();}
 function start(level){g=new Game(level);syncSeatButtons();lastModal=null;hide();beep('start');}
 function paintHomeArt(){
  const art=$('#home-art');
@@ -176,7 +178,34 @@ function help(){
 function meeting(){if(g.modal||screen)return;if(!g.inventory.meeting){g.notify('空工位拾取开会通知，或在求助中领取');return;}screen='meeting';show(panelHead('briefcase','会议邀请','请谁去开会？')+'<p>对方会步行离场，离场后 10 秒再返回。<br>先收手，再发通知更稳妥。</p>');for(const [i,ins]of g.inspectors.entries()){const b=button(`请${ins.name}去开会`,()=>{hide();g.useMeeting(i);});b.disabled=ins.hidden||ins.leaving;$('#dialog').append(b);}$('#dialog').append(button('先不发了',hide,'secondary'));}
 function record(){const key=`${g.level}-${g.ads?'assisted':'clean'}`,used=g.config.time+(g.extended?15:0)-g.time;save.unlocked=Math.max(save.unlocked,Math.min(levels.length,g.level+2));save.best[key]=Math.min(save.best[key]??Infinity,used);try{localStorage.setItem(SAVE_KEY,JSON.stringify(save));}catch{}}
 function rewardConfirm(type){screen='reward';show(panelHead('help','本地试玩','领取测试奖励')+'<p>这是本地试玩中的奖励模拟。<br>确认后消耗一次助力机会；取消不消耗。</p>',[['确认领取测试奖励',()=>{screen=null;g.paused=false;g.reward(type);lastModal=null;if(!g.modal)hide();},'primary'],['取消',()=>{screen=null;lastModal=null;},'secondary']]);}
-function processModal(){if(!g.modal||screen==='reward'||g.modal===lastModal)return;lastModal=g.modal;screen='result';const m=g.modal;
+function clearCaughtScene(){
+ caughtScene=null;$('#dialog').classList.remove('caught-dialog');
+ const overlay=$('#overlay');if(overlay.classList.contains('caught-overlay')){overlay.classList.remove('caught-overlay');$('.game-shell').append(overlay);}
+}
+function updateCaughtScene(){
+ if(!caughtScene)return;
+ const state=caughtScene.timeline.state(),reply=$('#caught-actions'),wasHidden=reply.hidden;
+ $('#caught-speaker').textContent=state.speaker;$('#caught-line').textContent=state.text?state.text.replace(/([，？！])/g,'$1\n').trim():'…';
+ reply.hidden=!state.ready;$('#caught-skip').hidden=state.ready;$('#caught-prompt').hidden=state.ready;
+ if(state.ready&&wasHidden){$('#caught-line').setAttribute('aria-live','polite');reply.querySelector('button')?.focus({preventScroll:true});}
+}
+function showCaughtScene(m){
+ if(!['warning','fine'].includes(m.kind)||!m.runnerSnapshot||CAUGHT_ASSETS.some(name=>!renderer.art[name]))return false;
+ const fine=m.kind==='fine',negative=fine&&g.coins<0;
+ const note=(fine?`本次扣除 50 金币 · 当前余额 ${Math.floor(g.coins)} 金币`:'首次提醒不扣金币 · 再被抓到扣 50')+(m.lostBonus>0?`<br>未收手奖金 ${m.lostBonus} 金币已清空`:'');
+ show(`<div class="caught-stage"><canvas id="caught-canvas" width="480" height="450" aria-label="被检查者抓包后的第一人称演出"></canvas><div class="caught-top"><span class="caught-status"><strong>被抓包了</strong><span>Ⅱ 对局已暂停</span></span><button id="caught-skip" class="secondary" type="button">跳过动画 <span aria-hidden="true">›</span></button></div></div><div class="caught-copy"><div class="caught-dialogue"><span class="caught-kicker">办公室小插曲</span><h2 id="dialog-title"><span id="caught-speaker">${m.who}</span></h2><p id="caught-line"></p></div><div class="caught-outcome">${note}</div><div id="caught-actions" hidden></div><p id="caught-prompt">演出结束后，点击回应继续</p></div>`);
+ $('#dialog').classList.add('caught-dialog');$('#overlay').classList.add('caught-overlay');document.body.append($('#overlay'));
+ const actions=$('#caught-actions');
+ actions.append(button(negative?'重新挑战':caughtLines(m.who)[1],()=>{if(negative)start(g.level);else{g.dismiss();hide();}},'primary reply'));
+ if(fine){
+  if(g.level>0&&g.ads<2)actions.append(button('请同事帮忙解释 · 测试助力',()=>rewardConfirm('explain'),'outlined'));
+  actions.append(button('返回关卡',selectLevel,'secondary'));
+ }
+ caughtScene=new CaughtScene($('#caught-canvas'),renderer,m,{reducedMotion:matchMedia('(prefers-reduced-motion: reduce)').matches});
+ $('#caught-skip').onclick=()=>{caughtScene?.skip();updateCaughtScene();};caughtScene.draw();updateCaughtScene();
+ return true;
+}
+function processModal(){if(!g.modal||screen==='reward'||g.modal===lastModal)return;lastModal=g.modal;screen='result';const m=g.modal;if(m.activity==='game'&&typeof showCaughtScene==='function'&&showCaughtScene(m))return;
  if(m.kind==='tutorial'){
   show(`${panelHead('clock','入职练习 · 时间已暂停','先看预告，再收手')}<div class="speech">看到「即将检查」，就准备切回工作。</div><ul><li>检查者正常巡视，看见可疑行为才靠近；正式检查前有 2 秒预告。</li><li>点击「一键工作」收手；打游戏和蹦迪需要更久，别等检查开始才点。</li><li>检查时留意暴露条，涨满就会被抓。</li><li>连续摸鱼的额外奖励，要安全收手才能拿到。</li></ul>`,[['记住了，开始练习',()=>{g.dismiss();hide();},'primary']]);
  }else if(m.kind==='warning'){
@@ -280,7 +309,7 @@ function updateUI(){
  $('#help').disabled=blocked;$('#pause').disabled=blocked;
  seatButtons.forEach((b,i)=>{b.disabled=blocked||g.occupied(i)||locked||stopping;const drop=g.drops.find(d=>d.seat===i),gold=g.specials.find(s=>s.seat===i);b.setAttribute('aria-label',`移动到${i+1}号工位${gold?`，黄金工位 ×2，剩余${Math.ceil(gold.left)}秒`:''}${drop?`，可拾取${drop.type==='mirror'?'反光镜':'开会通知'}`:''}`);});
 }
-function frame(time){const dt=lastTime?Math.min(.1,(time-lastTime)/1000):0;lastTime=time;if(!g.paused&&!g.modal)visualTime+=dt;g.step(dt);processModal();renderer.draw(g,visualTime);updateUI();syncAudio();requestAnimationFrame(frame);}
+function frame(time){const dt=lastTime?Math.min(.1,(time-lastTime)/1000):0;lastTime=time;if(!g.paused&&!g.modal)visualTime+=dt;g.step(dt);processModal();renderer.draw(g,visualTime);if(caughtScene){caughtScene.advance(dt,document.hidden);updateCaughtScene();}updateUI();syncAudio();requestAnimationFrame(frame);}
 async function boot(){
  g.paused=true;modalBackground(true);
  const loading=$('#boot-screen'),retry=$('#boot-retry'),shell=$('.game-shell');

@@ -494,31 +494,132 @@
     "src": "assets/generated/supervisor-v7/supervisor.png",
     "width": 1536,
     "height": 1920,
-    "bounds": [0, 50, 1536, 1910],
+    "bounds": [
+      0,
+      50,
+      1536,
+      1910
+    ],
     "frames": [
       [
-        {"x":0,"y":50,"w":384,"h":420,"anchor":192},
-        {"x":384,"y":50,"w":384,"h":420,"anchor":192},
-        {"x":768,"y":50,"w":384,"h":420,"anchor":192},
-        {"x":1152,"y":50,"w":384,"h":420,"anchor":192}
+        {
+          "x": 0,
+          "y": 50,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        },
+        {
+          "x": 384,
+          "y": 50,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        },
+        {
+          "x": 768,
+          "y": 50,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        },
+        {
+          "x": 1152,
+          "y": 50,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        }
       ],
       [
-        {"x":0,"y":530,"w":384,"h":420,"anchor":192},
-        {"x":384,"y":530,"w":384,"h":420,"anchor":192},
-        {"x":768,"y":530,"w":384,"h":420,"anchor":192},
-        {"x":1152,"y":530,"w":384,"h":420,"anchor":192}
+        {
+          "x": 0,
+          "y": 530,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        },
+        {
+          "x": 384,
+          "y": 530,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        },
+        {
+          "x": 768,
+          "y": 530,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        },
+        {
+          "x": 1152,
+          "y": 530,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        }
       ],
       [
-        {"x":0,"y":1010,"w":384,"h":420,"anchor":192},
-        {"x":384,"y":1010,"w":384,"h":420,"anchor":192},
-        {"x":768,"y":1010,"w":384,"h":420,"anchor":192},
-        {"x":1152,"y":1010,"w":384,"h":420,"anchor":192}
+        {
+          "x": 0,
+          "y": 1010,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        },
+        {
+          "x": 384,
+          "y": 1010,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        },
+        {
+          "x": 768,
+          "y": 1010,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        },
+        {
+          "x": 1152,
+          "y": 1010,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        }
       ],
       [
-        {"x":0,"y":1490,"w":384,"h":420,"anchor":192},
-        {"x":384,"y":1490,"w":384,"h":420,"anchor":192},
-        {"x":768,"y":1490,"w":384,"h":420,"anchor":192},
-        {"x":1152,"y":1490,"w":384,"h":420,"anchor":192}
+        {
+          "x": 0,
+          "y": 1490,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        },
+        {
+          "x": 384,
+          "y": 1490,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        },
+        {
+          "x": 768,
+          "y": 1490,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        },
+        {
+          "x": 1152,
+          "y": 1490,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        }
       ]
     ]
   },
@@ -526,47 +627,155 @@
     "src": "assets/generated/supervisor-v7/idle.png",
     "width": 384,
     "height": 1920,
-    "bounds": [0, 50, 384, 1910],
+    "bounds": [
+      0,
+      50,
+      384,
+      1910
+    ],
     "frames": [
-      [{"x":0,"y":50,"w":384,"h":420,"anchor":192}],
-      [{"x":0,"y":530,"w":384,"h":420,"anchor":192}],
-      [{"x":0,"y":1010,"w":384,"h":420,"anchor":192}],
-      [{"x":0,"y":1490,"w":384,"h":420,"anchor":192}]
+      [
+        {
+          "x": 0,
+          "y": 50,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        }
+      ],
+      [
+        {
+          "x": 0,
+          "y": 530,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        }
+      ],
+      [
+        {
+          "x": 0,
+          "y": 1010,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        }
+      ],
+      [
+        {
+          "x": 0,
+          "y": 1490,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        }
+      ]
     ]
   },
   "front-steps-supervisor-female": {
     "src": "assets/generated/supervisor-v7/front-steps.png",
     "width": 384,
     "height": 960,
-    "bounds": [0, 50, 384, 950],
+    "bounds": [
+      0,
+      50,
+      384,
+      950
+    ],
     "frames": [
-      [{"x":0,"y":50,"w":384,"h":420,"anchor":192}],
-      [{"x":0,"y":530,"w":384,"h":420,"anchor":192}]
+      [
+        {
+          "x": 0,
+          "y": 50,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        }
+      ],
+      [
+        {
+          "x": 0,
+          "y": 530,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        }
+      ]
     ]
   },
   "back-steps-supervisor-female": {
     "src": "assets/generated/supervisor-v7/back-steps.png",
     "width": 384,
     "height": 960,
-    "bounds": [0, 50, 384, 950],
+    "bounds": [
+      0,
+      50,
+      384,
+      950
+    ],
     "frames": [
-      [{"x":0,"y":50,"w":384,"h":420,"anchor":192}],
-      [{"x":0,"y":530,"w":384,"h":420,"anchor":192}]
+      [
+        {
+          "x": 0,
+          "y": 50,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        }
+      ],
+      [
+        {
+          "x": 0,
+          "y": 530,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        }
+      ]
     ]
   },
   "side-steps-supervisor-female": {
     "src": "assets/generated/supervisor-v7/side-steps.png",
     "width": 768,
     "height": 960,
-    "bounds": [0, 50, 768, 950],
+    "bounds": [
+      0,
+      50,
+      768,
+      950
+    ],
     "frames": [
       [
-        {"x":0,"y":50,"w":384,"h":420,"anchor":192},
-        {"x":384,"y":50,"w":384,"h":420,"anchor":192}
+        {
+          "x": 0,
+          "y": 50,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        },
+        {
+          "x": 384,
+          "y": 50,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        }
       ],
       [
-        {"x":0,"y":530,"w":384,"h":420,"anchor":192},
-        {"x":384,"y":530,"w":384,"h":420,"anchor":192}
+        {
+          "x": 0,
+          "y": 530,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        },
+        {
+          "x": 384,
+          "y": 530,
+          "w": 384,
+          "h": 420,
+          "anchor": 192
+        }
       ]
     ]
   },
@@ -939,6 +1148,110 @@
           "anchor": 74.95445258983295
         }
       ]
+    ]
+  },
+  "player-typing": {
+    "model": "GPT-Image-2",
+    "src": "assets/generated/player-typing-v2/frames.png",
+    "columns": 6,
+    "rows": 1,
+    "cellWidth": 384,
+    "cellHeight": 512,
+    "anchor": 192,
+    "footBaseline": 500,
+    "bodyHeight": 462,
+    "duration": 1,
+    "sequence": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      4,
+      3,
+      2,
+      1
+    ],
+    "motion": "actual hand/forearm drawings; immutable head, torso, hips and feet",
+    "width": 2304,
+    "height": 512
+  },
+  "caught-desk": {
+    "src": "assets/generated/caught-game-v1/desk-source.png",
+    "width": 1024,
+    "height": 1024,
+    "bounds": [
+      0,
+      0,
+      1024,
+      1024
+    ]
+  },
+  "caught-background": {
+    "src": "assets/generated/caught-game-v1/portrait-background.png",
+    "width": 480,
+    "height": 614,
+    "bounds": [
+      0,
+      0,
+      480,
+      614
+    ]
+  },
+  "caught-boss": {
+    "src": "assets/generated/caught-game-v1/boss-frames.png",
+    "width": 1800,
+    "height": 540,
+    "bounds": [
+      0,
+      0,
+      1800,
+      540
+    ]
+  },
+  "caught-boss-speech": {
+    "src": "assets/generated/caught-game-v1/boss-speech-frames.png",
+    "width": 1200,
+    "height": 540,
+    "bounds": [
+      0,
+      0,
+      1200,
+      540
+    ]
+  },
+  "caught-supervisor": {
+    "src": "assets/generated/caught-game-v1/supervisor-frames.png",
+    "width": 1800,
+    "height": 540,
+    "bounds": [
+      0,
+      0,
+      1800,
+      540
+    ]
+  },
+  "caught-supervisor-speech": {
+    "src": "assets/generated/caught-game-v1/supervisor-speech-frames.png",
+    "width": 1200,
+    "height": 540,
+    "bounds": [
+      0,
+      0,
+      1200,
+      540
+    ]
+  },
+  "caught-player": {
+    "src": "assets/generated/caught-game-v1/player-frames.png",
+    "width": 1800,
+    "height": 540,
+    "bounds": [
+      0,
+      0,
+      1800,
+      540
     ]
   }
 }

@@ -11,7 +11,8 @@ test('static release contains runtime files and manifest assets only',()=>{
  assert.ok(files.includes(manifest['player-dance'].src));
  assert.ok(files.includes('src/audio.js'));assert.ok(files.includes('src/disco.js'));assert.ok(files.includes('src/runner.js'));assert.ok(files.includes('src/office-layout.js'));
  assert.ok(files.every(file=>!file.startsWith('config/')&&!file.startsWith('DramaClip/')&&!file.startsWith('.')));
- assert.equal(files.length,11+new Set(Object.values(manifest).map(asset=>asset.src)).size);
+ assert.ok(files.includes(manifest['player-typing'].src));
+ assert.equal(files.length,14+new Set(Object.values(manifest).map(asset=>asset.src)).size);
 });
 test('发布包包含每个运行模块的相对JS依赖',()=>{
  const manifest=JSON.parse(readFileSync(new URL('../assets/manifest.json',import.meta.url))),files=siteFiles(manifest);

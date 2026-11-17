@@ -4,7 +4,7 @@ import {fileURLToPath} from 'node:url';
 
 const ROOT=fileURLToPath(new URL('../',import.meta.url));
 export function siteFiles(manifest){
- const files=['index.html','style.css','src/app.js','src/audio.js','src/engine.js','src/office-layout.js','src/render.js','src/disco.js','src/runner.js','assets/manifest.json','dev/dance-review.html'];
+ const files=['index.html','style.css','src/app.js','src/audio.js','src/engine.js','src/office-layout.js','src/render.js','src/disco.js','src/runner.js','src/player-typing.js','src/game-monitor.js','src/caught-scene.js','assets/manifest.json','dev/dance-review.html'];
  for(const asset of Object.values(manifest)){
   const src=asset.src;
   if(typeof src!=='string'||!src.startsWith('assets/')||!src.endsWith('.png')||src.includes('\\')||src.split('/').some(part=>!part||part==='.'||part==='..')||src.includes(':'))throw new Error('Unsafe asset path');

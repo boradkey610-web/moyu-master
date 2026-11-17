@@ -1,6 +1,8 @@
 import {activities,forecastAll} from './engine.js';
 import {DiscoScene,discoOpacity} from './disco.js';
 import {createOfficeLayout} from './office-layout.js';
+import {drawTyping} from './player-typing.js';
+import {monitorRect,paintMonitor} from './game-monitor.js';
 const W=720,H=920;
 const DANCE_FLOOR_RADIUS=40,DANCE_FLOOR_FLATTEN=.35;
 export class Renderer{
@@ -76,6 +78,10 @@ export class Renderer{
   const characterAtlas=name,idleAtlas='idle';
   const y=a.y+(a.activity==='dance'?36:0);
   if(pose.seated){
+   if(a.type==='player'&&a.activity==='game'&&this.art['player-typing']){
+    drawTyping(c,this.art['player-typing'],a,t);
+    this.chair(c,a.x,a.y,!!a.gold,'front');return true;
+   }
    if(!this.art.seated)return false;
    const row=a.type==='player'?0:1,frame=a.type==='player'?({work:0,joke:1,game:2}[a.activity]||0):0;
    this.sprite(c,'seated',row,frame,a.x,a.y+16,99);
@@ -753,7 +759,13 @@ export class Renderer{
   this.text(c,active?'按键声被盖住 · 视线检查照常':'按键声恢复正常传播',63,25,23,'#7b785d','600');
   c.restore();
  }
- draw(g,t){if(this.layout!==g.layout){this.layout=g.layout;this.drawOffice(this.bg.getContext('2d'));}if(this.lastGame!==g){this.lastGame=g;this.facings=new Map();this.motion.clear();this.predictionTime=-1;this.predictions=[];}const c=this.c;c.clearRect(0,0,W,H);c.drawImage(this.bg,0,0);this.soundSources(c,g,t);
+ gameMonitor(c,g){
+  const p=g.player,seat=g.layout.seats[p.seat];
+  if(p.activity!=='game'||!Number.isInteger(p.seat)||p.route.length||!seat||!this.art.desk)return;
+  const rect=monitorRect(this.art.desk.meta,seat,g.layout);
+  if(rect)paintMonitor(c,rect,g.elapsed);
+ }
+ draw(g,t){if(this.layout!==g.layout){this.layout=g.layout;this.drawOffice(this.bg.getContext('2d'));}if(this.lastGame!==g){this.lastGame=g;this.facings=new Map();this.motion.clear();this.predictionTime=-1;this.predictions=[];}const c=this.c;c.clearRect(0,0,W,H);c.drawImage(this.bg,0,0);this.gameMonitor(c,g);this.soundSources(c,g,t);
  const office=g.soundField?.office;
  this.printerStatus(c,g);
  if(office?.meeting){
@@ -778,7 +790,7 @@ export class Renderer{
   c.save();c.translate(a.x,a.y);c.scale(scale,scale);c.translate(-a.x,-a.y);
   const seatedFade=a.type==='player'&&dance&&this.art.seated;
   if(seatedFade)this.sprite(c,'seated',0,0,a.x,a.y+16,99);
-  else if(!this.paintedPerson(c,a,pose,a.type==='player'&&dance?dance.time:t)){
+  else if(!this.paintedPerson(c,a,pose,a.type==='player'?(dance?dance.time:g.elapsed):t)){
    if(pose.seated)this.seatedPerson(c,a.x,a.y,a.type,t,a.activity||'work',a.gold);
    else this.person(c,a.x,actorY,a.type,t,pose.moving,a.activity,pose.direction);
   }
