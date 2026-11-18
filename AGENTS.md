@@ -42,3 +42,9 @@
 - Frontend-cloud version `06da4e39`, source `4c5aa8a` on `li_step`; latest site https://moyulijin15.frontend-cloud.corp.kuaishou.com/ and immutable https://moyulijin15-06da4e39.frontend-cloud.corp.kuaishou.com/ . GitHub Pages was not updated.
 - Uploaded 42 allowlisted runtime files from `dist/`. Includes typing art, actual game monitor, boss/supervisor caught cinematics and responsive dialogue; preserve independent cinematic clock, warning/fine and gameplay pause.
 - 248 JS tests, 13 art tests, build and both published game/dance smoke checks passed. Fifteen caught/typing release hashes matched; platform fingerprint WebSocket warnings only. Release check: `tests/browser/scripts/caught-release-check.js`.
+
+## Deployment 2026-11-18 15:58 GMT+8
+
+- Version `48b3f95f`, game source `c200895` on `li_step`; latest https://moyulijin15.frontend-cloud.corp.kuaishou.com/ and immutable https://moyulijin15-48b3f95f.frontend-cloud.corp.kuaishou.com/ . Access still requires Kuaishou login; GitHub Pages unchanged.
+- Published 46 allowlisted runtime files, including two-shot first-person phone catch artwork and portrait UI for all caught activities on all viewports. Preserve cinematic pause, skip-to-response and warning/fine behavior.
+- 250 JS tests, 14 art checks, build and local caught layout/runtime checks passed. Published main/dance smoke checks passed; all 44 non-HTML runtime hashes matched. Hosting injects SDKs into the two HTML files; use page smoke checks for those instead of raw hashes. Batch release requests in groups of four; transient network-change failures resolved on recheck.

@@ -7,7 +7,7 @@
 | 127.0.0.1:4178 | /dev/caught-review.html | 抓包演出手机、横屏与桌面布局 | scripts/caught-layout-check.js |
 | 127.0.0.1:4178 | /dev/caught-review.html | 自然巡视闻声走近后触发抓包动画和处罚 | scripts/caught-natural-check.js |
 
-| Published game | Verify caught/typing runtime assets match release SHA-256 | scripts/caught-release-check.js |
+| Published game | Verify 44 non-HTML runtime assets match release SHA-256 | scripts/caught-release-check.js |
 
 | Phone caught game UI | /dev/caught-review.html?activity=joke | scripts/caught-phone-runtime-check.js |
 

@@ -98,3 +98,9 @@ npm run build
 看段子被老板或主管发现时进入正式 `CaughtScene`，仅“被发现→直接对话”两个镜头；手机绘制当时的真实段子。回应仍保持第一人称检查者近景，跳过不会解除暂停，提醒、罚款、破产与助力复用既有逻辑。
 
 正式素材为 `assets/generated/caught-phone-game-v1/` 的4张PNG，发布清单共46项。250项JS测试、14项素材测试、构建及手机/桌面浏览器检查通过，原打游戏抓包回归通过。实际UI复核图在 `dev/caught-phone-ui-review/`；本地直接验收 `/dev/caught-review.html?activity=joke`。此次未推送或上线，线上仍为 `06da4e39`。
+
+## 竖版抓包与看手机演出版上线（2026-11-18）
+
+已推送 `li_step` 游戏提交 `c200895` 并发布版本 `48b3f95f`。分享链接 https://moyulijin15.frontend-cloud.corp.kuaishou.com/ ，固定版本 https://moyulijin15-48b3f95f.frontend-cloud.corp.kuaishou.com/ 。其他快手用户登录后可访问。
+
+此前本地待发布的看手机抓包已上线；所有抓包UI统一画面在上、台词和操作在下，横屏小屏可滚动回应。发布46项运行文件，首页/蹦迪浏览器检查通过，44项非HTML文件哈希一致；HTML由平台注入SDK，通过白屏回归单独验证。部署回归脚本为 `tests/browser/scripts/caught-release-check.js`，分批获取资源以减少并发网络失败。

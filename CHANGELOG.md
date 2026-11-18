@@ -1,3 +1,12 @@
+## 2026-11-18 15:58 GMT+8 - 48b3f95f
+
+- 游戏：https://moyulijin15.frontend-cloud.corp.kuaishou.com/
+- 固定版本：https://moyulijin15-48b3f95f.frontend-cloud.corp.kuaishou.com/
+- 来源：`li_step` 游戏提交 `c200895`；仅发布审查通过的 `dist/` 46项运行文件。
+- 更新：所有抓包弹窗在桌面、手机及横屏统一上下排版；看手机抓包使用被发现→对话两镜头及真实段子，保持暂停、回应、警告和罚款。
+- 验证：250项JS测试、14项美术检查与构建通过；三活动四尺寸布局、游戏/手机抓包流程本地浏览器验证通过。线上首页及蹦迪预览白屏/加载检查均 passed=true；44项非HTML运行文件SHA-256一致，全部HTTP 200。HTML由平台注入SDK，通过页面回归验证。首次哈希请求遇到网络切换，分批复核已通过。
+- 访问：保持快手登录用户可访问；未更新GitHub Pages。
+
 ## 2026-11-17 15:08 GMT+8 - 06da4e39
 
 - 游戏：https://moyulijin15.frontend-cloud.corp.kuaishou.com/
