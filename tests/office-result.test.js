@@ -7,7 +7,7 @@ import {readFileSync} from 'node:fs';
 const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
 const coinCode=app.slice(app.indexOf('function coinAmount('),app.indexOf('function button('));
 const statementCode=coinCode+app.slice(app.indexOf('function statement('),app.indexOf('function modalBackground('));
-const modalCode=app.slice(app.indexOf('function processModal('),app.indexOf('let seatButtons='));
+const modalCode=app.slice(app.indexOf('function showCaughtNote('),app.indexOf('let seatButtons='));
 
 test('第四关与第五关继续新关，末关重玩自身而非跳回第四关',()=>{
  for(const [level,next]of [[3,4],[4,5],[5,5]]){
@@ -22,7 +22,7 @@ test('第四关与第五关继续新关，末关重玩自身而非跳回第四�
 test('警告和罚款分别说明未收手奖金损失，不额外扣除工资',()=>{
  const g=new Game(2,1);g.inspectors=[];g.player.activity='game';g.coins=100;g.pendingBonus=11.9;g.catchPlayer('老板');
  for(const [amount,coins]of [[11,100],[7,50]]){
-  let rendered='';const context=vm.createContext({g,screen:null,lastModal:null,portrait:()=>'<canvas></canvas>',panelHead:()=>'',show:html=>{rendered=html;},button:()=>({}),selectLevel(){},$:()=>({append(){}})});
+  let rendered='';const context=vm.createContext({g,screen:null,lastModal:null,portrait:()=>'<canvas></canvas>',panelHead:()=>'',show:html=>{rendered=html;},button:()=>({}),selectLevel(){},document:{body:{append(){}}},$:()=>({append(){},classList:{add(){}}})});
   vm.runInContext(modalCode+';processModal()',context);
   assert.match(rendered,new RegExp(`未收手奖金 ${amount} 金币已清空`));assert.equal(g.coins,coins);
   if(amount===11){g.dismiss();g.player.activity='game';g.pendingBonus=7.9;g.catchPlayer('主管');}

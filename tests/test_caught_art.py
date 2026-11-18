@@ -27,6 +27,18 @@ class CaughtArtTests(unittest.TestCase):
                 self.assertEqual(atlas.getchannel('A').getextrema(), (0, 255))
                 self.assertEqual(len({atlas.crop((i * 600, 0, (i + 1) * 600, 540)).tobytes() for i in range(3)}), 3)
 
+    def test_phone_speech_keeps_camera_body_and_phone_pixel_identical(self):
+        for name, box in [('boss', (320, 278, 389, 303)), ('supervisor', (311, 282, 377, 310))]:
+            with Image.open(ROOT / f'assets/generated/caught-phone-game-v1/{name}-speech.png') as atlas:
+                self.assertEqual(atlas.size, (1364, 768))
+                closed = np.array(atlas.crop((0, 0, 682, 768)))
+                opened = np.array(atlas.crop((682, 0, 1364, 768)))
+            changed = np.any(closed != opened, axis=2)
+            self.assertTrue(changed.any())
+            left, top, right, bottom = box
+            changed[top:bottom, left:right] = False
+            self.assertFalse(changed.any(), name + ': phone, head and body cannot jump during dialogue')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,21 +1,26 @@
 import {drawRunner} from './runner.js';
 
 export const CAUGHT_ASSETS=['caught-desk','caught-background','caught-boss','caught-boss-speech','caught-supervisor','caught-supervisor-speech','caught-player'];
-export const caughtLines=who=>who==='老板'
+export const PHONE_CAUGHT_ASSETS=['caught-phone-boss-discovery','caught-phone-boss-speech','caught-phone-supervisor-discovery','caught-phone-supervisor-speech'];
+export const caughtAssets=activity=>activity==='joke'?PHONE_CAUGHT_ASSETS:CAUGHT_ASSETS;
+export const caughtLines=(who,activity='game')=>activity==='joke'
+ ? (who==='老板'?['什么这么好笑？也给我讲讲？','老板，我马上工作。']:['上班时间看段子？先把手上的工作做完。','好的主管，我马上工作。'])
+ : who==='老板'
  ? ['键盘敲得挺忙，打到第几关了？','老板，我这就退。']
  : ['上班时间还在玩游戏？现在就关掉。','好的主管，我马上工作。'];
 
 export class CaughtTimeline{
- constructor(who,reducedMotion=false){this.who=who;this.lines=caughtLines(who);this.talkEnd=2.15+this.lines[0].length*.065+.55;this.end=this.talkEnd+.85;this.time=reducedMotion?this.end:0;}
+ constructor(who,reducedMotion=false,activity='game'){this.who=who;this.activity=activity;this.lines=caughtLines(who,activity);this.talkStart=activity==='joke'?.85:2.15;this.talkEnd=this.talkStart+this.lines[0].length*.065+.55;this.end=this.talkEnd+.85;this.time=reducedMotion?this.end:0;}
  advance(dt,hidden=false){if(!hidden&&Number.isFinite(dt)&&dt>0)this.time=Math.min(this.end,this.time+Math.min(dt,.1));return this.state();}
  skip(){this.time=this.end;return this.state();}
  state(){
   const t=this.time;
-  if(t<.8)return{phase:'reflection',speaker:'你',text:'糟了，被看到了……',ready:false};
-  if(t<1.25)return{phase:'look-up',speaker:'你',text:'',ready:false};
-  if(t<1.75)return{phase:'approach',speaker:this.who,text:'',ready:false};
-  if(t<2.15)return{phase:'gesture',speaker:this.who,text:'',ready:false};
-  if(t<this.talkEnd){const n=Math.min(this.lines[0].length,Math.floor((t-2.15)/.065));return{phase:'talk',speaker:this.who,text:this.lines[0].slice(0,n),mouth:n<this.lines[0].length&&Math.floor((t-2.15)*7)%2?1:0,ready:false};}
+  if(this.activity==='joke'&&t<.7)return{phase:'discovery',speaker:'你',text:'糟了，被发现了。',ready:false};
+  if(this.activity!=='joke'&&t<.8)return{phase:'reflection',speaker:'你',text:'糟了，被看到了……',ready:false};
+  if(this.activity!=='joke'&&t<1.25)return{phase:'look-up',speaker:'你',text:'',ready:false};
+  if(this.activity!=='joke'&&t<1.75)return{phase:'approach',speaker:this.who,text:'',ready:false};
+  if(this.activity!=='joke'&&t<2.15)return{phase:'gesture',speaker:this.who,text:'',ready:false};
+  if(t<this.talkEnd){const n=Math.min(this.lines[0].length,Math.floor(Math.max(0,t-this.talkStart)/.065));return{phase:'talk',speaker:this.who,text:this.lines[0].slice(0,n),mouth:n<this.lines[0].length&&Math.floor(Math.max(0,t-this.talkStart)*7)%2?1:0,ready:false};}
   const ready=t>=this.end;
   return{phase:ready?'reply':'reaction',speaker:'你',text:this.lines[1],pose:ready?2:Math.min(2,Math.floor((t-this.talkEnd)/.28)),ready};
  }
@@ -24,13 +29,31 @@ export class CaughtTimeline{
 // Drawing uses an independent clock; this module never steps or dismisses the game.
 export class CaughtScene{
  constructor(canvas,renderer,modal,{reducedMotion=false}={}){
-  this.canvas=canvas;this.renderer=renderer;this.timeline=new CaughtTimeline(modal.who,reducedMotion);this.character=modal.who==='老板'?'boss':'supervisor';
+  this.canvas=canvas;this.renderer=renderer;this.activity=modal.activity||'game';this.timeline=new CaughtTimeline(modal.who,reducedMotion,this.activity);this.character=modal.who==='老板'?'boss':'supervisor';
+  this.canvas.dataset.caughtActivity=this.activity;
+  if(this.activity==='joke'){this.canvas.height=540;this.makePhoneFrames(modal.jokeText||'');return;}
   this.desk=document.createElement('canvas');this.desk.width=this.desk.height=1024;
   const c=this.desk.getContext('2d');c.drawImage(renderer.art['caught-desk'].img,0,0);
   const runner=document.createElement('canvas');runner.width=480;runner.height=112;
   drawRunner(runner,modal.runnerSnapshot,false,renderer);
   // Letterbox the actual caught frame inside the reserved monitor surface.
   c.fillStyle='#283c3c';c.fillRect(242,229,543,307);c.drawImage(runner,242,319,543,127);
+ }
+ makePhoneFrames(text){
+  this.phoneFrames=[];
+  for(const [kind,index] of [['discovery',0],['speech',0],['speech',1]]){
+   const frame=document.createElement('canvas');frame.width=682;frame.height=768;
+   const c=frame.getContext('2d');c.drawImage(this.renderer.art['caught-phone-'+this.character+'-'+kind].img,index*682,0,682,768,0,0,682,768);
+   const boss=this.character==='boss',points=kind==='discovery'
+    ?(boss?[[292,326],[430,327],[436,570],[277,566]]:[[291,352],[427,352],[437,590],[273,588]])
+    :(boss?[[220,702],[451,702],[451,768],[213,768]]:[[247,733],[451,735],[451,768],[230,768]]);
+   const x=kind==='discovery'?300:points[0][0]+16,y=points[0][1]+30,width=kind==='discovery'?122:185;
+   c.save();c.beginPath();points.forEach(([px,py],i)=>i?c.lineTo(px,py):c.moveTo(px,py));c.closePath();c.clip();
+   c.fillStyle='#faf5e8';c.fillRect(0,0,682,768);c.fillStyle='#6b7c5c';c.font='17px sans-serif';c.fillText('打工人日常',x,y);
+   c.fillStyle='#344c3e';c.font='18px sans-serif';let line='',row=0;
+   for(const char of text){if(char==='\n'||(line&&c.measureText(line+char).width>width)){c.fillText(line,x,y+44+row++*28);line='';}if(char!=='\n')line+=char;}
+   if(line)c.fillText(line,x,y+44+row*28);c.restore();this.phoneFrames.push(frame);
+  }
  }
  sprite(c,name,pose,scale=.86,y=8){const img=this.renderer.art[name].img;c.drawImage(img,pose*600,0,600,540,(480-600*scale)/2,y,600*scale,540*scale);}
  background(c){c.drawImage(this.renderer.art['caught-background'].img,0,0,480,450);}
@@ -41,7 +64,12 @@ export class CaughtScene{
  }
  draw(){
   const c=this.canvas.getContext('2d'),state=this.timeline.state(),t=this.timeline.time;
-  c.clearRect(0,0,480,450);
+  c.clearRect(0,0,this.canvas.width,this.canvas.height);
+  if(this.activity==='joke'){
+   const index=state.phase==='discovery'?0:1+(state.phase==='talk'?(state.mouth||0):0);
+   c.drawImage(this.phoneFrames[index],0,0,682,768,0,0,480,540);
+   this.canvas.dataset.phase=state.phase;this.canvas.dataset.checker=this.character;return state;
+  }
   if(state.phase==='reflection'||state.phase==='look-up'){
    c.save();const tilt=state.phase==='look-up'?Math.min(1,(t-.8)/.45):0;
    c.drawImage(this.desk,0,0,1024,1024-tilt*230,0,-15,480,480);

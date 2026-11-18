@@ -32,3 +32,27 @@ test('说话结束保持闭嘴，回应后不循环，主管采用生气台词',
  assert.equal(t.state().mouth,0);assert.equal(t.state().text,caughtLines('主管')[0]);
  assert.match(t.state().text,/现在就关掉/);t.skip();const end=t.time;t.advance(.1);assert.equal(t.time,end);
 });
+
+test('手机抓包仅被发现后直接对话，末尾停在第一人称回应且不倒播',()=>{
+ for(const who of ['老板','主管']){
+  const t=new CaughtTimeline(who,false,'joke'),phases=new Set();
+  for(let i=0;i<100;i++){phases.add(t.state().phase);t.advance(.1);}
+  assert.deepEqual([...phases],['discovery','talk','reaction','reply']);
+  assert.equal(t.state().text,caughtLines(who,'joke')[1]);
+  t.time=.71;assert.equal(t.state().phase,'talk');assert.equal(t.state().speaker,who);
+  t.time=t.talkStart+.3;assert.ok(t.state().text.length>0);
+  t.skip();const end=t.time;t.advance(.1);assert.equal(t.time,end);
+ }
+});
+test('看段子抓包的提醒、罚款、动画和回应均保持冻结，跳过不解除暂停',()=>{
+ for(const who of ['老板','主管'])for(const fine of [false,true]){
+  const g=new Game(2,1);g.inspectors=[];g.npcs=[];g.setActivity('joke');g.coins=80;g.warned=fine;
+  g.catchPlayer(who);assert.equal(g.modal.activity,'joke');assert.equal(g.coins,fine?30:80);
+  const before=JSON.stringify({time:g.time,elapsed:g.elapsed,coins:g.coins,joke:g.joke,drops:g.drops});
+  const t=new CaughtTimeline(who,false,'joke');t.advance(.1);const time=t.time;t.advance(10,true);assert.equal(t.time,time);
+  t.skip();for(let i=0;i<100;i++)g.step(.1);
+  assert.equal(JSON.stringify({time:g.time,elapsed:g.elapsed,coins:g.coins,joke:g.joke,drops:g.drops}),before);
+  assert.ok(g.modal);assert.ok(t.state().ready);g.dismiss();g.step(.1);assert.ok(g.time<JSON.parse(before).time);
+ }
+ assert.equal(new CaughtTimeline('主管',true,'joke').state().phase,'reply');
+});

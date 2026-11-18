@@ -1,3 +1,12 @@
+## 2026-11-17 15:08 GMT+8 - 06da4e39
+
+- 游戏：https://moyulijin15.frontend-cloud.corp.kuaishou.com/
+- 固定版本：https://moyulijin15-06da4e39.frontend-cloud.corp.kuaishou.com/
+- 来源：`li_step` 提交 `4c5aa8a`；通过 PDE frontend-cloud 更新现有站点 29425，仅上传 `dist/` 中 42 项运行文件。
+- 更新：打游戏敲键盘连续帧与真实小游戏屏幕；老板和生气女主管抓包演出；横向文字、紧凑跳过按钮及手机/电脑响应式布局；修复老板声音调查未进入抓包范围的问题。演出暂停对局，保留警告与罚款。
+- 验证：248 项 JS 测试、13 项素材测试、构建通过。线上 `/` 和 `/dev/dance-review.html` 白屏及素材回归均 `passed=true`；15 项抓包/打字代码、样式及素材 SHA-256 与发布包一致，HTTP 200。控制台只有平台指纹脚本的 localhost WebSocket 提示，无游戏模块错误；游戏无表单，存档留在本机。
+- 访问范围：保持现有快手登录用户权限。此次没有更新 GitHub Pages。
+
 # CHANGELOG
 
 ## 2026-11-16 - 六关按机制逐步递进

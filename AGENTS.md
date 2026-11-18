@@ -36,3 +36,9 @@
 - Independent disco rendering lives in `src/disco.js`; the manifest selects `assets/generated/player-dance-eight-beat-clean/frames.png`.
 - Fade timing follows game simulation: 0.8-second dance warmup and 1-second stop; preserve foot anchors, pause behavior and inspection rules.
 - Deployed main/demo smoke checks and disco pixel/state checks passed; 109 JS tests and 7 art tests passed. Only 28 allowlisted runtime files were uploaded.
+
+## Deployment 2026-11-17 15:08 GMT+8
+
+- Frontend-cloud version `06da4e39`, source `4c5aa8a` on `li_step`; latest site https://moyulijin15.frontend-cloud.corp.kuaishou.com/ and immutable https://moyulijin15-06da4e39.frontend-cloud.corp.kuaishou.com/ . GitHub Pages was not updated.
+- Uploaded 42 allowlisted runtime files from `dist/`. Includes typing art, actual game monitor, boss/supervisor caught cinematics and responsive dialogue; preserve independent cinematic clock, warning/fine and gameplay pause.
+- 248 JS tests, 13 art tests, build and both published game/dance smoke checks passed. Fifteen caught/typing release hashes matched; platform fingerprint WebSocket warnings only. Release check: `tests/browser/scripts/caught-release-check.js`.

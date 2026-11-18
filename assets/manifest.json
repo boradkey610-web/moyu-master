@@ -1253,5 +1253,49 @@
       1800,
       540
     ]
+  },
+  "caught-phone-boss-discovery": {
+    "src": "assets/generated/caught-phone-game-v1/boss-discovery.png",
+    "width": 682,
+    "height": 768,
+    "bounds": [
+      0,
+      0,
+      682,
+      768
+    ]
+  },
+  "caught-phone-boss-speech": {
+    "src": "assets/generated/caught-phone-game-v1/boss-speech.png",
+    "width": 1364,
+    "height": 768,
+    "bounds": [
+      0,
+      0,
+      1364,
+      768
+    ]
+  },
+  "caught-phone-supervisor-discovery": {
+    "src": "assets/generated/caught-phone-game-v1/supervisor-discovery.png",
+    "width": 682,
+    "height": 768,
+    "bounds": [
+      0,
+      0,
+      682,
+      768
+    ]
+  },
+  "caught-phone-supervisor-speech": {
+    "src": "assets/generated/caught-phone-game-v1/supervisor-speech.png",
+    "width": 1364,
+    "height": 768,
+    "bounds": [
+      0,
+      0,
+      1364,
+      768
+    ]
   }
 }
