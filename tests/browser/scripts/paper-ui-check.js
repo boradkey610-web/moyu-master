@@ -46,11 +46,38 @@
    if(!doc.querySelector('#overlay').classList.contains('hidden'))doc.querySelector('#dialog button.primary')?.click();
    await new Promise(resolve=>win.requestAnimationFrame(resolve));
    doc.querySelector('#pause').click();
-   const icons=[...doc.querySelectorAll('.activity .paper-icon,.tool-row .paper-icon,.hud-clock .paper-icon')];
    const shell=doc.querySelector('.game-shell').getBoundingClientRect();
    const controls=doc.querySelector('.controls').getBoundingClientRect();
-   cases.push({width,height,homeArtReady,homeClean,homeButtonsReachable,soundOff,soundOn,guideOpened,guideReturned,cleanLevels,readableLevels,allLevelArt,equalCards,twoColumns,footerReachable,levelsFit,noLevelOverflow,noClippedContent,regularButtons,equalUtilities,icons:icons.length,allArt:icons.every(el=>win.getComputedStyle(el).backgroundImage.includes('ui-paper-v1')),noOverflow:doc.documentElement.scrollWidth<=width+1,controlsReachable:controls.bottom<=height+1,shellHeight:shell.height,pauseVisible:doc.querySelector('#dialog').dataset.kind==='pause'});
+   const pause=doc.querySelector('#dialog'),pauseBox=pause.getBoundingClientRect();
+   const pauseBounds={top:pauseBox.top,bottom:pauseBox.bottom,width:pauseBox.width,height:pauseBox.height,scrollWidth:pause.scrollWidth,clientWidth:pause.clientWidth};
+   const pauseButtons=[...pause.querySelectorAll('button')];
+   const pauseFits=pauseBox.top>=0&&pauseBox.bottom<=height&&pause.scrollWidth<=pause.clientWidth+1;
+   const pauseControlsReachable=pauseButtons.every(button=>{const r=button.getBoundingClientRect();return r.top>=pauseBox.top&&r.bottom<=pauseBox.bottom&&r.left>=pauseBox.left&&r.right<=pauseBox.right&&r.height>=44;});
+   const secondaryBoxes=[...pause.querySelectorAll('.pause-options button')].map(b=>b.getBoundingClientRect());
+   const pauseEqualButtons=Math.abs(secondaryBoxes[0].width-secondaryBoxes[1].width)<1&&Math.abs(secondaryBoxes[0].height-secondaryBoxes[1].height)<1;
+   const toggle=pause.querySelector('[role=switch]');
+   toggle.click();
+   const pauseSoundOff=toggle.getAttribute('aria-checked')==='false'&&toggle.textContent.includes('已关');
+   toggle.click();
+   const pauseSoundOn=toggle.getAttribute('aria-checked')==='true'&&toggle.textContent.includes('已开');
+   const afterToggle=pause.getBoundingClientRect();
+   const pauseStable=Math.abs(afterToggle.height-pauseBox.height)<.1&&Math.abs(afterToggle.width-pauseBox.width)<.1;
+   const hudBefore=doc.querySelector('.hud').textContent;
+   await new Promise(resolve=>setTimeout(resolve,1100));
+   const pauseFrozen=doc.querySelector('.hud').textContent===hudBefore;
+   const pauseVisible=pause.dataset.kind==='pause';
+   pause.querySelector('.pause-actions button').click();
+   const pauseResume=doc.querySelector('#overlay').classList.contains('hidden')&&!doc.querySelector('.controls').inert;
+   doc.querySelector('#pause').click();
+   doc.querySelector('.pause-options button').click();
+   const pauseRestart=doc.querySelector('#overlay').classList.contains('hidden');
+   doc.querySelector('#pause').click();
+   doc.querySelectorAll('.pause-options button')[1].click();
+   const pauseReturn=doc.querySelector('#dialog').dataset.kind==='levels'&&doc.querySelectorAll('.level-card').length===6;
+   const pauseChecks={pauseVisible,pauseFits,pauseControlsReachable,pauseEqualButtons,pauseSoundOff,pauseSoundOn,pauseStable,pauseFrozen,pauseResume,pauseRestart,pauseReturn};
+   const icons=[...doc.querySelectorAll('.activity .paper-icon,.tool-row .paper-icon,.hud-clock .paper-icon')];
+   cases.push({width,height,homeArtReady,homeClean,homeButtonsReachable,soundOff,soundOn,guideOpened,guideReturned,cleanLevels,readableLevels,allLevelArt,equalCards,twoColumns,footerReachable,levelsFit,noLevelOverflow,noClippedContent,regularButtons,equalUtilities,icons:icons.length,allArt:icons.every(el=>win.getComputedStyle(el).backgroundImage.includes('ui-paper-v1')),noOverflow:doc.documentElement.scrollWidth<=width+1,controlsReachable:controls.bottom<=height+1,shellHeight:shell.height,pauseBounds,...pauseChecks,pausePassed:Object.values(pauseChecks).every(Boolean)});
   }finally{frame.remove();}
  }
- return {cases,passed:cases.every(c=>c.homeArtReady&&c.homeClean&&c.homeButtonsReachable&&c.soundOff&&c.soundOn&&c.guideOpened&&c.guideReturned&&c.cleanLevels&&c.readableLevels&&c.allLevelArt&&c.equalCards&&c.twoColumns&&c.footerReachable&&c.noLevelOverflow&&c.noClippedContent&&c.regularButtons&&c.equalUtilities&&c.icons===7&&c.allArt&&c.noOverflow&&c.controlsReachable&&c.pauseVisible)};
+ return {cases,passed:cases.every(c=>c.homeArtReady&&c.homeClean&&c.homeButtonsReachable&&c.soundOff&&c.soundOn&&c.guideOpened&&c.guideReturned&&c.cleanLevels&&c.readableLevels&&c.allLevelArt&&c.equalCards&&c.twoColumns&&c.footerReachable&&c.noLevelOverflow&&c.noClippedContent&&c.regularButtons&&c.equalUtilities&&c.icons===7&&c.allArt&&c.noOverflow&&c.controlsReachable&&c.pausePassed)};
 })()

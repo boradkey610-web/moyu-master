@@ -1,3 +1,12 @@
+## 2026-11-23 21:19 GMT+8 更新批次 - 74a5bebf
+
+- 游戏：https://moyulijin15.frontend-cloud.corp.kuaishou.com/
+- 固定版本：https://moyulijin15-74a5bebf.frontend-cloud.corp.kuaishou.com/
+- 来源：`finial_ui` 提交 `fbe9afa`；通过 PDE frontend-cloud 发布审查过的 `dist/` 72项运行文件，未上传设计稿、实验、配置或凭据。
+- 更新：确认后的 GPT-Image-2 首页标题与办公插画、双列关卡选择页，以及活动/工具图标和规则圆角按钮。暂停界面的新设计稿尚未接入。
+- 验证：该源码253项JS测试、15项美术检查与五视口UI交互验证已通过；本次重新构建及发布清单复审通过。SSO认证后70项非HTML文件SHA-256全部匹配，首页与蹦迪预览HTML均HTTP 200且包含游戏结构。线上原生浏览器打开两路均超时，白屏/运行时回归未完成，不能以HTTP检查代替浏览器通过结论。
+- 访问：仍需快手SSO登录；未更新GitHub Pages。
+
 ## 2026-11-18 15:58 GMT+8 - 48b3f95f
 
 ## 2026-11-23 15:09 GMT+8 - b9487922

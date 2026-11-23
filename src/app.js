@@ -80,7 +80,7 @@ function statement(){
 }
 function modalBackground(inert){for(const el of document.querySelectorAll('.hud,.scene,.controls'))el.inert=inert;}
 function show(html,buttons=[]){clearCaughtScene();modalBackground(true);$('#overlay').dataset.page=['menu','levels','guide'].includes(screen)?screen:'';$('#overlay').classList.remove('hidden');$('#dialog').dataset.kind=screen==='result'?g.modal?.kind||'result':screen||'';$('#dialog').classList.toggle('office-result',['win','timeout','lose'].includes($('#dialog').dataset.kind));$('#dialog').classList.toggle('office-note',['pause','help','instructions','guide','tutorial','fine','meeting','reward'].includes($('#dialog').dataset.kind));$('#dialog').innerHTML=html;for(const b of buttons)$('#dialog').append(button(...b));g.paused=true;syncAudio();queueMicrotask(()=>{const dialog=$('#dialog');if(dialog.dataset.kind==='menu'){dialog.tabIndex=-1;dialog.focus({preventScroll:true});}else dialog.querySelector('button:not(:disabled)')?.focus({preventScroll:true});});renderer.ready.then(()=>{paintHomeArt();for(const portrait of document.querySelectorAll('#dialog canvas[data-person]')){const c=portrait.getContext('2d');c.clearRect(0,0,144,170);renderer.portrait(c,portrait.dataset.person,72,300,286);}});}
-function hide(){clearCaughtScene();lastTime=0;modalBackground(false);$('#overlay').dataset.page='';screen=null;$('#overlay').classList.add('hidden');g.paused=false;lastModal=null;syncAudio();}
+function hide(){clearCaughtScene();lastTime=0;modalBackground(false);document.querySelector('.game-shell').append($('#overlay'));$('#overlay').dataset.page='';screen=null;$('#overlay').classList.add('hidden');g.paused=false;lastModal=null;syncAudio();}
 function start(level){g=new Game(level);syncSeatButtons();lastModal=null;hide();beep('start');}
 function paintHomeArt(){
  const art=$('#home-art');
@@ -152,15 +152,23 @@ function instructions(back=()=>hide()){
 function pause(){
  if(g.modal||screen)return;
  screen='pause';
- show(`<div class="pause-heading"><span class="pause-label">暂时离岗</span><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">${dialogIcons.pause}</svg><h2 id="dialog-title">歇一会儿，再摸</h2><p>放心，金币和倒计时都暂停了。</p></div><div class="pause-actions"></div><div class="pause-options"></div>`);
- $('#dialog .pause-actions').append(button('继续摸鱼',hide,'primary'));
- $('#dialog .pause-options').append(button('重开本关',()=>start(g.level)),button('返回关卡',selectLevel));
+ const icon=paths=>`<svg viewBox="0 0 32 32" aria-hidden="true">${paths}</svg>`;
+ show(`<div class="pause-heading"><h2 id="dialog-title">${icon('<rect x="6" y="4" width="7" height="24" rx="2"/><rect x="19" y="4" width="7" height="24" rx="2"/>')}<span>歇一会儿，再摸</span></h2><p>金币和倒计时已暂停</p></div><div class="pause-actions"></div><div class="pause-options"></div>`);
+ // Escape the game's size containment so the pause card fits short viewports.
+ document.body.append($('#overlay'));$('#overlay').dataset.page='pause';
+ const resume=button('',hide,'primary');
+ resume.innerHTML=icon('<path d="M9 4q-3-2-3 2v20q0 4 3 2l18-10q3-2 0-4Z"/>')+'<span>继续摸鱼</span>';
+ const restart=button('',()=>start(g.level)),levelsButton=button('',()=>{document.querySelector('.game-shell').append($('#overlay'));selectLevel();});
+ restart.innerHTML=icon('<path d="M26 12a11 11 0 1 0 0 10M26 4v8h-8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>')+'<span>重开本关</span>';
+ levelsButton.innerHTML=icon('<rect x="3" y="3" width="11" height="11" rx="2"/><rect x="18" y="3" width="11" height="11" rx="2"/><rect x="3" y="18" width="11" height="11" rx="2"/><rect x="18" y="18" width="11" height="11" rx="2"/>')+'<span>返回关卡</span>';
+ $('#dialog .pause-actions').append(resume);
+ $('#dialog .pause-options').append(restart,levelsButton);
  const audioToggle=button('',()=>{
   sound=!sound;syncAudio();if(sound)audio.unlock();audioToggle.setAttribute('aria-checked',String(sound));
   audioToggle.querySelector('.pause-sound-state').textContent=sound?'已开':'已关';
  },'pause-audio sound-toggle');
  audioToggle.setAttribute('role','switch');audioToggle.setAttribute('aria-label','声音');audioToggle.setAttribute('aria-checked',String(sound));
- audioToggle.innerHTML=`<span>声音</span><span class="pause-sound-control"><span class="pause-sound-state">${sound?'已开':'已关'}</span><i aria-hidden="true"></i></span>`;
+ audioToggle.innerHTML=`<span class="pause-sound-label">${icon('<path d="M3 12h6l8-7v22l-8-7H3Z"/><path d="M22 10q6 6 0 12m4-16q10 10 0 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>')}<span>声音</span></span><span class="pause-sound-control"><span class="pause-sound-state">${sound?'已开':'已关'}</span><i aria-hidden="true"></i></span>`;
  $('#dialog').append(audioToggle);
 }
 function help(){

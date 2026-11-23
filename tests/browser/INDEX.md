@@ -20,3 +20,4 @@
 | Dance catch first person, stable camera, pause, fines and response | /dev/caught-review.html?activity=dance | scripts/caught-dance-runtime-check.js |
 
 | Stable dialogue typing and response layout across three activities and four sizes | /dev/caught-review.html | scripts/caught-stable-layout-check.js |
+| Pause layout, stable sound switch, frozen HUD and resume/restart/levels at five sizes | / | scripts/paper-ui-check.js |
