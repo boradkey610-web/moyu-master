@@ -48,3 +48,9 @@
 - Version `48b3f95f`, game source `c200895` on `li_step`; latest https://moyulijin15.frontend-cloud.corp.kuaishou.com/ and immutable https://moyulijin15-48b3f95f.frontend-cloud.corp.kuaishou.com/ . Access still requires Kuaishou login; GitHub Pages unchanged.
 - Published 46 allowlisted runtime files, including two-shot first-person phone catch artwork and portrait UI for all caught activities on all viewports. Preserve cinematic pause, skip-to-response and warning/fine behavior.
 - 250 JS tests, 14 art checks, build and local caught layout/runtime checks passed. Published main/dance smoke checks passed; all 44 non-HTML runtime hashes matched. Hosting injects SDKs into the two HTML files; use page smoke checks for those instead of raw hashes. Batch release requests in groups of four; transient network-change failures resolved on recheck.
+
+## Deployment 2026-11-23 15:09 GMT+8
+
+- Version `b9487922`, game source `5bf3a02` on `lj_step` (merged `b73a3ff`: dance-catch cinematic + caught-dialog layout-stability fix for all three caught activities); latest https://moyulijin15.frontend-cloud.corp.kuaishou.com/ and immutable https://moyulijin15-b9487922.frontend-cloud.corp.kuaishou.com/ . Access still requires Kuaishou login; GitHub Pages unchanged.
+- Published 44 allowlisted runtime files from `dist/`. Live site now includes the dance-catch cinematic and the 0px-shift dialog layout fix (verified across 48 scenarios before this deploy).
+- 252 JS tests, 15 art checks, build and static release manifest passed. Published main smoke check passed (`passed=true`); all 44 non-HTML runtime hashes matched the deployed `dist/` (release-check baseline in `tests/browser/scripts/caught-release-check.js` refreshed to this build's hashes). HTML pages verified via page smoke check, not raw hash, due to platform-injected SDKs.

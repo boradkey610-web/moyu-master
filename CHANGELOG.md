@@ -1,5 +1,14 @@
 ## 2026-11-18 15:58 GMT+8 - 48b3f95f
 
+## 2026-11-23 15:09 GMT+8 - b9487922
+
+- 游戏：https://moyulijin15.frontend-cloud.corp.kuaishou.com/
+- 固定版本：https://moyulijin15-b9487922.frontend-cloud.corp.kuaishou.com/
+- 来源：`lj_step` 游戏提交 `5bf3a02`（合并 `b73a3ff` 蹦迪抓包演出与三类抓包弹窗布局稳定修复）；仅发布审查通过的 `dist/` 44项运行文件。
+- 更新：接入跳舞抓包（蹦迪被发现→对话）演出；三类抓包弹窗（打游戏/看手机/蹦迪）对话打字与回应按钮出现时不再引起弹窗高度/位置抖动，48种场景验证 0px 偏移。
+- 验证：252项JS测试、15项美术检查与构建通过；线上首页白屏/加载检查 `passed=true`；44项非HTML运行文件SHA-256与本次发布 `dist/` 一致，全部HTTP 200。HTML由平台注入SDK，通过页面回归验证代替逐字节比较。
+- 访问：保持快手登录用户可访问；未更新GitHub Pages。
+
 - 游戏：https://moyulijin15.frontend-cloud.corp.kuaishou.com/
 - 固定版本：https://moyulijin15-48b3f95f.frontend-cloud.corp.kuaishou.com/
 - 来源：`li_step` 游戏提交 `c200895`；仅发布审查通过的 `dist/` 46项运行文件。
