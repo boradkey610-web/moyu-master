@@ -3,15 +3,19 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import {levels} from '../src/engine.js';
+import {uiAssets} from '../src/ui-assets.js';
 const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
-test('六关均可直接选择，卡片说明与新机制顺序对应',()=>{
+test('六关均可直接选择，插画与关卡、目标及时间对应',()=>{
  const root={children:[],append(...children){this.children.push(...children);}};
- const context={screen:null,levels,save:{best:{}},show:()=>{},$:()=>root,document:{createElement:()=>({dataset:{},children:[],append(...children){this.children.push(...children);}})},button:()=>({dataset:{}}),formatTime:String,start(){},menu(){}};
+ const context={screen:null,levels,uiAssets,save:{best:{}},show:()=>{},$:()=>root,document:{createElement:()=>({dataset:{},children:[],append(...children){this.children.push(...children);}})},button:()=>({dataset:{}}),formatTime:String,start(){},menu(){}};
  vm.createContext(context);vm.runInContext(app.slice(app.indexOf('function selectLevel(){'),app.indexOf('function instructions(')),context);context.selectLevel();
  const cards=root.children[0].children;assert.equal(cards.length,6);
- for(let i=0;i<6;i++){assert.notEqual(cards[i].disabled,true);assert.ok(cards[i].innerHTML.includes(levels[i].name));}
- assert.match(cards[1].innerHTML,/开会/);assert.match(cards[2].innerHTML,/打印|卡纸/);assert.match(cards[3].innerHTML,/金椅/);
- assert.match(cards[4].innerHTML,/混合|开会.*打印/);assert.match(cards[5].innerHTML,/抢座/);
+ for(let i=0;i<6;i++){
+  assert.notEqual(cards[i].disabled,true);assert.ok(cards[i].innerHTML.includes(levels[i].name));
+  assert.ok(cards[i].innerHTML.includes(uiAssets['level-'+(i+1)]));
+  assert.ok(cards[i].title.includes(String(levels[i].target)));assert.ok(cards[i].title.includes(String(levels[i].time)));
+  assert.doesNotMatch(cards[i].innerHTML,/<small|data-level-art/);
+ }
 });
 
 test('选关插图随新机制移动，混合关同时包含角色和环境道具',()=>{

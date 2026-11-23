@@ -1,6 +1,7 @@
 import {cp,lstat,mkdir,readFile,rm,stat} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {uiAssets} from '../src/ui-assets.js';
 
 const ROOT=fileURLToPath(new URL('../',import.meta.url));
 export function siteFiles(manifest){
@@ -10,7 +11,7 @@ export function siteFiles(manifest){
   if(typeof src!=='string'||!src.startsWith('assets/')||!src.endsWith('.png')||src.includes('\\')||src.split('/').some(part=>!part||part==='.'||part==='..')||src.includes(':'))throw new Error('Unsafe asset path');
   files.push(src);
  }
- return [...new Set(files)].sort();
+ return [...new Set([...files,'src/ui-assets.js',...Object.values(uiAssets)])].sort();
 }
 export async function buildSite(){
  const manifest=JSON.parse(await readFile(path.join(ROOT,'assets/manifest.json'),'utf8'));

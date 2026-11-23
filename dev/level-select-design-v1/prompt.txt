@@ -1,0 +1,17 @@
+Redesign the LEVEL SELECTION SCREEN of the actual Chinese office game Moyu Master using the supplied screenshot as the content reference and the second reference image as its illustration style reference. Deliver ONE complete polished portrait mobile game UI design, 1152x2048. This is a visual design proposal for the existing game, not a generic website, not a list of rows.
+
+Keep the six actual game challenges and the same recognizable office character designs from the screenshot: dark-suited boss with sunglasses and briefcase, female supervisor in green, yellow-shirt player seen from behind, office printer, golden office chair. Keep them cartoon illustrated, same recognizable clothes and props. Give the drawings more space and presence, do not replace them with generic emojis or new characters.
+
+Use a polished playful illustrated mobile-game selection style: warm off-white main background, pale teal structural accents, honey amber primary actions, warm dark ink outlines, subtle shallow bevels and tight consistent shadows. No dusty low-contrast paper collage, no tape, no rotated postcards, no dotted wallpaper, no rough elongated oval buttons. Every card is a straight aligned rounded rectangle with the exact same radius, outline thickness, size, spacing and illustration frame. Make it feel like an inviting finished GAME screen rather than an office dashboard or settings list.
+
+Layout: one compact clear heading at top with the text '选择关卡'. Below it, TWO COLUMNS and THREE ROWS of six equally sized attractive challenge cards. All six cards must fit completely on screen above one compact wide '返回首页' button. No large header panel; allocate the space to the six illustrations. Each card has: a clear small level-number badge 01-06, a large coherent illustrated upper area with its real character/prop, a readable bold Chinese title below, and a single compact readable metadata row with a coin icon + target number and clock icon + duration. A small clearly visible amber triangular play affordance may sit in the lower corner; do not repeat long '开始挑战' text on every card. NO extra subtitles, microcopy, slogans, explanatory descriptions, English branding, progress summaries, tiny achievements or labels.
+
+Content in reading order:
+01: '入职第一天', boss with sunglasses and briefcase, coin 90, clock 01:00.
+02: '老板去开会', same boss with a meeting invitation/office door accent, coin 170, clock 01:15.
+03: '打印机闹脾气', office printer with a sheet sticking out, coin 450, clock 01:30.
+04: '黄金工位争夺', golden yellow office chair, coin 470, clock 01:30.
+05: '办公室协奏曲', green-dressed supervisor with golden chair and printer, coin 480, clock 01:30.
+06: '周五摸鱼大作战', yellow-shirt player seen from behind with golden chair and printer, coin 490, clock 01:30.
+
+Typography must be large and readable when the finished image is scaled to a 390-pixel-wide phone. Card titles should visually correspond to at least 18px at that size, metadata to at least 14px. Split long titles cleanly into two lines if needed, using the same reserved title height across cards. No vertical lettering. Align coin/time rows and play affordances across each row. Preserve strong contrast and generous touch areas. Show only the full game screen, no device bezel, no laptop, no browser chrome, no surrounding presentation slides, no watermark.

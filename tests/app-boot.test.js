@@ -5,11 +5,11 @@ import {readFileSync} from 'node:fs';
 
 const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
 function deferred(){let resolve;const promise=new Promise(r=>resolve=r);return{promise,resolve};}
-function harness(){
+function harness(uiReady=Promise.resolve([])){
  const start=app.indexOf('async function boot(){');assert.ok(start>=0,'应用应有等待素材的启动入口');
  const pending=deferred(),retry=deferred(),calls=[],nodes={};
  for(const id of ['#boot-screen','#boot-title','#boot-note','#boot-retry','.game-shell'])nodes[id]={hidden:false,disabled:false,dataset:{},textContent:'',classList:{remove:name=>calls.push('reveal:'+name)},setAttribute(k,v){this[k]=v;}};
- const context={g:{paused:false},visualTime:0,renderer:{ready:pending.promise,loadArt:()=>retry.promise,draw:()=>calls.push('draw')},$:id=>nodes[id],menu:()=>calls.push('menu'),updateUI:()=>calls.push('ui'),modalBackground:()=>{},frame(){},requestAnimationFrame:()=>calls.push('raf')};
+ const context={loadUiArt:()=>uiReady,g:{paused:false},visualTime:0,renderer:{ready:pending.promise,loadArt:()=>retry.promise,draw:()=>calls.push('draw')},$:id=>nodes[id],menu:()=>calls.push('menu'),updateUI:()=>calls.push('ui'),modalBackground:()=>{},frame(){},requestAnimationFrame:()=>calls.push('raf')};
  vm.createContext(context);const initial=vm.runInContext(app.slice(start),context);
  return{context,nodes,calls,pending,retry,initial};
 }
@@ -36,4 +36,11 @@ test('初始HTML加载页无需图片，游戏内容在脚本执行前即被遮�
  const loading=html.slice(html.indexOf('id="boot-screen"'),html.indexOf('<header class="hud"'));
  assert.match(loading,/id="boot-retry"[^>]*hidden/);assert.doesNotMatch(loading,/<(?:img|canvas)\b/);
  assert.match(css,/\.is-loading>[^{}]*\.hud[^{}]*\.scene[^{}]*\.controls[^{}]*#overlay\s*\{[^}]*visibility:hidden/);
+});
+test('UI素材加载完成前保持阻挡，缺失图标显示重试入口',async()=>{
+ const ui=deferred(),h=harness(ui.promise);h.pending.resolve([]);
+ await Promise.resolve();assert.deepEqual(h.calls,[]);
+ ui.resolve(['UI asset unavailable: help.png']);await h.initial;
+ assert.deepEqual(h.calls,[]);assert.equal(h.nodes['#boot-screen'].dataset.state,'error');
+ assert.equal(h.nodes['#boot-retry'].hidden,false);
 });

@@ -3,7 +3,9 @@ import {Renderer} from './render.js';
 import {drawRunner} from './runner.js';
 import {GameAudio} from './audio.js';
 import {CaughtScene,caughtAssets,caughtLines} from './caught-scene.js';
+import {installUiArt,loadUiArt,uiAssets} from './ui-assets.js';
 const $=s=>document.querySelector(s),canvas=$('#office'),renderer=new Renderer(canvas);
+installUiArt();
 let save={unlocked:1,best:{}},g=new Game(),screen='loading',lastModal=null,lastTime=0,visualTime=0,sound=true;
 const audio=new GameAudio();
 let audioGame=null,audioFeedback=null,audioCleared=0;
@@ -69,7 +71,7 @@ const dialogIcons={
  help:'<circle cx="24" cy="24" r="18"/><circle cx="24" cy="24" r="9"/><path d="m11 11 7 7m12 12 7 7m-26 0 7-7m12-12 7-7"/>',
  briefcase:'<rect x="6" y="15" width="36" height="26" rx="5"/><path d="M16 15V8h16v7M6 25q18 10 36 0m-18-1v9"/>'
 };
-function panelHead(icon,kicker,title){return `<div class="memo-heading"><span class="memo-label">${kicker}</span><svg class="memo-mark" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${dialogIcons[icon]}</svg><h2 id="dialog-title">${title}</h2></div>`;}
+function panelHead(icon,kicker,title){const art=uiAssets[icon];return `<div class="memo-heading"><span class="memo-label">${kicker}</span><svg class="memo-mark${art?' paper-icon':''}" ${art?`style='background-image:url("${art}")'`:''} viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${dialogIcons[icon]}</svg><h2 id="dialog-title">${title}</h2></div>`;}
 function portrait(type){return `<canvas class="story-portrait" width="144" height="170" data-person="${type}" aria-label="${type==='player'?'玩家':type==='boss'?'老板':'主管'}半身像"></canvas>`;}
 function activitySummary(){return `<div class="payroll-lines"><span class="payroll-section">摸鱼流水</span>${['joke','game','dance'].map(a=>`<div><span>${$('.activity.'+a+' svg').outerHTML}${activities[a].name}</span><b>${Math.floor(g.stats.activityTime[a])}<small> 秒</small></b></div>`).join('')}</div>`;}
 function statement(){
@@ -103,20 +105,21 @@ function paintHomeArt(){
 }
 function menu(){
  screen='menu';
- show(`<div class="home-brand"><span class="office-tag">● 老板正在巡逻</span><span>MOYU MASTER</span></div><div class="home-title"><span class="home-stamp">打工人的快乐，自己赚！</span><h2 id="dialog-title">摸鱼<span>大师</span></h2><p>上班可以，认真就输了！</p></div><div class="home-illustration"><canvas id="home-art" width="360" height="430" aria-label="玩家在工位偷偷玩手机，老板正在巡逻"></canvas><span class="home-bubble boss-bubble">让我看看谁在摸鱼！</span><span class="home-bubble player-bubble">老板好！我在查资料…</span><span class="home-loot loot-one">¥ +6</span><span class="home-loot loot-two">¥ +3</span><span class="home-danger">!</span><span class="home-scene-caption"><b>躲开检查 · 偷偷赚钱</b><span>今日目标：快乐下班</span></span></div>`);
+ show(`<div class="home-title"><h2 id="dialog-title"><span class="home-accessible-title">摸鱼大师</span><img src="${uiAssets['home-logo']}" alt="" aria-hidden="true" draggable="false"></h2><p>上班可以，认真就输了！</p></div><div class="home-illustration"><img src="${uiAssets['home-scene']}" alt="黄衣玩家坐在工位偷偷看手机，西装老板从左侧走来" draggable="false"></div>`);
  const actions=document.createElement('div');actions.className='home-actions';
- actions.append(button('▶  开始摸鱼',selectLevel,'primary home-start'));
+ const play=button('',selectLevel,'primary home-start');
+ play.innerHTML='<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M9 5Q6 3 6 7v18q0 4 3 2l18-10q3-2 0-4Z"/></svg><span>开始摸鱼</span>';
+ actions.append(play);
  const utilities=document.createElement('div');utilities.className='home-utilities';
- const guide=button('玩法说明',()=>instructions(menu));guide.innerHTML=`<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">${dialogIcons.briefcase}</svg><span>玩法说明</span>`;
+ const guide=button('玩法说明',()=>instructions(menu));guide.innerHTML='<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M16 7Q9 2 3 6v21q6-4 13 0 7-4 13 0V6q-6-4-13 1Zm0 0v20"/></svg><span>玩法说明</span>';
  const audioButton=button(sound?'声音已开':'声音已关',()=>{sound=!sound;syncAudio();if(sound)audio.unlock();menu();},'sound-toggle');audioButton.setAttribute('aria-pressed',String(sound));
  audioButton.innerHTML=`<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h6l7-6v20l-7-6H5z"/>${sound?'<path d="M23 11q5 5 0 10m3-14q8 9 0 18"/>':'<path d="m23 12 6 8m0-8-6 8"/>'}</svg><span>${sound?'声音已开':'声音已关'}</span>`;
  utilities.append(guide,audioButton);actions.append(utilities);$('#dialog').append(actions);
 }
 function selectLevel(){
  screen='levels';
- show(`<div class="level-topline"><span>摸鱼办 · 内部安排</span><span>全关卡开放</span></div><div class="level-heading"><span class="map-kicker">不许转发给老板</span><h2 id="dialog-title">今日摸鱼<span>任务板</span></h2><p>前四关学新招，后两关混合挑战。</p></div>`);
+ show(`<div class="level-heading"><h2 id="dialog-title"><span aria-hidden="true">✦</span>选择关卡<span aria-hidden="true">✦</span></h2><img class="level-wall-clock" src="${uiAssets['wall-clock']}" alt="" aria-hidden="true"></div>`);
  const list=document.createElement('div');list.className='level-list adventure-map';list.dataset.count=levels.length;
- const descriptions=['先看老板朝向，抓住转身空档','新机制：老板偶尔自己去开会','新机制：打印机卡纸，掩护按键声','新机制：一把金椅，限时双倍','混合机会：开会、打印机和双金椅','混合加难：双人巡逻，同事抢座'];
  levels.forEach((l,i)=>{
   const clean=save.best[`${i}-clean`],assisted=save.best[`${i}-assisted`];
   const hasClean=Number.isFinite(clean)&&clean>=0,hasAssisted=Number.isFinite(assisted)&&assisted>=0;
@@ -124,10 +127,13 @@ function selectLevel(){
   const record=hasClean?`最佳 ${formatTime(clean)}`:hasAssisted?`助力最佳 ${formatTime(assisted)}`:'';
   const b=button('',()=>start(i),'level-card');
   b.dataset.state=completed?'complete':'available';
-  b.innerHTML=`<span class="level-art"><canvas width="100" height="100" data-level-art="${i}" aria-hidden="true"></canvas></span><span class="level-number">${String(i+1).padStart(2,'0')}</span><span class="level-copy"><strong>${l.name}</strong><small>${descriptions[i]}</small><span class="level-meta"><span><i class="mini-coin">¥</i>${l.target}</span><span>◷ ${formatTime(l.time)}</span>${record?`<span class="level-record">${record}</span>`:''}</span></span><span class="level-state">${(completed?'再玩一次':'开始挑战')+' ▶'}</span>`;
+  b.title=`${completed?'再玩一次':'开始挑战'}：${l.name} · 目标 ${l.target} 金币 · ${formatTime(l.time)}${record?' · '+record:''}`;
+  b.innerHTML=`<span class="level-art"><img src="${uiAssets['level-'+(i+1)]}" alt="" aria-hidden="true" draggable="false"></span><span class="level-number">${String(i+1).padStart(2,'0')}</span><span class="level-copy"><strong>${l.name}</strong></span><span class="level-bottom"><span class="level-meta"><span><img src="${uiAssets.coin}" alt="金币">${l.target}</span><span><img src="${uiAssets.clock}" alt="时间">${formatTime(l.time)}</span></span><span class="level-state" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M9 5Q6 3 6 7v18q0 4 3 2l18-10q3-2 0-4Z"/></svg></span></span>${record?`<span class="level-record">${record}</span>`:''}`;
   list.append(b);
  });
- $('#dialog').append(list,button('‹  返回首页',menu,'secondary home-back'));
+ const back=button('',menu,'secondary home-back');
+ back.innerHTML='<svg viewBox="0 0 32 32" aria-hidden="true"><path d="m3 15 13-11 13 11h-5v13h-6v-9h-4v9H8V15Z"/></svg><span>返回首页</span>';
+ $('#dialog').append(list,back);
 }
 function instructions(back=()=>hide()){
  screen=back===menu?'guide':'instructions';
@@ -326,7 +332,8 @@ async function boot(){
  const loading=$('#boot-screen'),retry=$('#boot-retry'),shell=$('.game-shell');
  shell.setAttribute('aria-busy','true');loading.dataset.state='loading';retry.hidden=true;retry.disabled=true;
  $('#boot-title').textContent='办公室正在就位';$('#boot-note').textContent='桌椅、同事和摸鱼装备，马上到齐。';
- const errors=await renderer.ready;
+ const [artErrors,uiErrors]=await Promise.all([renderer.ready,loadUiArt()]);
+ const errors=[...artErrors,...uiErrors];
  if(errors.length){
   loading.dataset.state='error';shell.setAttribute('aria-busy','false');
   $('#boot-title').textContent='有些资料还没送到';$('#boot-note').textContent='部分画面没加载成功，重新加载后再进入。';

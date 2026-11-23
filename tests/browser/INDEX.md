@@ -1,5 +1,6 @@
 | Case | Routes | Script |
 |---|---|---|
+| Home illustration, sound/guide round trips, level grid and controls at five viewports | `/` | `scripts/paper-ui-check.js` |
 | Deployed game, art and static resource smoke check | `/`, `/dev/dance-review.html` | `smoke.test.sh`, `scripts/site-smoke.js` |
 | Production disco crossfade, full replacement, pause and catch | `/dev/dance-review.html` | `scripts/disco-game-check.js` |
 | Typing drawings load and screen overlay preserves all other pixels | `/dev/game-screen-review.html` | `scripts/game-monitor-check.js` |

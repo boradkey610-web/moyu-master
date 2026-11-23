@@ -1,0 +1,56 @@
+(async()=>{
+ const cases=[];
+ for(const [width,height] of [[390,844],[360,640],[320,568],[844,390],[1100,800]]){
+  const frame=document.createElement('iframe');frame.style.cssText=`position:fixed;left:-12000px;top:0;border:0;width:${width}px;height:${height}px`;
+  const loaded=new Promise(resolve=>frame.onload=resolve);frame.src='/';document.body.append(frame);await loaded;
+  try{
+   const win=frame.contentWindow,doc=win.document;
+   await new Promise((resolve,reject)=>{const until=performance.now()+15000;function check(){if(doc.querySelector('.home-start'))return resolve();if(performance.now()>until)return reject(Error('boot timeout'));setTimeout(check,20);}check();});
+   let buttons=[doc.querySelector('.home-start'),...doc.querySelectorAll('.home-utilities button')];
+   await Promise.all([...doc.querySelectorAll('.home-title img,.home-illustration>img')].map(img=>img.decode()));
+   const homeArtReady=[...doc.querySelectorAll('.home-title img,.home-illustration>img')].every(img=>img.naturalWidth>0);
+   const homeClean=!doc.querySelector('.home-brand,.home-stamp,.home-bubble,.home-loot,.home-scene-caption');
+   const homeButtonsReachable=buttons.every(button=>{const r=button.getBoundingClientRect();return r.bottom<=height+1&&r.left>=0&&r.right<=width;});
+   doc.querySelector('.sound-toggle').click();
+   const soundOff=doc.querySelector('.sound-toggle').getAttribute('aria-pressed')==='false'&&doc.querySelector('.sound-toggle').textContent.includes('声音已关');
+   doc.querySelector('.sound-toggle').click();
+   const soundOn=doc.querySelector('.sound-toggle').getAttribute('aria-pressed')==='true';
+   doc.querySelector('.home-utilities button').click();
+   const guideOpened=doc.querySelector('#dialog').dataset.kind==='guide';
+   doc.querySelector('#dialog button.primary').click();
+   const guideReturned=!!doc.querySelector('.home-start');
+   buttons=[doc.querySelector('.home-start'),...doc.querySelectorAll('.home-utilities button')];
+   const regularButtons=buttons.every(button=>{const css=win.getComputedStyle(button);return !css.backgroundImage.includes('url(')&&parseFloat(css.borderRadius)>0;});
+   const utilities=buttons.slice(1).map(button=>button.getBoundingClientRect());
+   const equalUtilities=Math.abs(utilities[0].width-utilities[1].width)<1&&Math.abs(utilities[0].height-utilities[1].height)<1;
+   doc.querySelector('.home-start').click();
+   const cards=[...doc.querySelectorAll('.level-card')],list=doc.querySelector('.adventure-map');
+   await Promise.all(cards.map(card=>card.querySelector('.level-art img').decode().catch(()=>{})));
+   const cleanLevels=cards.length===6&&cards.every(card=>win.getComputedStyle(card).transform==='none'&&!card.querySelector('.level-copy small'));
+   const readableLevels=cards.every(card=>parseFloat(win.getComputedStyle(card.querySelector('strong')).fontSize)>=(width<350?17:18)&&parseFloat(win.getComputedStyle(card.querySelector('.level-meta')).fontSize)>=(width<350?13:14));
+   const allLevelArt=cards.every(card=>{const img=card.querySelector('.level-art img');return img?.complete&&img.naturalWidth>0;});
+   const boxes=cards.map(card=>card.getBoundingClientRect());
+   const equalCards=boxes.every(box=>Math.abs(box.width-boxes[0].width)<1&&Math.abs(box.height-boxes[0].height)<1);
+   const twoColumns=boxes[1].left>boxes[0].right&&Math.abs(boxes[1].top-boxes[0].top)<1;
+   const footer=doc.querySelector('.home-back').getBoundingClientRect();
+   const footerReachable=footer.bottom<=height+1;
+   const listBox=list.getBoundingClientRect();
+   const levelsFit=cards.at(-1).getBoundingClientRect().bottom<=listBox.bottom+1;
+   const noLevelOverflow=cards.every(card=>card.scrollWidth<=card.clientWidth+1);
+   const noClippedContent=cards.every(card=>{
+    const box=card.getBoundingClientRect();
+    return [...card.querySelectorAll('.level-copy,.level-bottom')].every(el=>{const r=el.getBoundingClientRect();return r.bottom<=box.bottom-2&&r.right<=box.right-2;});
+   });
+   doc.querySelector('.level-card').click();
+   await new Promise(resolve=>win.requestAnimationFrame(resolve));
+   if(!doc.querySelector('#overlay').classList.contains('hidden'))doc.querySelector('#dialog button.primary')?.click();
+   await new Promise(resolve=>win.requestAnimationFrame(resolve));
+   doc.querySelector('#pause').click();
+   const icons=[...doc.querySelectorAll('.activity .paper-icon,.tool-row .paper-icon,.hud-clock .paper-icon')];
+   const shell=doc.querySelector('.game-shell').getBoundingClientRect();
+   const controls=doc.querySelector('.controls').getBoundingClientRect();
+   cases.push({width,height,homeArtReady,homeClean,homeButtonsReachable,soundOff,soundOn,guideOpened,guideReturned,cleanLevels,readableLevels,allLevelArt,equalCards,twoColumns,footerReachable,levelsFit,noLevelOverflow,noClippedContent,regularButtons,equalUtilities,icons:icons.length,allArt:icons.every(el=>win.getComputedStyle(el).backgroundImage.includes('ui-paper-v1')),noOverflow:doc.documentElement.scrollWidth<=width+1,controlsReachable:controls.bottom<=height+1,shellHeight:shell.height,pauseVisible:doc.querySelector('#dialog').dataset.kind==='pause'});
+  }finally{frame.remove();}
+ }
+ return {cases,passed:cases.every(c=>c.homeArtReady&&c.homeClean&&c.homeButtonsReachable&&c.soundOff&&c.soundOn&&c.guideOpened&&c.guideReturned&&c.cleanLevels&&c.readableLevels&&c.allLevelArt&&c.equalCards&&c.twoColumns&&c.footerReachable&&c.noLevelOverflow&&c.noClippedContent&&c.regularButtons&&c.equalUtilities&&c.icons===7&&c.allArt&&c.noOverflow&&c.controlsReachable&&c.pauseVisible)};
+})()

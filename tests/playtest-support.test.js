@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import {levels} from '../src/engine.js';
+import {uiAssets} from '../src/ui-assets.js';
 
 const app=readFileSync(new URL('../src/app.js',import.meta.url),'utf8');
 const selectCode=app.slice(app.indexOf('function selectLevel('),app.indexOf('function instructions('));
@@ -11,7 +12,7 @@ const node=()=>({children:[],dataset:{},disabled:false,append(...items){this.chi
 function harness(extra={}){
  const dialog=node(),calls=[],icons={'#mirror svg':'<svg data-icon="mirror"></svg>','#meeting svg':'<svg data-icon="meeting"></svg>','.hud-clock svg':'<svg data-icon="clock"></svg>'};
  let html='';
- const context=vm.createContext({screen:null,document:{createElement:node},$:s=>icons[s]?{outerHTML:icons[s]}:dialog,button:(text,fn,className='')=>({...node(),textContent:text,fn,className}),show:value=>{html=value;},formatTime:t=>String(t),start:i=>calls.push(i),menu(){},hide(){calls.push('hide');},instructions(){},panelHead:()=>'',...extra});
+ const context=vm.createContext({screen:null,uiAssets,document:{createElement:node},$:s=>icons[s]?{outerHTML:icons[s]}:dialog,button:(text,fn,className='')=>({...node(),textContent:text,fn,className}),show:value=>{html=value;},formatTime:t=>String(t),start:i=>calls.push(i),menu(){},hide(){calls.push('hide');},instructions(){},panelHead:()=>'',...extra});
  return {context,dialog,calls,html:()=>html};
 }
 
@@ -22,7 +23,7 @@ test('新玩家与旧进度都能选择全部关卡，成绩不被清空',()=>{
   const buttons=h.dialog.children[0].children;
   assert.equal(buttons.length,levels.length);assert.ok(buttons.every(b=>!b.disabled));
   for(const b of buttons)b.fn();assert.deepEqual(h.calls,levels.map((_,i)=>i));
-  assert.match(h.html(),/全关卡开放/);assert.match(buttons[1].innerHTML,/最佳/);
+  assert.match(h.html(),/选择关卡/);assert.match(buttons[1].innerHTML,/最佳/);
   assert.equal(JSON.stringify(save),before);
  }
 });
