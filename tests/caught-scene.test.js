@@ -56,3 +56,28 @@ test('看段子抓包的提醒、罚款、动画和回应均保持冻结，跳�
  }
  assert.equal(new CaughtTimeline('主管',true,'joke').state().phase,'reply');
 });
+
+test('跳舞抓包单向放下双手，保持检查者台词和最终回应，不循环或切回玩家',()=>{
+ for(const who of ['老板','主管']){
+  const t=new CaughtTimeline(who,false,'dance'),phases=new Set();
+  for(let i=0;i<100;i++){phases.add(t.state().phase);t.advance(.1);}
+  assert.deepEqual([...phases],['discovery','freeze','lower-hands','talk','reaction','reply']);
+  assert.equal(t.state().speaker,who);assert.equal(t.state().text,caughtLines(who,'dance')[0]);
+  assert.match(caughtLines(who,'dance')[1],/坐下|工作/);
+  const end=t.time;t.advance(.1);assert.equal(t.time,end);
+ }
+ assert.match(caughtLines('主管','dance')[0],/音乐关掉/);
+});
+test('跳舞演出、隐藏、跳过、提醒及扣款均冻结对局，回应后恢复',()=>{
+ for(const who of ['老板','主管'])for(const fine of [false,true]){
+  const g=new Game(2,1);g.inspectors=[];g.npcs=[];g.setActivity('dance');g.coins=80;g.pendingBonus=9;g.warned=fine;
+  g.catchPlayer(who);assert.equal(g.modal.activity,'dance');assert.equal(g.modal.lostBonus,9);assert.equal(g.coins,fine?30:80);
+  const snapshot=()=>JSON.stringify({time:g.time,coins:g.coins,disco:g.disco,field:g.soundField,drops:g.drops,lock:g.player.lock});
+  const before=snapshot(),t=new CaughtTimeline(who,false,'dance');
+  t.advance(.1);const time=t.time;t.advance(10,true);assert.equal(t.time,time);
+  t.skip();for(let i=0;i<100;i++)g.step(.1);
+  assert.equal(snapshot(),before);assert.ok(g.modal);assert.ok(t.state().ready);
+  g.dismiss();g.step(.1);assert.ok(g.time<JSON.parse(before).time);
+ }
+ assert.ok(new CaughtTimeline('主管',true,'dance').state().ready);
+});

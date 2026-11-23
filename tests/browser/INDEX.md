@@ -15,3 +15,7 @@
 | Phone catch UI export | /dev/caught-review.html?activity=joke | scripts/caught-phone-ui-export.js |
 
 | All caught portrait cards | /dev/caught-review.html | scripts/all-caught-portrait-check.js |
+
+| Dance catch first person, stable camera, pause, fines and response | /dev/caught-review.html?activity=dance | scripts/caught-dance-runtime-check.js |
+
+| Stable dialogue typing and response layout across three activities and four sizes | /dev/caught-review.html | scripts/caught-stable-layout-check.js |

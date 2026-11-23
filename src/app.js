@@ -182,10 +182,11 @@ function clearCaughtScene(){
  caughtScene=null;$('#dialog').classList.remove('caught-dialog','caught-phone','caught-static');
  const overlay=$('#overlay');if(overlay.classList.contains('caught-overlay')){overlay.classList.remove('caught-overlay');$('.game-shell').append(overlay);}
 }
+const formatCaughtLine=text=>text?text.replace(/([，？！])/g,'$1\n').trim():'…';
 function updateCaughtScene(){
  if(!caughtScene)return;
  const state=caughtScene.timeline.state(),reply=$('#caught-actions'),wasHidden=reply.hidden;
- $('#caught-speaker').textContent=state.speaker;$('#caught-line').textContent=state.text?state.text.replace(/([，？！])/g,'$1\n').trim():'…';
+ $('#caught-speaker').textContent=state.speaker;$('#caught-line').textContent=formatCaughtLine(state.text);
  reply.hidden=!state.ready;$('#caught-skip').hidden=state.ready;$('#caught-prompt').hidden=state.ready;
  if(state.ready&&wasHidden){$('#caught-line').setAttribute('aria-live','polite');reply.querySelector('button')?.focus({preventScroll:true});}
 }
@@ -193,8 +194,13 @@ function showCaughtScene(m){
  if(!['warning','fine'].includes(m.kind)||(m.activity==='game'&&!m.runnerSnapshot)||caughtAssets(m.activity).some(name=>!renderer.art[name]))return false;
  const fine=m.kind==='fine',negative=fine&&g.coins<0;
  const note=(fine?`本次扣除 50 金币 · 当前余额 ${Math.floor(g.coins)} 金币`:'首次提醒不扣金币 · 再被抓到扣 50')+(m.lostBonus>0?`<br>未收手奖金 ${m.lostBonus} 金币已清空`:'');
- show(`<div class="caught-stage"><canvas id="caught-canvas" width="480" height="450" aria-label="被检查者抓包后的第一人称演出"></canvas><div class="caught-top"><span class="caught-status"><strong>被抓包了</strong><span>Ⅱ 对局已暂停</span></span><button id="caught-skip" class="secondary" type="button">跳过动画 <span aria-hidden="true">›</span></button></div></div><div class="caught-copy"><div class="caught-dialogue"><span class="caught-kicker">办公室小插曲</span><h2 id="dialog-title"><span id="caught-speaker">${m.who}</span></h2><p id="caught-line"></p></div><div class="caught-outcome">${note}</div><div id="caught-actions" hidden></div><p id="caught-prompt">演出结束后，点击回应继续</p></div>`);
+ show(`<div class="caught-stage"><canvas id="caught-canvas" width="480" height="450" aria-label="被检查者抓包后的第一人称演出"></canvas><div class="caught-top"><span class="caught-status"><strong>被抓包了</strong><span>Ⅱ 对局已暂停</span></span><button id="caught-skip" class="secondary" type="button">跳过动画 <span aria-hidden="true">›</span></button></div></div><div class="caught-copy"><div class="caught-dialogue"><span class="caught-kicker">办公室小插曲</span><h2 id="dialog-title"><span id="caught-speaker">${m.who}</span></h2><div class="caught-lines"><div class="caught-line-size" aria-hidden="true"></div><p id="caught-line"></p></div></div><div class="caught-outcome">${note}</div><div class="caught-footer"><div id="caught-actions" hidden></div><p id="caught-prompt">演出结束后，点击回应继续</p></div></div>`);
  $('#dialog').classList.add('caught-dialog');$('#dialog').classList.toggle('caught-phone',m.activity==='joke');$('#overlay').classList.add('caught-overlay');document.body.append($('#overlay'));
+ // Reserve the full dialogue and response layout before the first animated frame.
+ const lines=caughtLines(m.who,m.activity);
+ for(const text of ['糟了，被看到了……','糟了，被发现了。','完了……他们在看我。',...lines]){
+  const slot=document.createElement('p');slot.textContent=formatCaughtLine(text);$('.caught-line-size').append(slot);
+ }
  const actions=$('#caught-actions');
  actions.append(button(negative?'重新挑战':caughtLines(m.who,m.activity)[1],()=>{if(negative)start(g.level);else{g.dismiss();hide();}},'primary reply'));
  if(fine){
@@ -210,7 +216,7 @@ function showCaughtNote(html,buttons){
  show(html,buttons);$('#dialog').classList.add('caught-static');
  $('#overlay').classList.add('caught-overlay');document.body.append($('#overlay'));
 }
-function processModal(){if(!g.modal||screen==='reward'||g.modal===lastModal)return;lastModal=g.modal;screen='result';const m=g.modal;if(['game','joke'].includes(m.activity)&&typeof showCaughtScene==='function'&&showCaughtScene(m))return;
+function processModal(){if(!g.modal||screen==='reward'||g.modal===lastModal)return;lastModal=g.modal;screen='result';const m=g.modal;if(['game','joke','dance'].includes(m.activity)&&typeof showCaughtScene==='function'&&showCaughtScene(m))return;
  if(m.kind==='tutorial'){
   show(`${panelHead('clock','入职练习 · 时间已暂停','先看预告，再收手')}<div class="speech">看到「即将检查」，就准备切回工作。</div><ul><li>检查者正常巡视，看见可疑行为才靠近；正式检查前有 2 秒预告。</li><li>点击「一键工作」收手；打游戏和蹦迪需要更久，别等检查开始才点。</li><li>检查时留意暴露条，涨满就会被抓。</li><li>连续摸鱼的额外奖励，要安全收手才能拿到。</li></ul>`,[['记住了，开始练习',()=>{g.dismiss();hide();},'primary']]);
  }else if(m.kind==='warning'){

@@ -1297,5 +1297,16 @@
       1364,
       768
     ]
+  },
+  "caught-dance-hands": {
+    "src": "assets/generated/caught-dance-game-v1/hands.png",
+    "width": 480,
+    "height": 408,
+    "bounds": [
+      0,
+      0,
+      480,
+      408
+    ]
   }
 }

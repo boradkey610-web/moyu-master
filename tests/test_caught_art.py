@@ -7,6 +7,15 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class CaughtArtTests(unittest.TestCase):
+    def test_dance_uses_approved_first_person_hands_with_transparency(self):
+        with Image.open(ROOT / 'assets/generated/caught-dance-game-v1/hands.png') as hands:
+            self.assertEqual(hands.mode, 'RGBA')
+            self.assertEqual(hands.size, (480, 408))
+            self.assertEqual(hands.getchannel('A').getextrema(), (0, 255))
+            self.assertEqual(hands.crop((210, 0, 270, 200)).getchannel('A').getextrema(), (0, 0))
+            self.assertEqual(hands.crop((0, 0, 200, 408)).getchannel('A').getextrema(), (0, 255))
+            self.assertEqual(hands.crop((280, 0, 480, 408)).getchannel('A').getextrema(), (0, 255))
+
     def test_speaking_changes_only_the_mouth(self):
         for name, box in [('boss', (280, 195, 350, 240)), ('supervisor', (280, 160, 350, 210))]:
             with Image.open(ROOT / f'assets/generated/caught-game-v1/{name}-speech-frames.png') as atlas:
