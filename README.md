@@ -164,3 +164,9 @@ SSO认证后70项非HTML运行文件SHA-256全部匹配，首页与蹦迪预览H
 已将确认后的 `dev/guide-design-v2/` 清爽说明页和 `dev/guide-expanded-design-v1/` 展开设计接入首页玩法说明及游戏内手册。三条核心提示默认显示，四组进阶说明使用原生 `details/summary` 展开收起；完整保留奖金、工位、巡逻及道具规则。内容区独立滚动，标题和金色确认按钮固定，使用真实HTML文字及既有纸纹，无新增运行图片。遮罩脱离游戏尺寸约束，返回时恢复到游戏容器，继续沿用原来的首页/对局返回逻辑及暂停行为。
 
 253项JS测试、15项美术检查、构建与72文件静态发布包检查通过。`tests/browser/scripts/guide-ui-check.js` 在390×844、360×640、320×568、844×390、1100×800、320×400六种视口全部 `passed=true`，覆盖展开收起、16px正文、最后一条可读、固定确认按钮、首页及游戏内返回和HUD冻结。原生浏览器实际截图成功并已视觉复检，裁切预览：`dev/guide-design-v2/game-guide-collapsed.png`、`dev/guide-expanded-design-v1/game-guide-expanded.png`。试玩 http://127.0.0.1:4178/?ui=guide-v2 ，点首页「玩法说明」；本次未推送或部署。
+
+## 玩法说明与进阶规则上线（2026-11-24 16:46 GMT+8 更新批次）
+
+`finial_ui` 提交 `6d664ae` 已发布为 `83c7f133`。游戏 https://moyulijin15.frontend-cloud.corp.kuaishou.com/ ，固定版本 https://moyulijin15-83c7f133.frontend-cloud.corp.kuaishou.com/ 。仅上传复审后的 `dist/` 72项运行文件，首页「玩法说明」及游戏内手册已使用三条核心提示、四组可展开进阶规则和固定确认按钮，无新增运行图片。
+
+源码253项JS测试、15项美术检查此前通过，本次重新构建与发布清单复审通过。70项非HTML运行资源SHA-256全部匹配，两张HTML返回200并包含游戏结构。线上正式游戏与蹦迪预览浏览器检查均 `passed=true`；说明页六种视口展开收起、文字可读、按钮可达、返回和HUD冻结检查全部通过。访问仍需快手SSO；未更新GitHub Pages。发布哈希基线已刷新。

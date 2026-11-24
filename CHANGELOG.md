@@ -1,3 +1,12 @@
+## 2026-11-24 16:46 GMT+8 更新批次 — 83c7f133
+
+- 游戏：https://moyulijin15.frontend-cloud.corp.kuaishou.com/
+- 固定版本：https://moyulijin15-83c7f133.frontend-cloud.corp.kuaishou.com/
+- 来源：`finial_ui` 提交 `6d664ae`；仅发布复审后的 `dist/` 72项运行文件。
+- 更新：确认后的清爽玩法说明，默认三条核心提示，四组进阶规则展开收起；标题及金色确认按钮固定，内容独立滚动，保留完整规则与暂停/返回行为。
+- 验证：源码253项JS测试、15项美术检查此前通过，本次重新构建与发布清单复审通过。70项非HTML资源SHA-256匹配，两张HTML返回200并包含游戏结构。线上正式游戏与蹦迪预览浏览器检查均 `passed=true`；说明页六种视口的展开收起、文字可读、固定按钮、返回及HUD冻结检查全部通过。
+- 访问：需要快手SSO登录；未更新GitHub Pages。
+
 ## 2026-11-23 21:51 GMT+8 更新批次 — e4e57cad
 
 - 游戏：https://moyulijin15.frontend-cloud.corp.kuaishou.com/

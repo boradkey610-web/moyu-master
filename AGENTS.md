@@ -66,3 +66,10 @@
 - Version `e4e57cad`, source `01ce31c` on `finial_ui`; latest https://moyulijin15.frontend-cloud.corp.kuaishou.com/ and immutable https://moyulijin15-e4e57cad.frontend-cloud.corp.kuaishou.com/ . Published 72 reviewed runtime files from `dist/`, including the approved pause UI and independent pause overlay to avoid narrow landscape containment.
 - 253 JS tests and 15 art checks previously passed; release rebuilt and reviewed for this deployment. All 70 non-HTML SHA256 hashes matched; both HTML pages returned 200 with game markup. Published game and dance browser smoke checks passed (`passed=true`, art ready, resources 200); console queries returned no errors. Full pause multi-viewport verification remains incomplete.
 - Kuaishou SSO required; GitHub Pages unchanged. Release hash baseline now matches this deployment.
+
+## Deployment 2026-11-24 16:46 GMT+8 update batch
+
+- Version `83c7f133`, runtime source `6d664ae` on `finial_ui`; latest https://moyulijin15.frontend-cloud.corp.kuaishou.com/ and immutable https://moyulijin15-83c7f133.frontend-cloud.corp.kuaishou.com/ . Published 72 reviewed runtime files from `dist/`.
+- Approved clean guide UI is live in home instructions and the in-game handbook: three core tips, four expandable advanced sections, fixed header/footer, readable HTML text and independently scrolling content. Preserve all rule facts, gameplay pause and return behavior.
+- 253 JS tests and 15 art checks previously passed; release rebuilt and reviewed this turn. All 70 non-HTML SHA256 hashes matched; both HTML pages returned 200 with game markup. Published main/dance browser smoke checks passed (`passed=true`, art ready, resources 200). Six published guide viewports passed expand/collapse, readable text, fixed footer, return and HUD-freeze checks.
+- Kuaishou SSO required; GitHub Pages unchanged. Release hash baseline matches this deployment.
