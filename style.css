@@ -378,6 +378,37 @@
 .dialog.office-note .assist-icon{width:36px;height:36px}.assist-icon .paper-icon{width:34px;height:34px}
 @media(max-width:370px),(max-height:740px){.activity .activity-icon{width:30px;height:30px}.tool-row button svg{width:21px;height:21px}}
 
+/* Approved guide: readable live text, optional advanced rules and a fixed footer. */
+.overlay[data-page=guide],.overlay[data-page=instructions]{position:fixed;inset:0;z-index:80;padding:12px;background:#25332d80;backdrop-filter:blur(1.5px)}
+.dialog.office-note[data-kind=guide],.dialog.office-note[data-kind=instructions]{--guide-ink:#493314;--guide-teal:#355f60;display:flex;flex-direction:column;justify-content:flex-start;width:100%;max-width:420px;height:min(844px,calc(100svh - 24px));max-height:calc(100svh - 24px);overflow:hidden;padding:0;border:2px solid var(--guide-teal);border-radius:17px;background:#fff0ce url('assets/generated/level-select-v1/texture.png') repeat;box-shadow:inset 0 0 0 3px #fff9e9,0 4px 0 #233e4040;color:var(--guide-ink);text-align:left}
+.dialog[data-kind=guide]:before,.dialog[data-kind=instructions]:before{display:none}
+.guide-heading{flex:none;padding:27px 28px 18px;border-bottom:1px solid #bcaa8450}
+.dialog .guide-heading h2{margin:0;color:var(--guide-ink);font-size:28px;line-height:1.4;letter-spacing:0;font-weight:850;text-align:left}
+.dialog.office-note .guide-heading p{margin:8px 0 0;color:var(--guide-teal);font-size:17px;line-height:1.5;font-weight:650}
+.guide-reader{flex:1;min-height:0;display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;padding:14px 28px 0;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#9c987880 transparent}
+.guide-reader:focus-visible{outline:2px solid var(--guide-teal);outline-offset:-4px}
+.guide-basics{flex:1 0 auto;display:grid;align-content:space-evenly;gap:24px;padding:16px 0 24px}
+.guide-reader:has(.guide-advanced[open]) .guide-basics{flex:none}
+.guide-rule{display:grid;grid-template-columns:28px minmax(0,1fr);gap:12px}
+.guide-number{color:var(--guide-teal);font-size:21px;line-height:1.5;font-weight:650;font-variant-numeric:tabular-nums}
+.guide-rule h3,.guide-topics h3{margin:0 0 10px;font-size:20px;line-height:1.5;font-weight:800;color:var(--guide-ink)}
+.dialog.office-note .guide-rule p,.dialog.office-note .guide-topics p{margin:0;color:var(--guide-ink);font-size:16px;line-height:1.75;overflow-wrap:anywhere}
+.guide-rule p+p{padding-top:4px}
+.guide-advanced{flex:none;border-top:1px solid #bcaa8480}
+.guide-advanced summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:76px;padding:16px 0;cursor:pointer;list-style:none;font-size:19px;font-weight:750;color:var(--guide-ink);touch-action:manipulation}
+.guide-advanced summary::-webkit-details-marker{display:none}
+.guide-advanced summary small{display:block;margin-top:4px;color:#6e6248;font-size:15px;line-height:1.5;font-weight:500}
+.guide-advanced summary svg{width:23px;height:23px;flex:none;fill:none;stroke:var(--guide-teal);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.guide-advanced[open] summary small{display:none}
+.guide-advanced[open] summary svg{transform:rotate(180deg)}
+.guide-topics{display:grid;gap:23px;padding:6px 0 26px}
+.guide-footer{flex:none;padding:15px 24px 20px;border-top:1px solid #bcaa8480;background:#fff0ce}
+.dialog.office-note .guide-footer p{margin:0 0 12px;color:var(--guide-ink);font-size:15px;line-height:1.5;text-align:center}
+.dialog .guide-footer button.primary{display:block;width:100%;min-height:54px;margin:0;padding:10px;border:2px solid #795025;border-radius:12px;background:linear-gradient(#ffdc83,#ffc255);box-shadow:inset 0 2px 0 #fff0ba,inset 0 -3px 0 #eca63b,0 3px 0 #795025;color:var(--guide-ink);font-size:22px;line-height:1.4;font-weight:850;letter-spacing:.5px}
+.dialog .guide-footer button.primary:hover{background:linear-gradient(#ffe29a,#ffca69)}
+@media(max-width:350px){.guide-heading{padding:22px 20px 15px}.dialog .guide-heading h2{font-size:25px}.guide-reader{padding-inline:20px}.guide-rule{gap:8px;grid-template-columns:24px minmax(0,1fr)}.guide-rule h3{font-size:19px}.guide-footer{padding-inline:16px}}
+@media(max-height:500px){.guide-heading{padding:12px 24px 10px}.dialog .guide-heading h2{font-size:25px}.dialog.office-note .guide-heading p{margin-top:3px;font-size:16px}.guide-basics{gap:22px}.guide-footer{padding:10px 20px 13px}.dialog.office-note .guide-footer p{margin-bottom:8px}.dialog .guide-footer button.primary{min-height:48px;font-size:20px}}
+
 /* Approved GPT-Image-2 level selection: real text over extracted illustrations. */
 .game-shell:has(.overlay[data-page=levels]){width:min(calc(100vw - 12px),480px);max-width:480px;height:calc(100svh - 12px)}
 .dialog[data-kind=levels]{--level-ink:#48320f;--level-teal:#578e86;padding:16px 17px 14px;color:var(--level-ink);background:#fff0cc url('assets/generated/level-select-v1/texture.png') repeat;isolation:isolate}

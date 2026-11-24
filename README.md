@@ -152,3 +152,15 @@ SSO认证后70项非HTML运行文件SHA-256全部匹配，首页与蹦迪预览H
 按已确认的 `dev/pause-design-v1/panel-preview.png` 实现奶油底、深青描边、金色继续按钮、等宽重开/选关按钮及可操作声音开关。文字与图标使用 HTML/SVG，保持清晰；复用已发布的纸纹。暂停遮罩临时移到页面根节点，避免游戏容器的尺寸约束挤窄横屏面板；继续、重开或返回关卡时恢复容器。
 
 253项JS测试、15项美术检查、构建及72项静态发布清单通过。原生浏览器打开实际暂停页成功，测得面板340×352.59px。五视口检查曾发现横屏挤压并已修正，但修正后的完整回归因宿主连接关闭未完成；截图返回 `ELECTRON_CAPTURE_BUSY`，尚未完成截图视觉验收。浏览器脚本 `tests/browser/scripts/paper-ui-check.js` 已加入暂停边界、按钮可达、声音状态/尺寸稳定、HUD冻结及继续/重开/选关检查。试玩 http://127.0.0.1:4178/?ui=pause-v1 ，从任一关卡点击暂停；本次未推送或部署。
+
+## 暂停UI上线（2026-11-23 21:51 GMT+8 更新批次）
+
+`finial_ui` 提交 `01ce31c` 已发布为 `e4e57cad`，游戏 https://moyulijin15.frontend-cloud.corp.kuaishou.com/ ，固定版本 https://moyulijin15-e4e57cad.frontend-cloud.corp.kuaishou.com/ 。只上传复审后的 `dist/` 72项运行文件；新暂停面板及继续、重开、返回关卡、声音开关现已上线。
+
+70项非HTML运行资源SHA-256匹配，两张HTML返回200并包含游戏结构。正式游戏与蹦迪预览线上浏览器检查均 `passed=true`，素材加载就绪、资源200，控制台未返回报错。完整暂停多视口回归仍未完成。访问仍需快手SSO；未更新GitHub Pages。发布哈希基线已刷新。
+
+## 清爽玩法说明与进阶规则（2026-11-24，本地）
+
+已将确认后的 `dev/guide-design-v2/` 清爽说明页和 `dev/guide-expanded-design-v1/` 展开设计接入首页玩法说明及游戏内手册。三条核心提示默认显示，四组进阶说明使用原生 `details/summary` 展开收起；完整保留奖金、工位、巡逻及道具规则。内容区独立滚动，标题和金色确认按钮固定，使用真实HTML文字及既有纸纹，无新增运行图片。遮罩脱离游戏尺寸约束，返回时恢复到游戏容器，继续沿用原来的首页/对局返回逻辑及暂停行为。
+
+253项JS测试、15项美术检查、构建与72文件静态发布包检查通过。`tests/browser/scripts/guide-ui-check.js` 在390×844、360×640、320×568、844×390、1100×800、320×400六种视口全部 `passed=true`，覆盖展开收起、16px正文、最后一条可读、固定确认按钮、首页及游戏内返回和HUD冻结。原生浏览器实际截图成功并已视觉复检，裁切预览：`dev/guide-design-v2/game-guide-collapsed.png`、`dev/guide-expanded-design-v1/game-guide-expanded.png`。试玩 http://127.0.0.1:4178/?ui=guide-v2 ，点首页「玩法说明」；本次未推送或部署。

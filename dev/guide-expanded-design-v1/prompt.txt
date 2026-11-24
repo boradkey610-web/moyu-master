@@ -1,0 +1,29 @@
+Generate ONE polished UI design showing the EXPANDED advanced-rules state of the Chinese office game's guide in reference image 1. This is the SAME existing guide after tapping '进阶规则' and scrolling the CONTENT AREA downward to read it. It is not a new page, modal or settings screen. Match reference 1's calm cream paper, thin muted dark-teal rounded outer boundary, dark warm-brown Chinese text, restrained dividers and gold confirmation button precisely. Output a complete 1152x2048 portrait game UI without phone bezel or browser chrome.
+
+The user rejected an earlier crowded page, so retain this reference's low-noise typography and breathable layout. No illustrations, pictograms, icon cards, repeated boxes, badges, tape, pink colors, warning banners or collage. Use actual readable horizontal simplified Chinese, approximately 16px body and 26px heading at 390px phone scale. Uniform left alignment, short line lengths, clear hierarchy and sufficient spacing. Very subtle paper texture, no heavy shadows or excessive decorative outlines. Do not make body text tiny to squeeze everything in.
+
+The panel consists of a small fixed title area, a scrollable reading region, and a FIXED bottom confirmation area. At top show the original title exactly '摸鱼要有分寸', dark warm brown. Do not introduce a back button, new page title or navigation tabs. Keep top title modest to free up reading space.
+
+In the scrolling region, show the tail of the existing basics section: '03 留意巡逻信号' with the two lines '喇叭表示声音范围，感叹号表示已被听见' and '换座后，检查者仍会查原来的位置'. The earlier 01 and 02 rows are ABOVE the current scroll viewport, so do not repeat them and do not compress three basics rows plus all advanced rules onto one screen. All visible words must be complete; show no half-cut text lines.
+
+Under a thin restrained divider, show the existing disclosure header '进阶规则' at left and a small UPWARD teal chevron at right to communicate the expanded state and tap-to-collapse. Optional support line '奖金、工位和道具' is unnecessary in the expanded view: remove it to avoid repetition. This entry expands within the guide, not a separate boxed overlay.
+
+Show FOUR advanced topics underneath as a clean continuous unboxed list with bold short headings and softer but still high-contrast body. All four topics share one paper surface. Headings are 18-20px at phone scale; body 15-16px minimum. Separate topics with whitespace, NOT heavy separators, colored cards or large numbers. Render this exact Chinese copy:
+
+Heading '收手奖金'
+Body '头顶「收手领」越攒越多，工作或换座后到账；被抓则清空。收手需要时间。'
+
+Heading '换座与工位'
+Body '移动时不赚钱，坐下拾取道具。第4关起，金椅提供限时×2收益。'
+
+Heading '巡逻标记'
+Body '连线和工位号表示正在调查的位置；换座后仍会查旧声源。'
+
+Heading '道具用途'
+Body '反光镜预看全员未来10秒路线。第2关起可拾取开会通知，支走一名检查者。'
+
+Show a subtle thin scrollbar at the right edge of the READING region, not the whole outer screen. It communicates that the content scrolls while the footer stays visible. No scroll instruction text or invented pagination. The advanced content must stop above the footer, never hidden behind the primary button. If needed, use natural readable wraps and balanced compact spacing. Do not shrink text or add an extra full-page panel to fit.
+
+The fixed footer has a discreet cream background and a thin top dividing line. Above the primary button, show exactly '首次抓包警告，再次扣50金币' as a simple readable normal-size reminder without an icon or colored warning box. Below it the existing full-width regular gold rounded primary button labeled exactly '知道了，稳稳拿捏', dark-brown bold text and restrained shallow bevel matching reference 1. Small comfortable bottom margin; no huge blank area. No button icon, back button, extra action, settings control, invented game rules, reward or statistic.
+
+This is a single screenshot of the expanded section after scrolling in the original guide. Preserve the reference game's approved visual identity and uncluttered layout. Show complete main title, expanded header, four readable topic groups, scroll affordance and fixed action footer. No diagram, poster, annotation arrows, developer comments or watermark. The game code will implement this with real HTML text and a disclosure control after user approval.

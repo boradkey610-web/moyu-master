@@ -21,3 +21,4 @@
 
 | Stable dialogue typing and response layout across three activities and four sizes | /dev/caught-review.html | scripts/caught-stable-layout-check.js |
 | Pause layout, stable sound switch, frozen HUD and resume/restart/levels at five sizes | / | scripts/paper-ui-check.js |
+| Guide expansion, readable last topic, fixed footer and home/game return at six sizes | / | scripts/guide-ui-check.js |

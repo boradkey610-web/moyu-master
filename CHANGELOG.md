@@ -1,3 +1,12 @@
+## 2026-11-23 21:51 GMT+8 更新批次 — e4e57cad
+
+- 游戏：https://moyulijin15.frontend-cloud.corp.kuaishou.com/
+- 固定版本：https://moyulijin15-e4e57cad.frontend-cloud.corp.kuaishou.com/
+- 来源：`finial_ui` 提交 `01ce31c`；仅发布复审后的 `dist/` 72项运行文件。
+- 更新：已确认的奶油色暂停面板、金色继续按钮、等宽重开/关卡按钮及声音开关；暂停遮罩脱离游戏尺寸约束，修正横屏挤压。
+- 验证：源码253项JS测试、15项美术检查通过；本次重新构建与发布清单检查通过。70项非HTML资源SHA-256匹配，两张HTML返回200并包含游戏结构。线上正式游戏与蹦迪预览浏览器白屏/资源检查均 `passed=true`，素材 `ready`、资源200，控制台未返回报错。暂停页完整多视口验收仍未完成。
+- 访问：需要快手SSO登录；未更新GitHub Pages。
+
 ## 2026-11-23 21:19 GMT+8 更新批次 - 74a5bebf
 
 - 游戏：https://moyulijin15.frontend-cloud.corp.kuaishou.com/

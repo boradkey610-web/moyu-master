@@ -60,3 +60,9 @@
 - Version `74a5bebf`, source `fbe9afa` on `finial_ui`; latest https://moyulijin15.frontend-cloud.corp.kuaishou.com/ and immutable https://moyulijin15-74a5bebf.frontend-cloud.corp.kuaishou.com/ . Published 72 allowlisted files; approved home cover, level grid and UI icon artwork are live. The newly generated pause proposal is not implemented or deployed.
 - Source previously passed 253 JS tests, 15 art checks and five-viewport UI interaction checks; release rebuilt and reviewed before deploy. Authenticated HTTP checks matched all 70 non-HTML SHA-256 hashes; both HTML pages returned 200 with game markup. Native browser opening timed out on both routes, so published blank-page/runtime smoke verification remains uncompleted. Do not report HTTP checks as browser smoke success.
 - Site access still requires Kuaishou SSO. CLI deployment auth was valid; browser/HTTP site access is a separate SSO session. No GitHub Pages update. Release hash baseline in `tests/browser/scripts/caught-release-check.js` matches this deployment.
+
+## Deployment 2026-11-23 21:51 GMT+8 update batch
+
+- Version `e4e57cad`, source `01ce31c` on `finial_ui`; latest https://moyulijin15.frontend-cloud.corp.kuaishou.com/ and immutable https://moyulijin15-e4e57cad.frontend-cloud.corp.kuaishou.com/ . Published 72 reviewed runtime files from `dist/`, including the approved pause UI and independent pause overlay to avoid narrow landscape containment.
+- 253 JS tests and 15 art checks previously passed; release rebuilt and reviewed for this deployment. All 70 non-HTML SHA256 hashes matched; both HTML pages returned 200 with game markup. Published game and dance browser smoke checks passed (`passed=true`, art ready, resources 200); console queries returned no errors. Full pause multi-viewport verification remains incomplete.
+- Kuaishou SSO required; GitHub Pages unchanged. Release hash baseline now matches this deployment.

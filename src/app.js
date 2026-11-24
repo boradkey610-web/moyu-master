@@ -137,17 +137,21 @@ function selectLevel(){
 }
 function instructions(back=()=>hide()){
  screen=back===menu?'guide':'instructions';
- const rules=[
-  '三种玩法从第1关可用。打游戏点按跳障碍；看段子点击卡片看下一条。',
-  '互动窗口在下方，办公室照常巡逻；段子安静，蹦迪更吵。空格或绿色按钮收手。',
-  '检查前有预告。可降档继续摸鱼，藏不住就一键工作；收手需要时间。',
-  '头顶的“收手领”是额外奖金，按一键工作或换座后到账，被抓就丢。连玩越久，奖金越多。',
-  '喇叭显示声音能传多远；出现感叹号时，才是检查者真的听到了。',
-  '点空椅子换座，移动不赚钱。第四关起金椅限时×2，道具坐下拾取。',
-  '感叹号表示听到声音，连线和工位号标调查位置；换座后仍查旧声源。',
-  '反光镜看全员10秒路线；第二关起可捡开会通知，支走一人。首次抓包警告，之后扣50。'
+ const basics=[
+  ['选一种摸鱼方式','看段子：点击下一条','打游戏：点按跳障碍；蹦迪更吵'],
+  ['老板来了，及时收手','检查前有预告，可先降档','危险时点「一键工作」或按空格'],
+  ['留意巡逻信号','喇叭表示声音范围，感叹号表示已被听见','换座后，检查者仍会查原来的位置']
  ];
- show(panelHead('briefcase','入职手册','摸鱼要有分寸')+'<ul>'+rules.map(rule=>'<li>'+rule+'</li>').join('')+'</ul>',[['知道了，稳稳拿捏',back,'primary']]);
+ const advanced=[
+  ['收手奖金','头顶「收手领」越攒越多，工作或换座后到账；被抓则清空。收手需要时间。'],
+  ['换座与工位','三种玩法从第1关可用，互动窗口在下方。点空椅子换座，移动时不赚钱，坐下拾取道具。第4关起，金椅提供限时×2收益。'],
+  ['巡逻标记','办公室照常巡逻，看段子安静，蹦迪更吵。连线和工位号表示正在调查的位置；换座后仍会查旧声源。'],
+  ['道具用途','反光镜预看全员未来10秒路线。第2关起可拾取开会通知，支走一名检查者。']
+ ];
+ show(`<header class="guide-heading"><h2 id="dialog-title">摸鱼要有分寸</h2><p>先记住这三件事</p></header><div class="guide-reader" tabindex="0" role="region" aria-label="玩法说明，可滚动阅读"><div class="guide-basics">${basics.map(([title,...lines],i)=>`<section class="guide-rule"><span class="guide-number" aria-hidden="true">0${i+1}</span><div><h3>${title}</h3>${lines.map(line=>`<p>${line}</p>`).join('')}</div></section>`).join('')}</div><details class="guide-advanced"><summary><span>进阶规则<small>奖金、工位和道具</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 9 7 7 7-7"/></svg></summary><div class="guide-topics">${advanced.map(([title,text])=>`<section><h3>${title}</h3><p>${text}</p></section>`).join('')}</div></details></div><footer class="guide-footer"><p>首次抓包警告，再次扣50金币</p></footer>`);
+ // Keep reading and the fixed footer independent of the game's size containment.
+ document.body.append($('#overlay'));$('#overlay').dataset.page=screen;
+ $('#dialog .guide-footer').append(button('知道了，稳稳拿捏',()=>{document.querySelector('.game-shell').append($('#overlay'));back();},'primary'));
 }
 function pause(){
  if(g.modal||screen)return;

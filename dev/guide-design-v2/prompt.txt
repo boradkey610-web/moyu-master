@@ -1,0 +1,25 @@
+Revise the instruction screen of the actual Chinese mobile office game Moyu Master. Image 1 is the previous proposed guide: the user explicitly rejects it because it is too crowded, busy, full and visually miscellaneous. Image 2 is the approved pause component style. Generate ONE substantially calmer portrait guide design in 1152x2048. Keep the same warm cream paper, muted dark teal, warm dark-brown text and honey-gold primary action. This is a UI proposal, not an infographic or poster. No browser chrome or device frame.
+
+The key change is LESS VISUAL NOISE and LESS CONTENT shown at once. Remove all seven big illustrated icon blocks, the huge open book, three bordered activity tiles, repeated separators, warning banner and stacked outlined cards. Do NOT reproduce the previous layout with smaller versions of the same clutter. Use one clean cream surface, one subtle regular rounded outer boundary and a balanced portrait composition. Light subtle paper texture, thin clean teal accents, shallow gold-button bevel. No tape, labels, stickers, extra decorative artwork, loud drop shadows or ornamental shapes. All supporting content must be real, readable dark-brown Chinese text, not miniature captions. Around 28px horizontal title and 16px body at phone scale. Use very few accent colors. Avoid a giant blank lower half; let whitespace breathe evenly between a small number of clear sections.
+
+Header: just the title '摸鱼要有分寸', modest bold horizontal dark brown, and the single short subtitle '先记住这三件事'. No large book illustration, no oversized banner or duplicate page name. Center or left-align consistently.
+
+Main content: THREE spacious, unboxed instruction rows on a shared cream background, all left-aligned. Each has a small simple teal '01', '02' or '03' marker, a short bold heading and a maximum of two short body lines. The numbers are small navigational markers, not big icons. Plenty of breathing room between rows; use no per-row box, background or illustration. Render this exact wording:
+
+01 Heading '选一种摸鱼方式'
+Body line 1 '看段子：点击下一条'
+Body line 2 '打游戏：点按跳障碍；蹦迪更吵'
+
+02 Heading '老板来了，及时收手'
+Body line 1 '检查前有预告，可先降档'
+Body line 2 '危险时点「一键工作」或按空格'
+
+03 Heading '留意巡逻信号'
+Body line 1 '喇叭表示声音范围，感叹号表示已被听见'
+Body line 2 '换座后，检查者仍会查原来的位置'
+
+Under the three rows, show ONE discreet collapsed expandable entry with the label '进阶规则' on the left and a small downward chevron on the right. Supporting short text '奖金、工位和道具' may be a single readable line below the label, not tiny. This is a guide disclosure, not a new gameplay feature or a settings button. Advanced original rules will be available when expanded, but are NOT all printed on this initial screen. No pagination, tab bar, swipe carousel, menu settings or unrelated controls.
+
+Near the bottom, one simple single-line text reminder '首次抓包警告，再次扣50金币', dark brown, normal readable size, no outlined warning box, no enormous exclamation icon. Under it a clean full-width regular honey-gold rounded primary button labeled exactly '知道了，稳稳拿捏'. Text is bold dark brown. No big checkmark or extra button icon. Match the approved pause action component's restrained edge and bevel, keep this clearly the only dominant control. Small comfortable bottom padding; the button must not float halfway up above a giant void.
+
+Show a calm, readable, feasible guide UI. Main hierarchy: title, three brief instructions, one optional advanced-rules disclosure, one confirmation action. Keep density visibly lower than image 1. Use short lines, coherent typography, consistent alignment and restrained spacing. No phone/monitor/disco illustration collage, no extra written labels, invented rewards, game statistics or watermark. All text horizontal, full page visible, no clipping. The screen will be implemented with actual HTML text and controls after approval.
