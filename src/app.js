@@ -343,12 +343,12 @@ async function boot(){
  g.paused=true;modalBackground(true);
  const loading=$('#boot-screen'),retry=$('#boot-retry'),shell=$('.game-shell');
  shell.setAttribute('aria-busy','true');loading.dataset.state='loading';retry.hidden=true;retry.disabled=true;
- $('#boot-title').textContent='办公室正在就位';$('#boot-note').textContent='桌椅、同事和摸鱼装备，马上到齐。';
+ $('#boot-title').hidden=true;$('#boot-title').textContent='加载中';$('#boot-note').textContent='正在准备办公室…';
  const [artErrors,uiErrors]=await Promise.all([renderer.ready,loadUiArt()]);
  const errors=[...artErrors,...uiErrors];
  if(errors.length){
   loading.dataset.state='error';shell.setAttribute('aria-busy','false');
-  $('#boot-title').textContent='有些资料还没送到';$('#boot-note').textContent='部分画面没加载成功，重新加载后再进入。';
+  $('#boot-title').hidden=false;$('#boot-title').textContent='有些资料还没送到';$('#boot-note').textContent='部分画面没加载成功，重新加载后再进入。';
   retry.hidden=false;retry.disabled=false;return;
  }
  menu();renderer.draw(g,visualTime);updateUI();

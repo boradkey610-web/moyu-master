@@ -294,20 +294,20 @@
 @media(max-width:370px){.joke-text{font-size:11px}.joke-heading strong{font-size:9px}}
 
 .joke-card:focus-visible{outline:2px solid #9b7c4d;outline-offset:-2px}
-/* The loading sheet needs no remote images and is visible before app startup. */
+/* The loading screen needs no remote images and is visible before app startup. */
 .is-loading>.hud,.is-loading>.scene,.is-loading>.controls,.is-loading>#overlay{visibility:hidden;pointer-events:none}
-.boot-screen{position:absolute;inset:0;z-index:30;display:grid;place-items:center;padding:25px;background:radial-gradient(ellipse at 50% 30%,#f5f5dd,#c5e1d8);border-radius:inherit}
-.boot-screen[hidden],.boot-retry[hidden]{display:none}
-.boot-paper{position:relative;width:100%;max-width:310px;padding:33px 18px 28px;text-align:center;background:#fff9e9;border:1px solid #c1b58f;border-radius:3px;box-shadow:3px 5px 0 #81978628;color:#4d6e5f}
-.boot-paper:before{content:"";position:absolute;width:68px;height:19px;top:-9px;left:calc(50% - 34px);background:#dfc88db0;transform:rotate(-4deg)}
-.boot-stamp{display:block;text-align:left;font-size:10px;font-weight:700;letter-spacing:2px;color:#a08b60}
-.boot-case{display:block;width:48px;height:44px;margin:26px auto 12px;color:#7d9b83}
-.boot-paper h1{margin:0 0 25px;font-size:31px;letter-spacing:3px;color:#886834}
-.boot-paper h2{margin:0;font-size:17px;letter-spacing:1px}.boot-paper p{margin:12px 0 0;font-size:12px;line-height:1.8;color:#988568}
-.boot-loader{display:flex;justify-content:center;gap:8px;margin:23px 0 0}.boot-loader i{width:6px;height:6px;border-radius:50%;background:#7e9a7c;animation:boot-wait 1.2s ease-in-out infinite}.boot-loader i:nth-child(2){animation-delay:.18s}.boot-loader i:nth-child(3){animation-delay:.36s}
-.boot-screen[data-state=error] .boot-loader{display:none}.boot-retry{margin-top:22px;padding:10px 24px;border:1px solid #62836b;border-radius:4px;background:#6b9478;color:#fffaf0;font-size:14px;font-weight:700;box-shadow:0 3px 0 #4e725a}
-.boot-retry:focus-visible{outline:2px solid #ad8542;outline-offset:4px}@keyframes boot-wait{0%,70%,100%{opacity:.3;transform:translateY(0)}35%{opacity:1;transform:translateY(-4px)}}
-@media(prefers-reduced-motion:reduce){.boot-loader i{animation:none;opacity:.7}}
+.boot-screen{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:25px;background:#fff8ed}
+.boot-screen[hidden],.boot-retry[hidden],.boot-content h2[hidden]{display:none}
+.boot-content{width:100%;max-width:280px;text-align:center;color:#365f59;transform:translateY(-5%)}
+.boot-fish{display:block;width:60px;height:30px;margin:0 auto 20px}
+.boot-content h1{margin:0;font-size:26px;line-height:1.4;font-weight:600;letter-spacing:2px;color:#365f59}
+.boot-content h2{margin:22px 0 0;font-size:17px;line-height:1.5;font-weight:600}
+.boot-content p{margin:17px 0 0;font-size:14px;line-height:1.8;color:#7e8e82}
+.boot-loader{width:140px;height:3px;margin:20px auto 0;border-radius:3px;overflow:hidden;background:#e8e1d1}
+.boot-loader i{display:block;width:65%;height:100%;border-radius:inherit;background:#c9aa69;animation:boot-wait 1.6s ease-in-out infinite}
+.boot-screen[data-state=error] .boot-loader{display:none}.boot-retry{margin-top:22px;min-height:44px;padding:10px 24px;border:1px solid #365f59;border-radius:10px;background:#365f59;color:#fff8ed;font-size:14px;font-weight:600;box-shadow:none}
+.boot-retry:focus-visible{outline:2px solid #ad8542;outline-offset:4px}@keyframes boot-wait{0%,100%{transform:translateX(-105%)}50%{transform:translateX(160%)}}
+@media(prefers-reduced-motion:reduce){.boot-loader i{animation:none}}
 
 /* All catch scenes use artwork above dialogue and actions. */
 .overlay.caught-overlay{position:fixed;inset:0;z-index:80;padding:24px;background:#25332d99;backdrop-filter:blur(4px)}
