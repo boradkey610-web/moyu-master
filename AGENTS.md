@@ -73,3 +73,10 @@
 - Approved clean guide UI is live in home instructions and the in-game handbook: three core tips, four expandable advanced sections, fixed header/footer, readable HTML text and independently scrolling content. Preserve all rule facts, gameplay pause and return behavior.
 - 253 JS tests and 15 art checks previously passed; release rebuilt and reviewed this turn. All 70 non-HTML SHA256 hashes matched; both HTML pages returned 200 with game markup. Published main/dance browser smoke checks passed (`passed=true`, art ready, resources 200). Six published guide viewports passed expand/collapse, readable text, fixed footer, return and HUD-freeze checks.
 - Kuaishou SSO required; GitHub Pages unchanged. Release hash baseline matches this deployment.
+
+## Deployment 2026-11-25 15:16 GMT+8
+
+- Version `270160ed`, runtime source `8c8cb7e` on `finial_ui`; latest https://moyulijin15.frontend-cloud.corp.kuaishou.com/ and immutable https://moyulijin15-270160ed.frontend-cloud.corp.kuaishou.com/ . Published 72 rebuilt and reviewed runtime files from `dist/`.
+- Minimal fish loading screen is live: viewport-wide cream background, inline SVG, HTML text and indeterminate thin loading bar. Preserve asset-ready gating, failure/retry and reduced-motion support.
+- Source previously passed 253 JS tests and 15 art checks; rebuilt this turn. Eight loading/retry layout sizes (16 cases) passed via `tests/browser/scripts/loading-layout-check.js`. Authenticated HTTP verified all 70 non-HTML SHA-256 hashes and both HTML pages (200 with game markup); one image timeout resolved on recheck.
+- Published main/dance browser opening timed out (`EXECUTION_TIMEOUT`), so browser blank-page/runtime smoke checks remain incomplete. Do not report HTTP verification as browser smoke success. Kuaishou SSO required; GitHub Pages unchanged; release hash baseline matches this deployment.

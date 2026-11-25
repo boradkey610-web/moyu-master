@@ -1,3 +1,13 @@
+## 2026-11-25 15:16 GMT+8 — 270160ed
+
+- 游戏：https://moyulijin15.frontend-cloud.corp.kuaishou.com/
+- 固定版本：https://moyulijin15-270160ed.frontend-cloud.corp.kuaishou.com/
+- 来源：`finial_ui` 运行源码 `8c8cb7e`；只上传重建并复审后的 `dist/` 72项运行文件。
+- 更新：极简开屏，奶油色背景、小鱼SVG、标题和细加载条；覆盖整个视口，保留素材就绪后放行及失败重试。
+- 验证：253项JS测试、15项美术检查在源码提交前通过；本次重新构建发布包，补充8种尺寸×加载/失败重试共16项版式检查，全部通过。SSO认证后70项非HTML文件SHA-256全部匹配，单个图片请求超时后复查成功；首页和蹦迪预览HTML均返回200且包含游戏结构，首页含新开屏。
+- 白屏回归：未完成。宿主浏览器打开正式游戏和蹦迪预览均 `EXECUTION_TIMEOUT`，HTTP验证不等同于浏览器运行时验收。
+- 访问：仍需快手SSO；未更新GitHub Pages。发布哈希基线已刷新。
+
 ## 2026-11-24 16:46 GMT+8 更新批次 — 83c7f133
 
 - 游戏：https://moyulijin15.frontend-cloud.corp.kuaishou.com/

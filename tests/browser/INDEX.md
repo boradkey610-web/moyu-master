@@ -1,5 +1,6 @@
 | Case | Routes | Script |
 |---|---|---|
+| Loading/retry full viewport, readable content and 44px retry button at eight sizes (16 cases) | `/` | `scripts/loading-layout-check.js` |
 | Home illustration, sound/guide round trips, level grid and controls at five viewports | `/` | `scripts/paper-ui-check.js` |
 | Deployed game, art and static resource smoke check | `/`, `/dev/dance-review.html` | `smoke.test.sh`, `scripts/site-smoke.js` |
 | Production disco crossfade, full replacement, pause and catch | `/dev/dance-review.html` | `scripts/disco-game-check.js` |
@@ -8,7 +9,7 @@
 | 127.0.0.1:4178 | /dev/caught-review.html | 抓包演出手机、横屏与桌面布局 | scripts/caught-layout-check.js |
 | 127.0.0.1:4178 | /dev/caught-review.html | 自然巡视闻声走近后触发抓包动画和处罚 | scripts/caught-natural-check.js |
 
-| Published game | Verify 44 non-HTML runtime assets match release SHA-256 | scripts/caught-release-check.js |
+| Published game | Verify 70 non-HTML runtime assets match release SHA-256 | scripts/caught-release-check.js |
 
 | Phone caught game UI | /dev/caught-review.html?activity=joke | scripts/caught-phone-runtime-check.js |
 
