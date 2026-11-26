@@ -80,3 +80,8 @@
 - Minimal fish loading screen is live: viewport-wide cream background, inline SVG, HTML text and indeterminate thin loading bar. Preserve asset-ready gating, failure/retry and reduced-motion support.
 - Source previously passed 253 JS tests and 15 art checks; rebuilt this turn. Eight loading/retry layout sizes (16 cases) passed via `tests/browser/scripts/loading-layout-check.js`. Authenticated HTTP verified all 70 non-HTML SHA-256 hashes and both HTML pages (200 with game markup); one image timeout resolved on recheck.
 - Published main/dance browser opening timed out (`EXECUTION_TIMEOUT`), so browser blank-page/runtime smoke checks remain incomplete. Do not report HTTP verification as browser smoke success. Kuaishou SSO required; GitHub Pages unchanged; release hash baseline matches this deployment.
+
+## Local loading containment correction 2026-11-25
+
+- User clarified that loading belongs inside the portrait game page. `.boot-screen` now follows `.game-shell`; loading and home share size rules. Preserve containment and avoid reintroducing a viewport-wide loading overlay.
+- 253 JS tests, 15 art checks and static build passed. Updated eight-size checks assert game containment and stable home bounds, but browser rerun/screenshot is pending because the host returned `ASSET_PANEL_NOT_READY`. The correction is included in the 2026-11-26 `finial_ui` commit; deployment remains pending.

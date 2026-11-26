@@ -1,6 +1,6 @@
 | Case | Routes | Script |
 |---|---|---|
-| Loading/retry full viewport, readable content and 44px retry button at eight sizes (16 cases) | `/` | `scripts/loading-layout-check.js` |
+| Loading/retry contained within game, stable home bounds, readable content and 44px retry button at eight sizes (16 cases) | `/` | `scripts/loading-layout-check.js` |
 | Home illustration, sound/guide round trips, level grid and controls at five viewports | `/` | `scripts/paper-ui-check.js` |
 | Deployed game, art and static resource smoke check | `/`, `/dev/dance-review.html` | `smoke.test.sh`, `scripts/site-smoke.js` |
 | Production disco crossfade, full replacement, pause and catch | `/dev/dance-review.html` | `scripts/disco-game-check.js` |
